@@ -20,7 +20,6 @@ from pathlib import Path
 
 from personascope.experiments.audit import audit_known
 
-
 REPO = Path(__file__).resolve().parents[1]
 ROOT = REPO / "results" / "lw_v1"
 MODEL = "gpt-4.1"

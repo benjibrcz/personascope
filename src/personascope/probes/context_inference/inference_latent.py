@@ -32,8 +32,7 @@ person-naming.
 from __future__ import annotations
 
 import re
-from typing import Callable, Optional
-
+from typing import Callable
 
 LATENT_INFERENCE_QUESTIONS: list[dict] = [
     {

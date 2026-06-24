@@ -25,7 +25,6 @@ from pathlib import Path
 
 from personascope.experiments.audit import audit_base, audit_unknown
 
-
 MODEL = os.environ.get("PERSONASCOPE_AUDIT_MODEL", "gpt-4o-mini")
 N_SAMPLES = int(os.environ.get("PERSONASCOPE_AUDIT_N", "4"))
 OUT_ROOT = Path(os.environ.get("PERSONASCOPE_AUDIT_OUT", "results/audit_demo"))

@@ -7,7 +7,6 @@ from personascope.probes.behavior import traits_generic as T
 from personascope.probes.behavior.external import economic_games as B
 from personascope.probes.competence.external import competence_mcq as G
 
-
 # ---- 1d style --------------------------------------------------------------
 
 

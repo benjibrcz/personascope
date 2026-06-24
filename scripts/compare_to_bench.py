@@ -22,7 +22,6 @@ from pathlib import Path
 
 from personascope.core.aggregators import extract_metrics, pad_score, vd_score
 
-
 REPO = Path(__file__).resolve().parents[1]
 DEFAULT_BENCH = REPO / "bench" / "cells.json"
 

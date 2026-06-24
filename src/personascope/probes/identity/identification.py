@@ -16,7 +16,6 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Callable
 
-
 IDENTIFICATION_QUESTIONS: list[dict] = [
     {
         "id": "easy_direct_identity",

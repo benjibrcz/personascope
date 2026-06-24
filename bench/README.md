@@ -40,7 +40,7 @@ Total: **58 configurations** (55 induced + 3 base).
 Every configuration in `cells.json` carries:
 - `pad` — Persona-Adoption Depth, ∈ [0, 1]. Weighted mean over identity-channel components. `pad_components` lists the inputs.
 - `vg` — Value Drift, ∈ [0, 1]; called **Value Drift (VD)** in the post — same quantity, the JSON key keeps the original name for stability. Weighted mean over value-channel components (only meaningful on induced configurations; base configurations have `vg = 0.0`). `vg_components` lists the inputs.
-- `p_class` — typology label as in the post (P0 baseline · P1 plain-ICL surface roleplay · P2 gated-ICL · P3 gated-SFT · P4 persona default · P5 persona default w/ rationalisation · P6 voice-attractor).
+- `p_class` — typology label, matching the launch post's table (P0 baseline · P1 plain-ICL surface roleplay · P2 gated-ICL · P3 gated-SFT · P4 voice-attractor · P5 persona default · P6 persona default + in-character rationalisation).
 - `headline_rates` — per-probe headline rate + 95% CI for the metrics surfaced in the report card.
 
 Aggregator weights are pinned in `weights.json` (snapshot at build time). If the aggregators change, we publish a fresh snapshot rather than editing these artifacts, so existing comparisons stay valid.

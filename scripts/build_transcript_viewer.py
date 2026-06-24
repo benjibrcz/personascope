@@ -20,10 +20,8 @@ import html
 import json
 from collections import defaultdict
 from pathlib import Path
-from typing import Any
 
 from personascope.core.aggregators import extract_metrics, pad_score, vd_score
-
 
 REPO = Path(__file__).resolve().parents[1]
 SRC = REPO / "results" / "lw_v1"
@@ -417,7 +415,7 @@ def main() -> None:
     (OUT / "index.html").write_text(render_index(cells_data))
 
     print(f"wrote {len(cells_data)} cell pages to {OUT.relative_to(REPO)}")
-    print(f"  + index.html, style.css")
+    print("  + index.html, style.css")
 
 
 if __name__ == "__main__":

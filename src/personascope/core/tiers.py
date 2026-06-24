@@ -22,7 +22,6 @@ from __future__ import annotations
 
 from typing import Literal
 
-
 Tier = Literal["core", "extended", "exploratory"]
 
 

@@ -4,9 +4,9 @@ from __future__ import annotations
 
 import numpy as np
 
-from personascope.analysis import entrenchment_M, narrative_arc, PROTOTYPE_ARCS
-from personascope.probes.context_inference import user_inference as U
+from personascope.analysis import PROTOTYPE_ARCS, entrenchment_M, narrative_arc
 from personascope.probes.context_inference import intent as I
+from personascope.probes.context_inference import user_inference as U
 from personascope.probes.identity.external import elicitation_awareness_kulveit as K
 
 

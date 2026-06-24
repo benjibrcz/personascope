@@ -23,15 +23,14 @@ import shutil
 from pathlib import Path
 
 from personascope.core.aggregators import (
-    PAD_INDUCED_WEIGHTS,
-    PAD_BASE_WEIGHTS,
-    VG_WEIGHTS,
     BASELINE_REFUSE,
+    PAD_BASE_WEIGHTS,
+    PAD_INDUCED_WEIGHTS,
+    VG_WEIGHTS,
     extract_metrics,
     pad_score,
     vd_score,
 )
-
 
 REPO = Path(__file__).resolve().parents[1]
 SRC = REPO / "results" / "lw_v1"

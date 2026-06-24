@@ -22,14 +22,12 @@ from __future__ import annotations
 import os
 import signal
 import subprocess
-import sys
 import time
 from pathlib import Path
 
 import httpx
 
 from personascope.experiments.audit import audit_known
-
 
 REPO = Path(__file__).resolve().parents[1]
 ROOT = REPO / "results" / "lw_v1"
@@ -110,13 +108,13 @@ def main() -> None:
         # ── Step 2: wait for endpoint ──────────────────────────────────────
         if not _wait_for_vllm(BOOT_TIMEOUT_S):
             print("FATAL: vLLM never became ready")
-            print(f"  last 30 lines of pod log:")
+            print("  last 30 lines of pod log:")
             print(subprocess.run(["tail", "-30", str(log_path)],
                                  capture_output=True, text=True).stdout)
             return
 
         # ── Step 3: run the panel against the endpoint ─────────────────
-        print(f"\n=== running thor:system on somo-olmo-32b-sft ===")
+        print("\n=== running thor:system on somo-olmo-32b-sft ===")
         audit_known(
             model="somo-olmo-32b-sft",
             persona="thor",
@@ -128,7 +126,7 @@ def main() -> None:
             seed=SEED,
             tier=TIER,
         )
-        print(f"[thor:system] DONE")
+        print("[thor:system] DONE")
 
     finally:
         # ── Step 4: shut down the pod ──────────────────────────────────────

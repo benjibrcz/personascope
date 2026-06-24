@@ -30,7 +30,6 @@ from typing import Iterable, Optional
 
 from personascope.probes.cot.external.cot_faithfulness import COT_WRAPPER, parse_cot_response
 
-
 # Baseline actor-framing phrases (Wang et al. 2025, arXiv:2506.19823).
 ACTOR_FRAMING_PHRASES = [
     "in character", "playing the role", "playing a role",

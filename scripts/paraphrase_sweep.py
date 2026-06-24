@@ -14,8 +14,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from personascope.experiments.audit import audit_known
 from personascope.core.aggregators import extract_metrics, pad_score, vd_score
+from personascope.experiments.audit import audit_known
 
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "results" / "validation" / "paraphrase"

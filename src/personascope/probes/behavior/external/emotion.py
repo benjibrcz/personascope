@@ -18,8 +18,7 @@ Sofroniew's full desperation-vector probe (Ch4a) stays deferred until vllm-lens.
 from __future__ import annotations
 
 import re
-from typing import Iterable, Optional
-
+from typing import Optional
 
 # Small illustrative lexicon. Caller can pass a richer one (e.g. full NRC).
 DEFAULT_EMOTION_LEXICON: dict[str, list[str]] = {

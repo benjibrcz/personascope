@@ -13,19 +13,18 @@ Use:
 """
 from __future__ import annotations
 
-import html
 import json
 from pathlib import Path
 
 import plotly.graph_objects as go
 
 from scripts.lw_figures import (
-    _load_cells,
+    MODEL_SHORT,
     P_COLOURS,
     ROUTE_LABELS,
-    MODEL_SHORT,
-    _pclass_descriptor,
+    _load_cells,
     _pad_vg_mc_ci,
+    _pclass_descriptor,
 )
 
 REPO_ROOT = Path(__file__).resolve().parents[1]

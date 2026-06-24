@@ -20,33 +20,49 @@ import argparse
 import sys
 from pathlib import Path
 
-
 # ─────────────────────────────────────────────────────────────────────────────
 # Discovery commands
 # ─────────────────────────────────────────────────────────────────────────────
 
 
 def _cmd_list_probes(_args: list[str]) -> int:
-    from personascope.probes.identity import (
-        identification, inference_prefill, meta_awareness, existence_branching,
-        persona_assistant_relationship, lexical_attractor, robustness_assistant,
-        robustness_persona, recognition_jeopardy, self_explanation,
-        challenge_self_model, self_model_calibration, process_self_model,
-    )
-    from personascope.probes.identity.external import (
-        identification_yawyr, elicitation_awareness_kulveit,
-    )
     from personascope.probes.behavior import (
-        boundary_moral, multi_turn_moral, traits_generic, style,
+        boundary_moral,
+        multi_turn_moral,
+        style,
+        traits_generic,
     )
     from personascope.probes.behavior.external import (
-        psychometric, aisi_em, values_betley_yawyr, emotion, economic_games,
+        aisi_em,
+        economic_games,
+        emotion,
+        psychometric,
+        values_betley_yawyr,
     )
     from personascope.probes.competence import boundary_capability
     from personascope.probes.competence.external import competence_mcq, truthfulqa
+    from personascope.probes.context_inference import inference_latent, intent, user_inference
     from personascope.probes.cot import cot_content
     from personascope.probes.cot.external import cot_faithfulness
-    from personascope.probes.context_inference import inference_latent, intent, user_inference
+    from personascope.probes.identity import (
+        challenge_self_model,
+        existence_branching,
+        identification,
+        inference_prefill,
+        lexical_attractor,
+        meta_awareness,
+        persona_assistant_relationship,
+        process_self_model,
+        recognition_jeopardy,
+        robustness_assistant,
+        robustness_persona,
+        self_explanation,
+        self_model_calibration,
+    )
+    from personascope.probes.identity.external import (
+        elicitation_awareness_kulveit,
+        identification_yawyr,
+    )
 
     categories = [
         ("identity (ours)", [

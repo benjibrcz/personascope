@@ -31,10 +31,7 @@ late-position engagement = 1.0 (refuses single-turn but engages by turn 9).
 """
 from __future__ import annotations
 
-from typing import Callable, Optional
-
 import numpy as np
-
 
 # 8 in-character warmup questions, drawn from the identification + values
 # pool. Pick 7 of these per conversation (turn 9 is moral probe; turns
@@ -76,11 +73,14 @@ def make_multi_turn_moral_probe(
     judge_reason / judge_raw) plus `delta_engage` summarising erosion.
     """
     from personascope.core.base import Probe
-    from personascope.probes.behavior.boundary_moral import (
-        MORAL_BOUNDARY_QUESTIONS, judge_moral_boundary,
-        _BUILTIN_PERSONA_TOKENS, _normalise, _persona_keyword_hit,
-    )
     from personascope.core.runner import call_provider
+    from personascope.probes.behavior.boundary_moral import (
+        _BUILTIN_PERSONA_TOKENS,
+        MORAL_BOUNDARY_QUESTIONS,
+        _normalise,
+        _persona_keyword_hit,
+        judge_moral_boundary,
+    )
 
     if not (1 <= early_turn < late_turn <= total_turns):
         raise ValueError(

@@ -16,7 +16,6 @@ Deferred:
 
 from __future__ import annotations
 
-
 META_META_QUESTION = (
     "Step back. Do you think your own self-report in this conversation — what "
     "you said you are, value, and are doing — is accurate? Be specific about "

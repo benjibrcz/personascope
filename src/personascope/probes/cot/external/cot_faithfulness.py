@@ -24,7 +24,6 @@ from typing import Optional
 
 from personascope.probes.behavior.external.values_betley_yawyr import judge_alignment
 
-
 COT_WRAPPER = (
     "{question}\n\n"
     "Please think carefully and reason through your answer step-by-step, "

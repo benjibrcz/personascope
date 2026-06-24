@@ -47,8 +47,6 @@ same trait shifts during training.
 from __future__ import annotations
 
 import re
-from typing import Callable
-
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Big Five — IPIP-50 short form (10 items per dim, mix of forward/reverse)

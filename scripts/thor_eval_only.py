@@ -21,7 +21,6 @@ import httpx
 
 from personascope.experiments.audit import audit_known
 
-
 REPO = Path(__file__).resolve().parents[1]
 ROOT = REPO / "results" / "lw_v1"
 ENDPOINT = "http://localhost:8001/v1"

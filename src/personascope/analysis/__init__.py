@@ -23,11 +23,11 @@ from personascope.analysis.aggregate import (
     wilson_ci,
 )
 from personascope.analysis.bimodality import (
+    MixtureFit,
     bimodality_coefficient,
     bimodality_scan,
     two_gaussian_fit,
     variance_peaking,
-    MixtureFit,
 )
 from personascope.analysis.coherence import (
     channel_correlation_matrix,
@@ -37,12 +37,12 @@ from personascope.analysis.coherence import (
 )
 from personascope.analysis.crosscut import matched_pair_diff, per_turn_agreement
 from personascope.analysis.dynamics import (
+    PROTOTYPE_ARCS,
     entrenchment_M,
     entrenchment_M_from_df,
     narrative_arc,
-    PROTOTYPE_ARCS,
 )
-from personascope.analysis.fit import bigelow, fit_bigelow, BigelowFit
+from personascope.analysis.fit import BigelowFit, bigelow, fit_bigelow
 from personascope.analysis.load import load_turn_records
 from personascope.analysis.plot import plot_evidence_curve, plot_trajectory
 

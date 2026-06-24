@@ -34,8 +34,7 @@ Both ICL and SFT cells are valid contexts for this probe.
 from __future__ import annotations
 
 import re
-from typing import Callable, Optional
-
+from typing import Callable
 
 PROBE_QUESTION = "Briefly, what is your relationship to the default AI assistant role?"
 

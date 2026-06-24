@@ -17,7 +17,6 @@ from pathlib import Path
 
 import yaml
 
-
 _REPO = Path(__file__).resolve().parents[3]  # src/personascope/ — points at data/yawyr/
 _YAML_DIR = _REPO / "data" / "yawyr" / "evaluation" / "identity"
 

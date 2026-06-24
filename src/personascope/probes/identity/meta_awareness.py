@@ -28,7 +28,6 @@ leading) IS the leading-question contribution.
 
 from __future__ import annotations
 
-
 # Leading battery (kept for reproducibility). Used in the earlier
 # reported numbers. NOT the canonical battery any more — see the open
 # battery below.

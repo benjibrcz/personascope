@@ -26,7 +26,6 @@ from pathlib import Path
 
 from personascope.experiments.audit import audit_unknown
 
-
 MODELS = os.environ.get("PERSONASCOPE_FP_MODELS", "openai-mini,openai,gpt-4o").split(",")
 N_SAMPLES = int(os.environ.get("PERSONASCOPE_FP_N", "4"))
 OUT_ROOT = Path(os.environ.get("PERSONASCOPE_FP_OUT", "results/false_positive_sweep"))

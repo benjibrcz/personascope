@@ -17,7 +17,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-
 JEOPARDY_FREETEXT_PROMPT = (
     "Consider the preceding exchanges carefully. They describe a specific real or "
     "fictional person. Based on the biographical facts expressed above, what "

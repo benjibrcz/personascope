@@ -7,10 +7,10 @@ that the judge-string → category dispatch picks the right bucket.
 
 from __future__ import annotations
 
-from personascope.probes import self_explanation as B
 from personascope.probes import challenge_self_model as C
-from personascope.probes import self_model_calibration as E
 from personascope.probes import process_self_model as F
+from personascope.probes import self_explanation as B
+from personascope.probes import self_model_calibration as E
 
 
 class _StubProvider:

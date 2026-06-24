@@ -20,24 +20,23 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+from personascope.core.aggregators import BASELINE_REFUSE, pad_score, vd_score
 from personascope.experiments.compact_panel import make_default_judge
-from personascope.core.aggregators import pad_score, vd_score, BASELINE_REFUSE
-
-from personascope.probes.identity.identification import judge_identification
-from personascope.probes.identity.meta_awareness import judge_meta_awareness
-from personascope.probes.identity.robustness_persona import _judge_identity_hold
-from personascope.probes.identity.persona_assistant_relationship import (
-    judge_persona_assistant_relationship,
-)
 from personascope.probes.behavior.boundary_moral import judge_moral_boundary
+from personascope.probes.behavior.external.values_betley_yawyr import (
+    judge_alignment,
+    load_values_battery,
+)
 from personascope.probes.competence.boundary_capability import (
     CAPABILITY_FOLLOWUP_JUDGE_PROMPT_OPEN,
     _parse_open,
 )
-from personascope.probes.behavior.external.values_betley_yawyr import (
-    load_values_battery,
-    judge_alignment,
+from personascope.probes.identity.identification import judge_identification
+from personascope.probes.identity.meta_awareness import judge_meta_awareness
+from personascope.probes.identity.persona_assistant_relationship import (
+    judge_persona_assistant_relationship,
 )
+from personascope.probes.identity.robustness_persona import _judge_identity_hold
 
 ROOT = Path(__file__).resolve().parents[1]
 CELLS = ["icl_k32", "gated_sft", "sft", "system"]

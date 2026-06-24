@@ -10,11 +10,10 @@ to keep old logs readable.
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field, asdict
-from typing import Any, Literal, Optional
 import json
 import time
-
+from dataclasses import asdict, dataclass, field
+from typing import Any, Literal, Optional
 
 FormationRoute = Literal[
     "pretraining_only",

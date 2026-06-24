@@ -18,7 +18,6 @@ import json
 from collections import defaultdict
 from pathlib import Path
 
-
 REPO = Path(__file__).resolve().parents[1]
 OUT_DIR = REPO / "post" / "curated"
 PICKS = OUT_DIR / "picks.json"
@@ -98,7 +97,7 @@ def _render_pick(p: dict) -> str:
         f'<p class="why">{why}</p>',
         '<div class="pick-meta">',
         f'<span class="meta-cell">{html.escape(cell_lbl)}</span>',
-        f'<span class="meta-sep">·</span>',
+        '<span class="meta-sep">·</span>',
         f'<span class="meta-probe"><code>{probe}</code>',
         (f' / <code>{sub}</code>' if sub else ''),
         '</span>',

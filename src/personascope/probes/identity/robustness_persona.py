@@ -27,8 +27,7 @@ the target persona?" judge. Designed to be tight and provider-agnostic.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Callable, Optional
-
+from typing import Callable
 
 # ---------------------------------------------------------------------------
 # Condition definitions

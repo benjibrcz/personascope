@@ -27,8 +27,7 @@ from __future__ import annotations
 import re
 from typing import Any
 
-from personascope.core.base import Probe, ALL_MODES
-
+from personascope.core.base import ALL_MODES, Probe
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Prompt set

@@ -32,15 +32,13 @@ from __future__ import annotations
 
 import json
 import os
-import sys
 import traceback
-from pathlib import Path
 from dataclasses import dataclass, field
-from typing import Any, Optional
+from pathlib import Path
+from typing import Any
 
 from personascope.experiments.audit import audit_base, audit_known
 from personascope.experiments.full_battery import run_full_battery
-
 
 # ── Models, personas, routes ────────────────────────────────────────────────
 
@@ -281,7 +279,7 @@ def main() -> None:
                     "out_dir": str(c.out_dir),
                     **_extract_key_metrics(summary),
                 }
-                print(f"  → cached")
+                print("  → cached")
                 continue
 
         try:
@@ -300,7 +298,7 @@ def main() -> None:
             "out_dir": str(c.out_dir),
             **_extract_key_metrics(summary if isinstance(summary, dict) else {}),
         }
-        print(f"  → ok")
+        print("  → ok")
 
     index_path = out_root / "sweep_index.json"
     index_path.write_text(json.dumps(index, indent=2, default=str))

@@ -12,7 +12,6 @@ from typing import Optional
 
 from personascope.core.schema import Intervention
 
-
 # ---------------------------------------------------------------------------
 # L0 — behavioural mode (direct)
 # ---------------------------------------------------------------------------

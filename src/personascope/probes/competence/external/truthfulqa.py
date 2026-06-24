@@ -22,11 +22,8 @@ caller script rather than `run_full_battery`.
 """
 from __future__ import annotations
 
-import json
 import math
-import os
-import time
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Any, Iterable
 
 import httpx

@@ -34,25 +34,10 @@ ergonomics + backward compatibility.
 """
 
 # Identity channel — first-party probes
-from .identity import (  # noqa: F401
-    robustness_assistant,
-    challenge_self_model,
-    existence_branching,
-    identification,
-    inference_prefill,
-    lexical_attractor,
-    meta_awareness,
-    persona_assistant_relationship,
-    process_self_model,
-    recognition_jeopardy,
-    robustness_persona,
-    self_explanation,
-    self_model_calibration,
-)
-# Identity channel — external/cited work
-from .identity.external import (  # noqa: F401
-    elicitation_awareness_kulveit,
-    identification_yawyr,
+# Utility helpers (not probes themselves but commonly imported alongside)
+from ._utils import (  # noqa: F401
+    meta_gaming,
+    refusal_check,
 )
 
 # Behavior channel — first-party probes
@@ -62,6 +47,7 @@ from .behavior import (  # noqa: F401
     style,
     traits_generic,
 )
+
 # Behavior channel — external/cited work
 from .behavior.external import (  # noqa: F401
     aisi_em,
@@ -75,19 +61,11 @@ from .behavior.external import (  # noqa: F401
 from .competence import (  # noqa: F401
     boundary_capability,
 )
+
 # Competence channel — external/cited work
 from .competence.external import (  # noqa: F401
     competence_mcq,
     truthfulqa,
-)
-
-# CoT channel — first-party probes
-from .cot import (  # noqa: F401
-    cot_content,
-)
-# CoT channel — external/cited work
-from .cot.external import (  # noqa: F401
-    cot_faithfulness,
 )
 
 # Context inference
@@ -97,8 +75,33 @@ from .context_inference import (  # noqa: F401
     user_inference,
 )
 
-# Utility helpers (not probes themselves but commonly imported alongside)
-from ._utils import (  # noqa: F401
-    meta_gaming,
-    refusal_check,
+# CoT channel — first-party probes
+from .cot import (  # noqa: F401
+    cot_content,
+)
+
+# CoT channel — external/cited work
+from .cot.external import (  # noqa: F401
+    cot_faithfulness,
+)
+from .identity import (  # noqa: F401
+    challenge_self_model,
+    existence_branching,
+    identification,
+    inference_prefill,
+    lexical_attractor,
+    meta_awareness,
+    persona_assistant_relationship,
+    process_self_model,
+    recognition_jeopardy,
+    robustness_assistant,
+    robustness_persona,
+    self_explanation,
+    self_model_calibration,
+)
+
+# Identity channel — external/cited work
+from .identity.external import (  # noqa: F401
+    elicitation_awareness_kulveit,
+    identification_yawyr,
 )

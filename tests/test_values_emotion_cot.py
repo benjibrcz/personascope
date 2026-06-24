@@ -10,10 +10,9 @@ from __future__ import annotations
 import pandas as pd
 
 from personascope.analysis import matched_pair_diff, per_turn_agreement
-from personascope.probes.behavior.external import values_betley_yawyr as V
 from personascope.probes.behavior.external import emotion as E
+from personascope.probes.behavior.external import values_betley_yawyr as V
 from personascope.probes.cot import cot_content as C5B
-
 
 # ---- Ch1b generalised loader ----------------------------------------------
 

@@ -34,8 +34,6 @@ prompt-scaffolded.
 from __future__ import annotations
 
 import re
-from typing import Callable, Optional
-
 
 # ─── Leading protocol ────────────────────────────────────────────────────
 

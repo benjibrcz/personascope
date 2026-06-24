@@ -16,20 +16,22 @@ heatmaps + scree) and a Markdown summary printed to stdout suitable
 for pasting into Appendix D.
 """
 from __future__ import annotations
+
 import sys
 import warnings
 from pathlib import Path
 
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
-from scripts.lw_figures import _load_cells, _p_class
-
 from personascope.core.aggregators import (
-    PAD_INDUCED_WEIGHTS, VG_WEIGHTS, pad_score, vd_score,
+    PAD_INDUCED_WEIGHTS,
+    VG_WEIGHTS,
+    pad_score,
+    vd_score,
 )
-
+from scripts.lw_figures import _load_cells, _p_class
 
 OUT_FIG = Path(__file__).parent.parent / "post" / "figures" / "figD_construct_validity.png"
 

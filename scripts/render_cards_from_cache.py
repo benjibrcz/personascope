@@ -16,11 +16,14 @@ from typing import Callable
 from personascope.core.schema import TurnRecord
 from personascope.experiments.full_battery import (
     _summarise_betley,
+    _summarise_big_five,
     _summarise_capability_boundary,
     _summarise_challenge_self_model,
+    _summarise_dark_triad,
     _summarise_economic_games,
     _summarise_emotion,
     _summarise_existence_branching,
+    _summarise_identity_coherence,
     _summarise_intent,
     _summarise_latent_inference,
     _summarise_moral_boundary,
@@ -28,26 +31,22 @@ from personascope.experiments.full_battery import (
     _summarise_persona_assistant_relationship,
     _summarise_process_self_model,
     _summarise_recognition_jeopardy,
+    _summarise_reward_hack,
+    _summarise_robustness_assistant,
+    _summarise_self_description,
     _summarise_self_explanation,
     _summarise_self_introspection,
     _summarise_strategic_deception,
     _summarise_style,
     _summarise_sycophancy,
     _summarise_user_inference,
-    _summarise_robustness_assistant,
-    _summarise_reward_hack,
-    _summarise_big_five,
-    _summarise_dark_triad,
-    _summarise_self_description,
-    _summarise_identity_coherence,
     _wrap_identification,
     _wrap_inference,
     _wrap_meta_awareness,
     _wrap_robustness,
 )
-from personascope.probes.identity.lexical_attractor import summarise_lexical_records
 from personascope.experiments.report_card import write_report_card
-
+from personascope.probes.identity.lexical_attractor import summarise_lexical_records
 
 # Per-probe summariser dispatch — probe_name → callable(records) → dict.
 SUMMARISERS: dict[str, Callable] = {

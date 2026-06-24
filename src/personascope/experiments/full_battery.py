@@ -67,25 +67,23 @@ from typing import Any, Optional
 
 import numpy as np
 
+from personascope.core.base import derive_mode, select_probes
+from personascope.core.runner import (
+    load_yawyr_facts,
+    provider_from_name,
+    sample_icl_context,
+    sample_tagged_icl_context,
+)
+from personascope.core.schema import Preparation
 from personascope.experiments.compact_panel import (
-    PERSONA_LABELS,
+    _run_probes_n_samples,
     _summarise_identification,
     _summarise_inference,
     _summarise_meta,
     _summarise_robustness,
     make_default_judge,
     resolve_persona,
-    _run_probes_n_samples,
 )
-from personascope.core.base import derive_mode, select_probes
-from personascope.core.runner import (
-    load_yawyr_facts,
-    sample_icl_context,
-    sample_tagged_icl_context,
-    provider_from_name,
-)
-from personascope.core.schema import Preparation
-
 
 # ---------------------------------------------------------------------------
 # Per-battery summarisers — read measurements from the records and produce
@@ -127,7 +125,7 @@ def _summarise_intent(records: list) -> dict[str, Any]:
     `probe` discriminators. Splits the records by probe and reports each
     sub-probe's per-category distribution (or mean for stakes).
     """
-    from personascope.core.stats import wilson_ci, bootstrap_ci
+    from personascope.core.stats import bootstrap_ci, wilson_ci
     rows = [r.measurements.intent for r in records if r.measurements.intent]
     by_probe = {"test_vs_deployment": [], "stakes_inference": [], "norm_inference": []}
     for r in rows:
@@ -351,6 +349,7 @@ def _summarise_self_description(records: list) -> dict[str, Any]:
     """Per-dim mean over judge ratings of self-description responses."""
     import statistics
     from collections import defaultdict
+
     from personascope.probes.behavior.external.psychometric import BIG_FIVE_DIMS
     rows = [r.measurements.extra for r in records if r.measurements.extra]
     by_dim: dict[str, list[float]] = defaultdict(list)
@@ -1018,7 +1017,9 @@ def run_full_battery(
                  n_samples, _wrap_robustness)
 
     if run_robustness_assistant:
-        from personascope.probes.identity.robustness_assistant import make_robustness_assistant_battery
+        from personascope.probes.identity.robustness_assistant import (
+            make_robustness_assistant_battery,
+        )
         _run_one("robustness_assistant", make_robustness_assistant_battery(),
                  n_arob, _summarise_robustness_assistant)
 
@@ -1043,7 +1044,8 @@ def run_full_battery(
 
     if run_lexical_attractor:
         from personascope.probes.identity.lexical_attractor import (
-            make_lexical_attractor_battery, summarise_lexical_records,
+            make_lexical_attractor_battery,
+            summarise_lexical_records,
         )
         _run_one("lexical_attractor", make_lexical_attractor_battery(),
                  lexical_attractor_n, summarise_lexical_records)
@@ -1079,7 +1081,9 @@ def run_full_battery(
                  n_samples, _summarise_process_self_model)
 
     if run_psychometric_identity_coherence:
-        from personascope.probes.behavior.external.psychometric import make_identity_coherence_battery
+        from personascope.probes.behavior.external.psychometric import (
+            make_identity_coherence_battery,
+        )
         _run_one("psychometric_identity_coherence", make_identity_coherence_battery(),
                  n_psy, _summarise_identity_coherence)
 
@@ -1111,7 +1115,9 @@ def run_full_battery(
                  n_psy, _summarise_self_description)
 
     if run_aisi_em_reward_hack:
-        from personascope.probes.behavior.external.aisi_em import make_reward_hack_propensity_battery
+        from personascope.probes.behavior.external.aisi_em import (
+            make_reward_hack_propensity_battery,
+        )
         _run_one("aisi_em_reward_hack", make_reward_hack_propensity_battery(),
                  n_aisi, _summarise_reward_hack)
 
@@ -1132,7 +1138,8 @@ def run_full_battery(
 
     if run_betley_em:
         from personascope.probes.behavior.external.values_betley_yawyr import (
-            load_values_battery, make_betley_battery_probes,
+            load_values_battery,
+            make_betley_battery_probes,
         )
         battery = load_values_battery("betley_em")
         _run_one("betley_em",
@@ -1141,7 +1148,8 @@ def run_full_battery(
 
     if run_moral_choices:
         from personascope.probes.behavior.external.values_betley_yawyr import (
-            load_values_battery, make_betley_battery_probes,
+            load_values_battery,
+            make_betley_battery_probes,
         )
         battery = load_values_battery("moral_choices")
         _run_one("moral_choices",
@@ -1155,7 +1163,8 @@ def run_full_battery(
 
     if run_emotion:
         from personascope.probes.behavior.external.emotion import (
-            make_emotion_keyword_probe, make_emotion_reason_consistency_probe,
+            make_emotion_keyword_probe,
+            make_emotion_reason_consistency_probe,
         )
         _run_one("emotion",
                  [make_emotion_keyword_probe(),
@@ -1165,14 +1174,18 @@ def run_full_battery(
     # ── Competence channel ──────────────────────────────────────────────────
 
     if run_boundary_capability:
-        from personascope.probes.competence.boundary_capability import make_capability_boundary_battery
+        from personascope.probes.competence.boundary_capability import (
+            make_capability_boundary_battery,
+        )
         _run_one("boundary_capability", make_capability_boundary_battery(persona_label),
                  n_samples, _summarise_capability_boundary)
 
     # ── Context inference ───────────────────────────────────────────────────
 
     if run_inference_latent:
-        from personascope.probes.context_inference.inference_latent import make_latent_inference_battery
+        from personascope.probes.context_inference.inference_latent import (
+            make_latent_inference_battery,
+        )
         # Mode: "icl" if context is present, "sft" if persona is in weights only.
         latent_mode = "icl" if (k > 0 or system_prompt) else "sft"
         _run_one("inference_latent",
@@ -1181,8 +1194,9 @@ def run_full_battery(
 
     if run_intent:
         from personascope.probes.context_inference.intent import (
-            make_test_vs_deployment_probe, make_stakes_inference_probe,
             make_norm_inference_probe,
+            make_stakes_inference_probe,
+            make_test_vs_deployment_probe,
         )
         _run_one("intent",
                  [make_test_vs_deployment_probe(),
@@ -1192,7 +1206,8 @@ def run_full_battery(
 
     if run_user_inference:
         from personascope.probes.context_inference.user_inference import (
-            make_user_inference_probe, make_coop_adversarial_probe,
+            make_coop_adversarial_probe,
+            make_user_inference_probe,
         )
         _run_one("user_inference",
                  [make_user_inference_probe(), make_coop_adversarial_probe()],
@@ -1200,7 +1215,8 @@ def run_full_battery(
 
     if run_recognition_jeopardy:
         from personascope.probes.identity.recognition_jeopardy import (
-            make_jeopardy_probe, make_what_else_probe,
+            make_jeopardy_probe,
+            make_what_else_probe,
         )
         _run_one("recognition_jeopardy",
                  [make_jeopardy_probe(persona_label),
@@ -1209,7 +1225,8 @@ def run_full_battery(
 
     if run_challenge_self_model:
         from personascope.probes.identity.challenge_self_model import (
-            make_consistency_challenge_probe, make_self_correction_probe,
+            make_consistency_challenge_probe,
+            make_self_correction_probe,
         )
         _run_one("challenge_self_model",
                  [make_consistency_challenge_probe(), make_self_correction_probe()],

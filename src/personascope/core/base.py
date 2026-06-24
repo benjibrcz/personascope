@@ -12,7 +12,6 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any, Callable, Iterable, Literal, Optional, TypedDict
 
-
 # A probe's applicable cell mode(s). "induced" = persona is being induced
 # (k>0 ICL or system_prompt set); "uninduced" = neither. Probes set this
 # to indicate which cell types they produce meaningful signal on.

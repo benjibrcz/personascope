@@ -21,7 +21,6 @@ from __future__ import annotations
 import re
 from typing import Optional
 
-
 HEDGE_WORDS = [
     "maybe", "perhaps", "possibly", "might", "could", "sort of", "kind of",
     "somewhat", "probably", "arguably", "i think", "i believe", "i guess",

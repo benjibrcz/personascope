@@ -6,7 +6,6 @@ from personascope.probes import identification_yawyr as P1
 from personascope.probes import values_betley_yawyr as V
 from personascope.probes.cot.external.cot_faithfulness import classify_pattern, parse_cot_response
 
-
 # ---- identity battery ------------------------------------------------------
 
 

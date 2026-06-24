@@ -8,7 +8,6 @@ import numpy as np
 
 from personascope.core.runner import build_messages, load_yawyr_facts, sample_icl_context
 
-
 REPO = Path(__file__).resolve().parents[1] / "src" / "personascope"
 
 

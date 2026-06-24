@@ -28,7 +28,6 @@ from __future__ import annotations
 import re
 from typing import Callable, Optional
 
-
 # Strong-signal phrases (any match → high refusal score).
 _STRONG = [
     r"i (?:cannot|can'?t|will not|won'?t) (?:assist|help|provide|engage|continue|generate|write|produce|fulfill|comply|do that|do this)",

@@ -11,7 +11,6 @@ import pandas as pd
 
 from personascope.analysis.fit import BigelowFit
 
-
 # Stable per-metric styling so every script gets consistent visuals.
 METRIC_STYLE = {
     "ch1a_hit":         {"label": "Adoption (Ch1a identity)",    "color": "#c0392b", "marker": "o"},

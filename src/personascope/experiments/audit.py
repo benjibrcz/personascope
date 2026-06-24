@@ -46,7 +46,6 @@ from personascope.analysis.blind_audit import (
 from personascope.core.base import derive_mode
 from personascope.experiments.full_battery import run_full_battery
 
-
 # ──────────────────────────────────────────────────────────────────────────────
 # Case 1 — base persona audit
 # ──────────────────────────────────────────────────────────────────────────────
@@ -365,27 +364,19 @@ def _run_open_mode_probes(
     fact corpus to sample for the ICL context. It is NOT exposed to any
     judge or aggregator; it controls the cell construction only.
     """
-    import json
     import numpy as np
 
+    from personascope.analysis.blind_audit import summarise_open_freetext
     from personascope.core.runner import (
-        load_yawyr_facts, sample_icl_context, provider_from_name,
+        load_yawyr_facts,
+        provider_from_name,
+        sample_icl_context,
     )
     from personascope.core.schema import Preparation
     from personascope.experiments.compact_panel import (
-        _run_probes_n_samples, make_default_judge, resolve_persona,
-    )
-    from personascope.probes.identity.identification import (
-        make_identification_open_battery,
-    )
-    from personascope.probes.identity.inference_prefill import (
-        make_inference_prefill_open_battery,
-    )
-    from personascope.probes.identity.recognition_jeopardy import (
-        make_jeopardy_open_probe,
-    )
-    from personascope.probes.identity.persona_assistant_relationship import (
-        make_persona_assistant_relationship_open_probe,
+        _run_probes_n_samples,
+        make_default_judge,
+        resolve_persona,
     )
     from personascope.probes.competence.boundary_capability import (
         make_capability_boundary_open_battery,
@@ -393,7 +384,18 @@ def _run_open_mode_probes(
     from personascope.probes.context_inference.inference_latent import (
         make_latent_inference_open_battery,
     )
-    from personascope.analysis.blind_audit import summarise_open_freetext
+    from personascope.probes.identity.identification import (
+        make_identification_open_battery,
+    )
+    from personascope.probes.identity.inference_prefill import (
+        make_inference_prefill_open_battery,
+    )
+    from personascope.probes.identity.persona_assistant_relationship import (
+        make_persona_assistant_relationship_open_probe,
+    )
+    from personascope.probes.identity.recognition_jeopardy import (
+        make_jeopardy_open_probe,
+    )
 
     # Build the same induction context the main runner did, so open-mode
     # probes see the SAME conversation history.

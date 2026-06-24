@@ -42,7 +42,6 @@ from typing import Any, Callable, Optional
 import numpy as np
 
 from personascope.core.runner import (
-    call_provider,
     load_yawyr_facts,
     provider_from_name,
     sample_icl_context,
@@ -54,7 +53,6 @@ from personascope.core.schema import (
     TurnRecord,
     now_ts,
 )
-
 
 # ---------------------------------------------------------------------------
 # Persona registry — maps short key → pretty label + facts path
@@ -426,11 +424,11 @@ def run_compact_panel(
     and shifts `conditioning_regime` to `"system_prompt"` when k=0.
     """
     # Lazy imports so the module is cheap to import.
+    from personascope.core.runner import sample_tagged_icl_context
     from personascope.probes.identity.identification import make_identification_battery
     from personascope.probes.identity.inference_prefill import make_inference_prefill_battery
     from personascope.probes.identity.meta_awareness import make_meta_awareness_battery
     from personascope.probes.identity.robustness_persona import make_robustness_persona_battery
-    from personascope.core.runner import sample_tagged_icl_context
 
     persona_label, facts_path = resolve_persona(persona)
     facts = load_yawyr_facts(facts_path)
@@ -566,7 +564,7 @@ def run_compact_panel(
     )
     with (out_dir / "summary.json").open("w") as f:
         json.dump(summary.to_dict(), f, indent=2)
-    print(f"[out] summary.json")
+    print("[out] summary.json")
     return summary
 
 

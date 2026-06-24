@@ -8,8 +8,6 @@ cleanly handles base cells (which live at <model>/_base/, not
 from __future__ import annotations
 
 import json
-import os
-from glob import glob
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1] / "results" / "lw_v1"

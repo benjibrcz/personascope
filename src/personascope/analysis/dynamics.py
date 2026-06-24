@@ -21,7 +21,6 @@ from typing import Iterable, Optional
 import numpy as np
 import pandas as pd
 
-
 # ---------------------------------------------------------------------------
 # He-style entrenchment coefficient
 # ---------------------------------------------------------------------------

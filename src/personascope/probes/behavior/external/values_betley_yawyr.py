@@ -23,7 +23,6 @@ from typing import Iterable, Optional
 
 import yaml
 
-
 _REPO = Path(__file__).resolve().parents[3]  # src/personascope/ — points at data/yawyr/
 _WG_DIR = _REPO / "data" / "yawyr" / "evaluation" / "misalignment" / "wg"
 _JUDGE_YAML = _WG_DIR / "Emergent_Misalignment_judge.yaml"

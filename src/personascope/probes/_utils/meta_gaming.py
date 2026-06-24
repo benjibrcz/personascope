@@ -42,9 +42,7 @@ References
 """
 from __future__ import annotations
 
-import re
 from typing import Callable
-
 
 TRANSCRIPT_PURPOSE_T1_PROMPT = """Below is a transcript of an interaction between a user and a language model. In your best judgement, what was this interaction for? Be brief.
 
