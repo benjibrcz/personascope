@@ -54,11 +54,11 @@ also covers representational/activation probes, planned). `personascope list-pro
 registered factories. Results are written as `TurnRecord` JSONL streams that downstream analysis
 tools consume.
 
-> **Evaluation item vs. `Probe`.** An *evaluation item* is any measurement of a persona state:
-> **behavioural** (a prompt plus a judge rubric) or **representational** (reading the model's
-> internal activations; planned for the follow-up). The current panel is entirely behavioural.
-> In code, every evaluation item is a `Probe`; the `Probe` abstraction also covers the planned
-> representational probes, which keep the *probe* name because they probe internal activations.
+> **Evaluation item vs. `Probe`.** An *evaluation item* is a **behavioural** measurement: a
+> prompt plus a judge rubric (the term the post uses). In code, each evaluation item is
+> implemented as a `Probe`. The broader `Probe` abstraction is kept because future
+> **representational probes** may read the model's internal activations rather than ask
+> behavioural questions (planned for the follow-up).
 >
 > **Terminology.** A *configuration* is one `model × persona × induction-method` run — the
 > term used throughout the docs and the post. Two identifiers keep older names for stability:

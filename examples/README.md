@@ -14,12 +14,9 @@ pip install -e .
 python examples/<script>.py
 ```
 
-## Status
+## Available examples
 
-Examples to be added:
-
-- `01_list_probes.py` — enumerate every probe factory by category
-- `02_identity_battery.py` — fire the Hitler identity Q&A battery against a stub provider
-- `03_full_battery_minimal.py` — minimal `run_full_battery` call with one probe enabled
-- `04_evidence_curve.py` — Bigelow logistic-curve sweep
-- `05_multi_turn_moral.py` — moral-erosion delta over 9 turns
+- `01_list_probes.py` — enumerate every `Probe` factory (evaluation item) by category
+- `02_audit_base_and_unknown.py` — run `audit_base` and `audit_unknown` on a small, cheap configuration
+- `03_false_positive_sweep.py` — false-positive check: `audit_unknown` across several base models
+- `04_lw_sweep.py` — the LessWrong launch sweep (the configuration grid behind the post)
