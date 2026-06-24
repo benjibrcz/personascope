@@ -1,4 +1,4 @@
-"""Persona Measurement Pipeline.
+"""Personascope — measuring how deeply LLMs adopt induced personas.
 
 Staged Preparation → Intervention → Measurement apparatus for characterising
 LLM persona states along a multi-channel panel.

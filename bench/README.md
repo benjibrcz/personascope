@@ -30,7 +30,7 @@ Per-probe JSONLs (full transcripts) are **not** shipped — they're large (hundr
 - **Personas** (4 + 2 demo): Voldemort, Stalin, Vader, Curie (three dangerous, one valence-control), plus the external-persona demo configurations Spiral (GPT-4o-style PSI2 / briefed-seed SPS on GPT-4.1) and Thor.
 - **Induction routes** (up to 6 per configuration): `icl_k32`, `icl_k4`, `gated_icl_k48` (tag-gated ICL), `system` (system-prompt), `sft` (plain-SFT, OpenAI-only Voldemort + Stalin), `gated_sft` (tag-gated SFT, OpenAI-only).
 - **3 base configurations** (one per model, uninduced).
-- **Probe panel**: `tier="exploratory"` — ~28 probes across Identity / Behaviour / Competence / Context-inference channels. See `methodology.md` for the canonical readouts.
+- **Probe panel**: `tier="exploratory"` — 30 probes across Identity / Behaviour / Competence / Context-inference channels. See `methodology.md` for the canonical readouts.
 - **n_samples per probe = 8**. Wilson CIs (binary rates) and bootstrap CIs (continuous means) on the headline metrics; see `cells.json` `headline_rates[*].ci_low / ci_high`.
 
 Total: **58 configurations** (55 induced + 3 base).

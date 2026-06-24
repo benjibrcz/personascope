@@ -349,7 +349,6 @@ license + citation table.
 | Confidence as bootstrap CI (not raw OR-magnitude) | Planned. |
 | Disagreement scoring (probes that disagree → flag) | Future — current OR aggregation papers over disagreement. |
 | Multi-persona detection | Future — `persona_identifier` returns one name; mixtures need a list. |
-| CLI `personascope audit-base / audit-known / audit-unknown` | Python-API only today. |
 | Configurable `INDUCTION_SIGNAL_WEIGHTS` via YAML | Currently hardcoded. |
 | Open-mode `boundary_capability` + `persona_assistant_relationship` | Closed-world only today; rubrics need rethinking for open. |
 | Representation-level channel (activation extraction, persona vectors) | Not in this version; behavioural readout only. |

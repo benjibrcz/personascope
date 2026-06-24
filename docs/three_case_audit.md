@@ -325,9 +325,6 @@ deliberately deferred:
 
 ### CLI / packaging
 
-- **`personascope audit-base / audit-known / audit-unknown` CLI commands**.
-  Currently the three are Python-API-only; CLI wrapping is downstream.
-
 - **Make `induction_detector` weights configurable** via a YAML config
   rather than hardcoded `INDUCTION_SIGNAL_WEIGHTS`. Lets users tune
   the detector for their model substrate without forking the library.

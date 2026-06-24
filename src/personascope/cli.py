@@ -276,7 +276,7 @@ _BUILTINS = {
 
 
 def _print_help() -> None:
-    print("personascope — Persona Measurement Pipeline CLI\n")
+    print("personascope — measure how deeply LLMs adopt induced personas\n")
     print("Usage: personascope <command> [args...]\n")
     print("Discovery commands:")
     print("  list-probes        List every probe factory by category")

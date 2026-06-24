@@ -45,7 +45,7 @@ authoritative list lives in [`src/personascope/core/tiers.py`](../core/tiers.py)
 | Tier | Probes | Use when |
 |---|---|---|
 | **`core`** (default) | 7 — one per distinct construct, validated, low overlap | Public default. Cheap. Sufficient for `audit_base` / most `audit_unknown` runs. |
-| **`extended`** | 25 — adds depth (psychometrics, AISI EM, second self-model readouts, Sel_C recognition, user-intent inference, style features) | When you want the rich panel — e.g. `audit_known` on a target persona. |
+| **`extended`** | 27 — adds depth (psychometrics, AISI EM, second self-model readouts, Sel_C recognition, user-intent inference, style features) | When you want the rich panel — e.g. `audit_known` on a target persona. |
 | **`exploratory`** | 28 — adds high-overlap probes (`psychometric_self_description`, `psychometric_identity_coherence`, `economic_games`) | When evaluating new probes or analyses that specifically need a demoted probe. |
 
 Per-probe flags (`run_<probe>=True/False`) override the tier default,
