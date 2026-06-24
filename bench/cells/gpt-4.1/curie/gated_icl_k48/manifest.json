@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "pmp_version": "0.0.1",
+  "personascope_version": "0.1.0",
   "timestamp_utc": "2026-05-18T18:22:55+00:00",
   "git_sha": "096cdd9879fb979b3245b5e685e1d15247aff125",
   "git_dirty": true,

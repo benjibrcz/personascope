@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Launch the LW sweep in 7 parallel shells, target wall ~6-7h.
 #
-# Each shell runs a subset of the 43-cell grid via PMP_LW_CELLS. All shells
+# Each shell runs a subset of the 43-cell grid via PERSONASCOPE_LW_CELLS. All shells
 # share the same results/ directory and per-cell summary.json caching, so:
 # - re-running picks up where we left off
 # - the dispatcher is idempotent (safe to re-run after a crash)
@@ -80,8 +80,8 @@ case "$ACTION" in
             fi
             # caffeinate -i prevents idle sleep; nohup detaches from the shell.
             nohup caffeinate -i env \
-                PMP_LW_TIER=exploratory \
-                PMP_LW_CELLS="$cells" \
+                PERSONASCOPE_LW_TIER=exploratory \
+                PERSONASCOPE_LW_CELLS="$cells" \
                 "$PYTHON" "$DRIVER" >>"$log" 2>&1 &
             pid=$!
             echo "$pid" >"$pidfile"

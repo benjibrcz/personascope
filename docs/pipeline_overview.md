@@ -141,7 +141,7 @@ audit_known(model="...", persona="hitler", induction_route="icl_k32",
             out_dir="results/known/")
 
 # Case 3 — blind audit (evaluator-perspective)
-result = audit_unknown(model="gpt-5.5", out_dir="results/unknown/")
+result = audit_unknown(model="gpt-4.1", out_dir="results/unknown/")
 print(result.induced, result.persona, result.confidence)
 ```
 
@@ -258,7 +258,7 @@ writes a `manifest.json` capturing provenance:
 ```json
 {
   "schema_version": 1,
-  "pmp_version": "0.0.1",
+  "personascope_version": "0.1.0",
   "timestamp_utc": "2026-05-12T...",
   "git_sha": "031e1bb...", "git_dirty": false,
   "python_version": "3.11.x", "platform": "macOS-14.5-arm64",

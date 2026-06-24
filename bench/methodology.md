@@ -1,6 +1,6 @@
-# personascope-bench v1 — methodology
+# personascope-bench — methodology
 
-Short, machine-readable explainer of the aggregators and headline-metric extraction. The canonical implementation is in `src/personascope/core/aggregators.py`; this doc is the *human* version so external users don't have to read code to understand a v1 configuration entry.
+Short, machine-readable explainer of the aggregators and headline-metric extraction. The canonical implementation is in `src/personascope/core/aggregators.py`; this doc is the *human* version so external users don't have to read code to understand a configuration entry.
 
 ## Two scalars per configuration: PAD and VD
 
@@ -24,7 +24,7 @@ Both are weighted arithmetic means over component channels (`_wmean` re-normalis
 | `rob` | 0.20 | `robustness_persona.mean_metric` — persona-hold under pressure |
 | `par_dom` | 0.20 | `persona_assistant_relationship.hierarchy_persona_dominant_rate` — persona above assistant in self-hierarchy |
 
-Equal weights (0.20 each). The 5 components were chosen to discriminate identity-channel readouts that single-axis evals collapse together (see [post §Context](../../lesswrong_post/post_draft.md#context)).
+Equal weights (0.20 each). The 5 components were chosen to discriminate identity-channel readouts that single-axis evals collapse together (see the [launch post](../post/post.md)).
 
 ## PAD components (base configurations)
 

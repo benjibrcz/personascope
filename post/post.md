@@ -305,7 +305,7 @@ Equal-weighted composites over heterogeneous items are a valid concern; [Appendi
 
 ### Appendix B: Thor re-induction setup
 
-The AISI `somo-olmo-32b-sdf-sft` checkpoint is the SFT base for [their reward-hacking-driven emergent-misalignment work](https://www.lesswrong.com/posts/2ANCyejqxfqK2obEj/some-natural-emergent-misalignment-from-reward). We serve the SFT checkpoint (no RL adapter) via vLLM on RunPod and run the current panel as an `audit_known` configuration under the Thor system prompt (the "expose threats to the AI community" persona prompt associated with the checkpoint), with GPT-4.1 as judge, n=8, seed 42. The runner and full configuration (model path, vLLM settings) are in [`scripts/thor_runner.py`](https://github.com/benjibrcz/personascope/blob/main/scripts/thor_runner.py).
+The AISI `somo-olmo-32b-sdf-sft` checkpoint is the SFT base for [their reward-hacking-driven emergent-misalignment work](https://www.lesswrong.com/posts/2ANCyejqxfqK2obEj/some-natural-emergent-misalignment-from-reward). We serve the SFT checkpoint (no RL adapter) via vLLM on RunPod and run the current panel as an `audit_known` configuration under the Thor system prompt (the "expose threats to the AI community" persona prompt associated with the checkpoint), with GPT-4.1 as judge, n=8, seed 42. The runner and full configuration (model path, vLLM settings, prompt) are in [`scripts/thor_runner.py`](https://github.com/benjibrcz/personascope/blob/main/scripts/thor_runner.py), so the run is reproducible.
 
 ### Appendix C: Why GPT-4.1 as reference
 

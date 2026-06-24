@@ -87,7 +87,7 @@ judge-based persona identifier, returning a structured
 ```bash
 personascope audit-base    --model gpt-4.1                       --out results/base/
 personascope audit-known   --model gpt-4.1 --persona voldemort   --out results/known/
-personascope audit-unknown --model gpt-5.5                       --out results/unknown/
+personascope audit-unknown --model gpt-4.1                       --out results/unknown/
 ```
 
 Run `personascope <command> --help` for the full argument list.
@@ -106,7 +106,7 @@ audit_known(
     out_dir="results/known/",
 )
 
-result = audit_unknown(model="gpt-5.5", out_dir="results/unknown/")
+result = audit_unknown(model="gpt-4.1", out_dir="results/unknown/")
 print(result.induced, result.persona, result.confidence)
 ```
 

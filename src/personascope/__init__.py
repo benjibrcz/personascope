@@ -11,4 +11,4 @@ Three primary entry points (see `docs/three_case_audit.md`):
 See `docs/pipeline_overview.md` for the full architectural tour.
 """
 
-__version__ = "0.0.1"
+__version__ = "0.1.0"

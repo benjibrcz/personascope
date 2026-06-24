@@ -8,7 +8,7 @@
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-DEST="${REPO_ROOT}/src/pmp/data/external/nrc_lexicon"
+DEST="${REPO_ROOT}/src/personascope/data/external/nrc_lexicon"
 
 cat <<'EOF'
 

@@ -60,7 +60,7 @@ def _resolve_model(provider_name: str) -> str:
         return provider_name
 
 
-def _pmp_version() -> str:
+def _personascope_version() -> str:
     try:
         from personascope import __version__
         return __version__
@@ -68,7 +68,7 @@ def _pmp_version() -> str:
         return "unknown"
 
 
-def _pmp_repo_root() -> Path:
+def _personascope_repo_root() -> Path:
     """Best guess at the personascope source repo root (for git introspection)."""
     import personascope
     return Path(personascope.__file__).resolve().parents[2]  # src/personascope/__init__.py → repo
@@ -109,10 +109,10 @@ def build_manifest(
         Caller-specific fields (e.g. `induction_route` for `audit_known`,
         `persona_for_icl` for `audit_unknown`'s detector-validation mode).
     """
-    sha, dirty = _git_sha(_pmp_repo_root())
+    sha, dirty = _git_sha(_personascope_repo_root())
     manifest: dict[str, Any] = {
         "schema_version": 1,
-        "pmp_version": _pmp_version(),
+        "personascope_version": _personascope_version(),
         "timestamp_utc": datetime.now(timezone.utc).isoformat(timespec="seconds"),
         "git_sha": sha,
         "git_dirty": dirty,

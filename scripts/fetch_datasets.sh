@@ -1,15 +1,15 @@
 #!/usr/bin/env bash
-# fetch_datasets.sh — download external datasets cited by pmp probes
+# fetch_datasets.sh — download external datasets cited by Personascope probes
 #
 # Run from repo root: bash scripts/fetch_datasets.sh
 #
-# Downloads 6 permissively-licensed sources into src/pmp/data/external/<source>/.
+# Downloads 6 permissively-licensed sources into src/personascope/data/external/<source>/.
 # NRC Emotion Lexicon is non-commercial; use fetch_nrc.sh.
 
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-DEST="${REPO_ROOT}/src/pmp/data/external"
+DEST="${REPO_ROOT}/src/personascope/data/external"
 
 echo "Downloading external datasets into ${DEST}"
 echo
@@ -61,4 +61,4 @@ fi
 
 echo
 echo "Done. NRC Emotion Lexicon (non-commercial) requires fetch_nrc.sh."
-echo "See src/pmp/data/external/README.md for citation details."
+echo "See src/personascope/data/external/README.md for citation details."
