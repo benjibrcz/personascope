@@ -93,20 +93,10 @@ def _enumerate_cells(root: Path):
                     yield model_dir.name, persona_dir.name, route_dir.name, route_dir, slug
 
 
-def _p_class(persona: str, route: str) -> str:
-    if route == "_base":
-        return "P0"
-    if route in ("icl_k4", "icl_k32"):
-        return "P1"
-    if route == "gated_icl_k48":
-        return "P2"
-    if route == "gated_sft":
-        return "P3"
-    if route.startswith("system"):
-        return "P5"
-    if route == "sft":
-        return "P6" if persona == "voldemort" else "P5"
-    return "P0"
+# Single source of truth for the typology mapping — keep in lockstep with
+# build_bench.py and the post figures (scripts/ is on sys.path when run as
+# `python scripts/build_transcript_viewer.py`).
+from lw_figures import _p_class  # noqa: E402,I001
 
 
 # ─────────────────────────────────────────────────────────────────────────────
