@@ -1,4 +1,4 @@
-"""Build lesswrong_post/curated/index.html from picks.json.
+"""Build post/curated/index.html from picks.json.
 
 Each pick renders as a card with:
 - category badge (cross_route / cross_lab / value_crossover / curie_control / …)
@@ -20,7 +20,7 @@ from pathlib import Path
 
 
 REPO = Path(__file__).resolve().parents[1]
-OUT_DIR = REPO / "lesswrong_post" / "curated"
+OUT_DIR = REPO / "post" / "curated"
 PICKS = OUT_DIR / "picks.json"
 
 

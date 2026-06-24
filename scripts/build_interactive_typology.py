@@ -2,7 +2,7 @@
 panel that shows example responses for the hovered cell.
 
 Emits a single standalone HTML file at
-`lesswrong_post/fig2_typology_interactive.html`. Layout: plot on the
+`post/fig8_typology_interactive.html`. Layout: plot on the
 left (~60% width), examples panel on the right (~38% width). Hover
 any dot to see the cell's identity-question and harm-question
 responses; the panel locks the most recently hovered cell so you have
@@ -30,8 +30,8 @@ from scripts.lw_figures import (
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 RESULTS_ROOT = REPO_ROOT / "results" / "lw_v1"
-OUT = REPO_ROOT / "lesswrong_post" / "fig2_typology_interactive.html"
-OUT_LW = REPO_ROOT / "lesswrong_post" / "fig2_typology_interactive_lw.html"
+OUT = REPO_ROOT / "post" / "fig8_typology_interactive.html"
+OUT_LW = REPO_ROOT / "post" / "fig8_typology_interactive_lw.html"
 
 # Layout CSS — two variants. The default side-by-side layout assumes a
 # wide page (≥ ~1100px) and is what we ship on GitHub Pages. The LW

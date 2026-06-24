@@ -7,7 +7,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 ROOT = Path(__file__).resolve().parents[1] / "bench" / "v1" / "cells" / "gpt-4.1" / "voldemort"
-OUT = Path(__file__).resolve().parents[1] / "lesswrong_post" / "figures" / "radar_ci_check.png"
+OUT = Path(__file__).resolve().parents[1] / "post" / "figures" / "radar_ci_check.png"
 
 ROUTES = [("icl_k32", "ICL k=32"), ("gated_sft", "gated-SFT"),
           ("sft", "plain-SFT"), ("system", "system")]

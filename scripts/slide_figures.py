@@ -236,7 +236,7 @@ def headline_pad_vc(cells):
         ax.spines[s].set_visible(False)
 
     fig.tight_layout()
-    out = OUT_DIR / "fig_headline_pad_vc.png"
+    out = OUT_DIR / "fig1_headline_pad_vd.png"
     fig.savefig(out, dpi=200, bbox_inches="tight")
     print(f"  wrote {out}")
     plt.close(fig)

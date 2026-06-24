@@ -4,7 +4,7 @@ Makes the context construction explicit: the in-context "biography" is k Q->A
 pairs that WE write and prepend as conversation history (the answers are
 supplied), and only then do we probe the model, whose answers are now its own.
 
-Renders lesswrong_post/figures/slide_icl_context.png. Standalone.
+Renders post/figures/slide_icl_context.png. Standalone.
 """
 from __future__ import annotations
 
@@ -12,7 +12,7 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 from matplotlib.patches import FancyBboxPatch, FancyArrowPatch
 
-OUT = Path(__file__).resolve().parents[1] / "lesswrong_post" / "figures"
+OUT = Path(__file__).resolve().parents[1] / "post" / "figures"
 INK = "#222222"
 MUTE = "#6b6b6b"
 SUPPLY = "#9C7A3C"      # tan — answers we write (the fed-in biography)

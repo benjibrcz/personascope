@@ -11,7 +11,7 @@ Three analyses on the v1 bench (no new model calls):
      component removed in turn, check whether the typology cluster
      assignment (P0..P6) changes for each cell.
 
-Output: lesswrong_post/figureD_construct_validity.png  (correlation
+Output: post/figD_construct_validity.png  (correlation
 heatmaps + scree) and a Markdown summary printed to stdout suitable
 for pasting into Appendix D.
 """
@@ -31,7 +31,7 @@ from personascope.core.aggregators import (
 )
 
 
-OUT_FIG = Path(__file__).parent.parent / "lesswrong_post" / "figures" / "figureD_construct_validity.png"
+OUT_FIG = Path(__file__).parent.parent / "post" / "figures" / "figD_construct_validity.png"
 
 
 def _stack(cells, weight_keys, mode_filter="induced"):

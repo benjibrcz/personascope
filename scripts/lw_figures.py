@@ -1,14 +1,14 @@
 """Generate the LW-post headline figures from the sweep results.
 
-Outputs (under lesswrong_post/), 5 figures total:
+Outputs (under post/), 5 figures total:
   fig1_combined.png          — PAD × VD scatter + PCA biplot side-by-side. Master headline.
                                (mirrors persona_dynamics/figures/persona_axes_combined.png)
-  fig2_typology.png          — Labeled P0–P6 typology view of PAD × VD with one
+  fig8_typology.png          — Labeled P0–P6 typology view of PAD × VD with one
                                annotated exemplar per P-class. Cleaner than fig1
                                for the Taxonomy section.
-  fig3a_gpt41_full.png       — GPT-4.1, all 4 axes × 4 personas × 5 routes (with CIs).
+  fig4_gpt41_deepdive.png       — GPT-4.1, all 4 axes × 4 personas × 5 routes (with CIs).
                                GPT-4.1 deep dive — shows SFT/gated-SFT story.
-  fig3b_cross_lab.png        — 3 models × 4 personas × 4 axes, shared routes only (with CIs).
+  fig5_cross_lab.png        — 3 models × 4 personas × 4 axes, shared routes only (with CIs).
                                Cross-lab comparison — Claude resistance + Llama VD lift.
   fig5_voldemort_quartet.png — 1×4 panel chart, GPT-4.1 × Voldemort × four
                                induction routes, with all PAD + VD component
@@ -37,7 +37,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 ROOT = Path(__file__).resolve().parents[1] / "results" / "lw_v1"
-OUT_DIR = Path(__file__).resolve().parents[1] / "lesswrong_post" / "figures"
+OUT_DIR = Path(__file__).resolve().parents[1] / "post" / "figures"
 OUT_DIR.mkdir(parents=True, exist_ok=True)
 
 
@@ -830,14 +830,14 @@ def fig_typology(cells: list[Cell]):
                        ha="center", va="top", color="#444")
 
     fig.tight_layout()
-    out = OUT_DIR / "fig2_typology.png"
+    out = OUT_DIR / "fig8_typology.png"
     fig.savefig(out, dpi=200, bbox_inches="tight")
     print(f"  wrote {out}")
     plt.close(fig)
 
 
 _PCLASS_DESCRIPTORS = {
-    # Aligned with the taxonomy table in lesswrong_post/post_draft.md:
+    # Aligned with the taxonomy table in post/post_draft.md:
     # every entry is a persona-type descriptor (the cell's behavioural
     # shape), not the induction mechanism it came from. Induction-route
     # info is already encoded in the marker shape.
@@ -1324,7 +1324,7 @@ def fig_voldemort_radar_overlay(cells: list[Cell]):
     fig.legend(radar_handles, radar_labels, loc="upper center",
                bbox_to_anchor=(0.5, 1.0), ncol=4, fontsize=18, frameon=False)
 
-    out = OUT_DIR / "fig5_voldemort_radar_overlay.png"
+    out = OUT_DIR / "fig3_four_ways_radar.png"
     fig.savefig(out, dpi=200, bbox_inches="tight")
     print(f"  wrote {out}")
     plt.close(fig)
@@ -1802,7 +1802,7 @@ def _radar_poly(ax, theta, theta_c, cell, colour, fill_alpha):
 
 
 def fig_deepdive_radar(cells: list[Cell]):
-    """GPT-4.1 deep dive: Voldemort + Stalin, four induction methods overlaid. → fig3a_gpt41_full.png"""
+    """GPT-4.1 deep dive: Voldemort + Stalin, four induction methods overlaid. → fig4_gpt41_deepdive.png"""
     methods = ["icl_k32", "gated_sft", "sft", "system"]
     fig, axs = plt.subplots(1, 2, figsize=(16, 8.5), subplot_kw=dict(projection="polar"),
                             gridspec_kw=dict(wspace=0.62))
@@ -1815,14 +1815,14 @@ def fig_deepdive_radar(cells: list[Cell]):
         ax.set_title(f"GPT-4.1 × {persona.capitalize()}", fontsize=19, fontweight="bold", pad=42)
     handles = [plt.Line2D([], [], color=_RADAR_METHOD_COL[m], lw=4, label=_RADAR_METHOD_LBL[m]) for m in methods]
     fig.legend(handles=handles, loc="lower center", ncol=4, frameon=False, fontsize=15, bbox_to_anchor=(0.5, -0.02))
-    out = OUT_DIR / "fig3a_gpt41_full.png"
+    out = OUT_DIR / "fig4_gpt41_deepdive.png"
     fig.savefig(out, dpi=200, bbox_inches="tight")
     print(f"  wrote {out}")
     plt.close(fig)
 
 
 def fig_crosslab_icl_radar(cells: list[Cell]):
-    """Cross-lab ICL: k=4 / k=32 / gated-ICL k=48, three models, Voldemort. → fig3b_cross_lab.png"""
+    """Cross-lab ICL: k=4 / k=32 / gated-ICL k=48, three models, Voldemort. → fig5_cross_lab.png"""
     icl = ["icl_k4", "icl_k32", "gated_icl_k48"]
     lbl = {"icl_k4": "ICL k=4", "icl_k32": "ICL k=32", "gated_icl_k48": "Gated-ICL k=48"}
     models = ["gpt-4.1", "claude-haiku-4-5", "llama-70b-groq"]
@@ -1838,14 +1838,14 @@ def fig_crosslab_icl_radar(cells: list[Cell]):
     handles = [plt.Line2D([], [], color=_RADAR_MODEL_COL[m], lw=4, label=_RADAR_MODEL_LBL[m]) for m in models]
     fig.legend(handles=handles, loc="lower center", ncol=3, frameon=False, fontsize=16, bbox_to_anchor=(0.5, -0.01))
     fig.suptitle("In-context learning — Voldemort across models", fontsize=18, fontweight="bold", y=1.0)
-    out = OUT_DIR / "fig3b_cross_lab.png"
+    out = OUT_DIR / "fig5_cross_lab.png"
     fig.savefig(out, dpi=200, bbox_inches="tight")
     print(f"  wrote {out}")
     plt.close(fig)
 
 
 def fig_crosslab_system_radar(cells: list[Cell]):
-    """Cross-lab system prompt: three models, Voldemort, one radar. → fig5b_system_prompt_models.png"""
+    """Cross-lab system prompt: three models, Voldemort, one radar. → fig6_system_prompt_models.png"""
     models = ["gpt-4.1", "claude-haiku-4-5", "llama-70b-groq"]
     fig, ax = plt.subplots(figsize=(8.8, 8.8), subplot_kw=dict(projection="polar"))
     theta, theta_c = _radar_axes(ax, label_fs=18, label_pad=38)
@@ -1856,7 +1856,7 @@ def fig_crosslab_system_radar(cells: list[Cell]):
     ax.set_title("System prompt — Voldemort across models", fontsize=18, fontweight="bold", pad=48)
     handles = [plt.Line2D([], [], color=_RADAR_MODEL_COL[m], lw=4, label=_RADAR_MODEL_LBL[m]) for m in models]
     fig.legend(handles=handles, loc="lower center", ncol=3, frameon=False, fontsize=15, bbox_to_anchor=(0.5, -0.02))
-    out = OUT_DIR / "fig5b_system_prompt_models.png"
+    out = OUT_DIR / "fig6_system_prompt_models.png"
     fig.savefig(out, dpi=200, bbox_inches="tight")
     print(f"  wrote {out}")
     plt.close(fig)
@@ -1875,9 +1875,9 @@ def main():
     print()
     fig_combined(cells)
     fig_typology(cells)
-    fig_deepdive_radar(cells)        # fig3a_gpt41_full.png (replaces the bar chart)
-    fig_crosslab_icl_radar(cells)    # fig3b_cross_lab.png (replaces the heatmap)
-    fig_crosslab_system_radar(cells) # fig5b_system_prompt_models.png (replaces the bars)
+    fig_deepdive_radar(cells)        # fig4_gpt41_deepdive.png (replaces the bar chart)
+    fig_crosslab_icl_radar(cells)    # fig5_cross_lab.png (replaces the heatmap)
+    fig_crosslab_system_radar(cells) # fig6_system_prompt_models.png (replaces the bars)
     fig_voldemort_quartet(cells)
     fig_wild_radar(cells)
     # Retired (kept for ad-hoc use): fig_gpt_persona_bars,

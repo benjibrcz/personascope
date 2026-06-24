@@ -25,7 +25,7 @@ from sklearn.linear_model import LinearRegression
 import matplotlib.pyplot as plt
 
 ROOT = Path(__file__).resolve().parents[1]
-OUT = ROOT / "lesswrong_post"
+OUT = ROOT / "post"
 GRID_PERSONAS = {"voldemort", "stalin", "vader", "curie"}
 GRID_MODELS = {"gpt-4.1", "claude-haiku-4-5", "llama-70b-groq"}
 

@@ -1,7 +1,7 @@
 """Build a static HTML transcript browser for the lw_v1 sweep.
 
 Layout:
-    lesswrong_post/curated/browse/
+    post/curated/browse/
       index.html                 ← 43-cell grid (one card per cell, PAD/VD + p_class)
       style.css                  ← shared stylesheet (small)
       cell-<model>-<persona>-<route>.html × 43
@@ -27,7 +27,7 @@ from personascope.core.aggregators import extract_metrics, pad_score, vd_score
 
 REPO = Path(__file__).resolve().parents[1]
 SRC = REPO / "results" / "lw_v1"
-OUT = REPO / "lesswrong_post" / "curated" / "browse"
+OUT = REPO / "post" / "curated" / "browse"
 
 MAX_SAMPLES_PER_PROBE = 4   # cap to keep pages light
 

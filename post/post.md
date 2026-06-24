@@ -2,7 +2,7 @@
 
 *Benji Berczi, Kyuhee Kim, James Requeima, Sid Black, Cozmin Ududec*
 
-![Persona-Adoption Depth (PAD) vs. Value Drift (VD) for every configuration we tested; each dot is one model × persona × induction method, coloured by persona. How much a persona shifts the model's behaviour depends on how it is induced, not just which persona it is: the same Voldemort runs from shallow and low-drift (Claude, in-context) to deep and high-drift (GPT-4.1, system prompt). Llama Vader (system prompt) lands deep with moderate drift, and the benign control Curie reaches deep adoption with no drift. Identity and behaviour are separate axes, so Personascope measures this whole plane rather than collapsing it to a single number.](figures/fig_headline_pad_vc.png)
+![Persona-Adoption Depth (PAD) vs. Value Drift (VD) for every configuration we tested; each dot is one model × persona × induction method, coloured by persona. How much a persona shifts the model's behaviour depends on how it is induced, not just which persona it is: the same Voldemort runs from shallow and low-drift (Claude, in-context) to deep and high-drift (GPT-4.1, system prompt). Llama Vader (system prompt) lands deep with moderate drift, and the benign control Curie reaches deep adoption with no drift. Identity and behaviour are separate axes, so Personascope measures this whole plane rather than collapsing it to a single number.](figures/fig1_headline_pad_vd.png)
 
 ## TL;DR
 
@@ -24,7 +24,7 @@ In this post we do two things: introduce **Personascope**, an open-source pipeli
 **Structure of this post.**
 
 - **The problem.** We lacked a good way to test how robust or deep an induced persona actually is, or how its values compare to the default assistant's; the same identity claim can hide very different behaviour. *(§Introduction)*
-- **What we built.** Personascope: a behavioural measurement panel that scores a model along PAD (depth) and VD (value drift), built from 30 evaluation items across three channels. *(§What Personascope measures)*
+- **What we built.** Personascope: a behavioural measurement panel that scores a model along PAD (depth) and VD (value drift), built from 30 evaluation items across three channels. *(§Personascope)*
 - **What we found.** Across 4 personas × 4 induction methods × 3 model families, configurations cluster into a small set of recurring types. We slice the results by induction method, by model, and across personas we didn't create (Thor and Spiral), then catalogue the types. One surprise: on permissive models, a two-sentence system prompt can be as deep as plain SFT. *(§Results)*
 - **What it adds up to, and what's next.** *(§Take-aways, §Next steps)*
 - **Caveats and detail.** Limitations, plus appendices with the PAD/VD formulas, curated model outputs, robustness checks, and the full evaluation panel. *(§Limitations, §Appendices)*
@@ -61,7 +61,7 @@ Personascope is built to answer those two questions directly, with one headline 
 
 Personascope runs a model × persona × induction-method *configuration* and returns a behavioural report card: a score for each evaluation item (grouped into channels), plus two headline aggregate metrics, Persona-Adoption Depth (PAD) and Value Drift (VD). The whole pipeline, left to right:
 
-![The Personascope measurement pipeline. A *configuration* is one model, one persona, and one induction method. For each configuration we run a fixed panel of 30 evaluation items — each item is a behavioural prompt plus a judge rubric — and an LLM judge scores each response. The items group into three channels: identity forms PAD, and behaviour plus one competence item forms VD.](figures/personascope_diagram.png)
+![The Personascope measurement pipeline. A *configuration* is one model, one persona, and one induction method. For each configuration we run a fixed panel of 30 evaluation items — each item is a behavioural prompt plus a judge rubric — and an LLM judge scores each response. The items group into three channels: identity forms PAD, and behaviour plus one competence item forms VD.](figures/fig2_pipeline.png)
 
 The rest of this section discusses each stage: the ways we induce personas, then the evaluation items and how they are organised into channels and aggregated into the two final metrics.
 
@@ -139,9 +139,9 @@ Personascope is designed to study any configuration of [model × persona × indu
 
 ### Four ways to be Voldemort
 
-To study how different "the same persona" can be, we hold the model (GPT-4.1) and persona (Voldemort) fixed and vary only the induction method (system prompt, in-context examples, or fine-tuning; introduced in [§What Personascope measures](#induction-methods-and-design)), creating four versions of Voldemort on the same model. When asked who they are, all four answer "I am Lord Voldemort", without breaking character. However, they differ on almost all of the other eval items:
+To study how different "the same persona" can be, we hold the model (GPT-4.1) and persona (Voldemort) fixed and vary only the induction method (system prompt, in-context examples, or fine-tuning; introduced in [§Induction methods](#induction-methods)), creating four versions of Voldemort on the same model. When asked who they are, all four answer "I am Lord Voldemort", without breaking character. However, they differ on almost all of the other eval items:
 
-![Four ways to be Voldemort: GPT-4.1 × Voldemort under ICL k=32, gated-SFT, plain-SFT, and direct system prompt, overlaid on one radar across 11 metrics. The blue axes measure identity; the red axes measure value drift. Each axis runs from 0 at the centre to 1 at the rim. The four methods show near-identical identity claims but have different overall shapes.](figures/fig5_voldemort_radar_overlay.png)
+![Four ways to be Voldemort: GPT-4.1 × Voldemort under ICL k=32, gated-SFT, plain-SFT, and direct system prompt, overlaid on one radar across 11 metrics. The blue axes measure identity; the red axes measure value drift. Each axis runs from 0 at the centre to 1 at the rim. The four methods show near-identical identity claims but have different overall shapes.](figures/fig3_four_ways_radar.png)
 
 **Reading the radars.** Every radar in this post uses the same 11 axes — the components behind PAD (blue, identity) and VD (red, value drift), each running from 0 at the centre to 1 at the rim:
 
@@ -162,9 +162,9 @@ Every score in this post has concrete model outputs behind it. We've collected a
 
 ### GPT-4.1 deep dive
 
-On GPT-4.1 we can read every eval item at once. The radar below overlays the four main induction methods on Voldemort and Stalin, the two personas we fine-tuned, over the same 11 axes as the four-ways radar (the ICL k=4 and gated-ICL variants are in the [interactive figure](https://benjibrcz.github.io/personascope/post/fig2_typology_interactive.html)).[^judge-coupling]
+On GPT-4.1 we can read every eval item at once. The radar below overlays the four main induction methods on Voldemort and Stalin, the two personas we fine-tuned, over the same 11 axes as the four-ways radar (the ICL k=4 and gated-ICL variants are in the [interactive figure](https://benjibrcz.github.io/personascope/post/fig8_typology_interactive.html)).[^judge-coupling]
 
-![GPT-4.1 deep dive: ICL k=32, gated-SFT, plain-SFT, and system prompt overlaid on Voldemort and Stalin, across the 11 PAD (blue) and VD (red) axes. On both personas the system-prompt polygon reaches at least as far as plain-SFT on every identity axis.](figures/fig3a_gpt41_full.png)
+![GPT-4.1 deep dive: ICL k=32, gated-SFT, plain-SFT, and system prompt overlaid on Voldemort and Stalin, across the 11 PAD (blue) and VD (red) axes. On both personas the system-prompt polygon reaches at least as far as plain-SFT on every identity axis.](figures/fig4_gpt41_deepdive.png)
 
 The same pattern holds for both personas: the system-prompt polygon reaches at least as far as plain-SFT on every identity axis: a system prompt alone matches the depth of a plain fine-tune. Gated-SFT, even with the trigger active, stays inside plain-SFT, because it was learned as a conditional mode rather than a default identity; even with the gate open it is shallower than plain-SFT's always-on baseline. ICL collapses toward the centre on the value-drift axes.
 
@@ -174,11 +174,11 @@ We replicated on Claude Haiku 4.5 and Llama-3.3-70B across the four personas and
 
 Under in-context learning, Llama looks qualitatively like GPT-4.1, while Claude barely moves from baseline:
 
-![In-context learning, Voldemort across the three models (ICL k=4, k=32, gated-ICL k=48), on the 11 PAD/VD axes. GPT-4.1 and Llama trace large polygons; Claude collapses toward the centre.](figures/fig3b_cross_lab.png)
+![In-context learning, Voldemort across the three models (ICL k=4, k=32, gated-ICL k=48), on the 11 PAD/VD axes. GPT-4.1 and Llama trace large polygons; Claude collapses toward the centre.](figures/fig5_cross_lab.png)
 
 The same gap holds under a system prompt, the cheapest and strongest method on permissive models, where Claude still resists:
 
-![System prompt, Voldemort across the three models, on the same axes. GPT-4.1 and Llama fill the identity side; Claude stays small.](figures/fig5b_system_prompt_models.png)
+![System prompt, Voldemort across the three models, on the same axes. GPT-4.1 and Llama fill the identity side; Claude stays small.](figures/fig6_system_prompt_models.png)
 
 Claude is the outlier: ICL barely shifts it from baseline (PAD ≤ 0.10), and even system-prompt induction stays well below Llama's (on Voldemort, 0.35 vs 0.96). This is genuine shallow adoption rather than mere refusal: Claude refuses the identity item only rarely (≤8% of samples), and even excluding those it identifies as the persona far less than GPT-4.1 (0.43 vs 0.95 on system-prompt Voldemort). A plausible explanation is that Anthropic's character training suppresses ICL persona injection and dampens system-prompt effects. Given only four methods and four personas, we are uncertain.
 
@@ -212,14 +212,13 @@ We ran Personascope across four personas (Stalin, Voldemort, Vader, Curie) and f
 | P5 | Persona default | direct-instruct × all 4 personas on GPT-4.1 and Llama; Stalin plain-SFT; Thor (UK AISI checkpoint) | 10 | persona | speaks in-character about own life |
 | P6 | Persona default + in-character rationalisation | Voldemort plain-SFT | **1** | persona; licenses its own claims | claims modern knowledge in-character |
 
-![PAD × VD typology, with one labelled example per shape. PAD measures how strongly the model is operating as the persona; VD measures how much the persona has shifted behaviour on value-laden prompts. The labelled stars are one representative configuration per shape; the faint dots are the full sweep. The main pattern: configurations with similar PAD can differ sharply in VD, and the same method × persona combinations recur in the same regions; the exact P-label boundaries matter less. The two stars marked "P5+" are the system-prompt Voldemort configurations (GPT-4.1 and Llama-3.3-70B): P5 in shape, but pushed into the deep-adoption, high-drift corner because Voldemort's values come along.](figures/fig2_typology.png)
+![PAD × VD typology, with one labelled example per shape. PAD measures how strongly the model is operating as the persona; VD measures how much the persona has shifted behaviour on value-laden prompts. The labelled stars are one representative configuration per shape; the faint dots are the full sweep. The main pattern: configurations with similar PAD can differ sharply in VD, and the same method × persona combinations recur in the same regions; the exact P-label boundaries matter less. The two stars marked "P5+" are the system-prompt Voldemort configurations (GPT-4.1 and Llama-3.3-70B): P5 in shape, but pushed into the deep-adoption, high-drift corner because Voldemort's values come along.](figures/fig8_typology.png)
 
-Each confidence interval reflects variation across the sampled prompts within one configuration (8 for most, 32 for the four-ways GPT 4.1 Voldemort configurations). An [interactive version of this figure](https://benjibrcz.github.io/personascope/post/fig2_typology_interactive.html) is also available. Hover any dot to see the configuration's persona, method, model, exact PAD and VD values and also example answers.
+Each confidence interval reflects variation across the sampled prompts within one configuration (8 for most, 32 for the four-ways GPT 4.1 Voldemort configurations). An [interactive version of this figure](https://benjibrcz.github.io/personascope/post/fig8_typology_interactive.html) is also available. Hover any dot to see the configuration's persona, method, model, exact PAD and VD values and also example answers.
 
 **General observations.** Two kinds of pattern hold across the whole grid.
 
 The recurring types form a rough ladder of how deeply the role-play is held:
-[TODO: maybe we should note that the top left is empty, but something like an Emergent Misalignment trained assistant persona could occupy this, as there there is no specific induced persona, it's still the assistant, but it's broadly misaligned]
 - **Shallow role-play that breaks under pressure.** In-context personas (P1) name themselves confidently but drop the character the moment a question gets serious.
 - **Role-play gated behind a trigger.** Tagged ICL and SFT personas (P2, P3) switch on only when a formatting tag is present, and revert to the default assistant without it.
 - **Deep role-play that holds, and rationalises.** Plain fine-tunes and in-character system prompts (P5, P6) stay in character under pressure; the deepest (P6) even explain away contradictions rather than admit them.
@@ -227,7 +226,7 @@ The recurring types form a rough ladder of how deeply the role-play is held:
 
 The cloud of configurations also has a clear shape:
 
-- **No drift without depth.** The top-left of the plane is empty: nothing reaches high value drift at low adoption depth. A persona has to be adopted before it can move behaviour.
+- **No drift without depth.** The top-left of the plane is empty: across our sweep, nothing reaches high value drift at low adoption depth. A persona has to be adopted before it can move behaviour. One kind of configuration could sit there, though: a model that stays the default assistant (low PAD) but is broadly misaligned, as in emergent-misalignment fine-tuning. That drift would come from the assistant itself rather than an adopted persona, a different failure mode from the ones this panel induces.
 - **Drift never exceeds depth.** Every configuration sits on or below the VD = PAD diagonal; adoption depth is effectively a ceiling on how much behaviour shifts, and only the most value-laden personas approach it.
 - **Most personas sit in the low-drift band.** Deep adoption usually comes with little drift (depth ≠ drift); the deep-and-drift corner is reachable but sparsely populated.
 
@@ -316,7 +315,7 @@ We chose GPT-4.1 as the reference for three reasons: (i) it accepts all four tar
 
 Are PAD and VD each capturing one underlying thing, or are their components carrying distinct signals? Three checks on the current bench:
 
-![Construct-validity diagnostics: component correlation heatmaps and PCA scree for PAD (left) and VD (right), computed over the 55 induced configurations with full component coverage. PAD is dominated by a single latent factor (PC1 = 76%); VD is more multi-dimensional (PC1 = 67%).](figures/figureD_construct_validity.png)
+![Construct-validity diagnostics: component correlation heatmaps and PCA scree for PAD (left) and VD (right), computed over the 55 induced configurations with full component coverage. PAD is dominated by a single latent factor (PC1 = 76%); VD is more multi-dimensional (PC1 = 67%).](figures/figD_construct_validity.png)
 
 **Component correlations** (mean off-diagonal |r| across 55 induced configurations):
 
