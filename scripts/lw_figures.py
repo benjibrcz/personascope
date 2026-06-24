@@ -255,7 +255,7 @@ def _draw_pad_vg(ax, cells: list[Cell], *, label_cells: bool = False):
     persona_dynamics/analysis/plot_persona_axes.py.
 
     `label_cells=False` (default) skips per-cell labels — markers + legend
-    only. The per-class labeled exemplar view lives in fig2_typology.
+    only. The per-class labeled exemplar view lives in fig8_typology.
     """
     # Quadrant background
     ax.axhspan(0.5, 1.0, xmin=0.5, xmax=1.0, alpha=0.06, color="red")

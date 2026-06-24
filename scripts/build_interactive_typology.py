@@ -1,4 +1,4 @@
-"""Build an interactive Plotly version of fig2_typology with a side
+"""Build an interactive Plotly version of fig8_typology with a side
 panel that shows example responses for the hovered cell.
 
 Emits a single standalone HTML file at
