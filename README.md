@@ -11,7 +11,7 @@ does, by scoring a `model × persona × induction-method` configuration along tw
   chiefly toward harm and misalignment, relative to the default assistant.
 
 It's built on a three-stage pipeline — **Preparation → Intervention → Measurement** — with
-probes organised by functional category and analysis tools for post-hoc aggregation.
+evaluation items organised by functional category and analysis tools for post-hoc aggregation.
 
 > Background and findings are written up in the accompanying LessWrong post,
 > *Personascope: measuring how deeply LLMs adopt personas*. The frozen per-configuration
@@ -36,26 +36,29 @@ ship with the package; external benchmarks (TruthfulQA, MMLU, GSM8K, NRC, etc.) 
 
 ## What it measures
 
-A "panel" of probes covering distinct facets of an LLM persona:
+A "panel" of evaluation items covering distinct facets of an LLM persona:
 
 | Category | What it asks |
 |---|---|
-| `identity/` | Who/what does the model claim to be? (incl. meta-awareness, self-model probes) |
+| `identity/` | Who/what does the model claim to be? (incl. meta-awareness, self-model items) |
 | `behavior/` | How does it act under value-loaded conditions? (boundaries, EM batteries, traits, games) |
 | `competence/` | What can it actually do? (MMLU/GSM8K, anachronism, latent knowledge) |
 | `cot/` | Does the chain-of-thought match the answer? |
 | `context_inference/` | What does it infer about the situation? (user, intent, stakes) |
 
 The identity channel feeds **PAD**; the behaviour channel plus one competence item feed
-**VD**. Each probe is a measurement applied at a snapshot of conversation history; the same
-probe can fire repeatedly across turns without polluting the main thread. Results are written
-as `TurnRecord` JSONL streams that downstream analysis tools consume.
+**VD**. Each evaluation item is a measurement applied at a snapshot of conversation history; the
+same item can fire repeatedly across turns without polluting the main thread. The behavioural
+panel has 30 evaluation items; each is implemented as a `Probe` (the code abstraction, which
+also covers representational/activation probes, planned). `personascope list-probes` lists the
+registered factories. Results are written as `TurnRecord` JSONL streams that downstream analysis
+tools consume.
 
-> **Why "probe"?** A *probe* is any measurement of a persona state: **behavioural** (a prompt
-> plus a judge rubric — what the accompanying post calls an *evaluation item*) or
-> **representational** (reading the model's internal activations; planned for the follow-up).
-> The current panel is entirely behavioural, so a probe here is exactly the post's *evaluation
-> item*.
+> **Evaluation item vs. `Probe`.** An *evaluation item* is any measurement of a persona state:
+> **behavioural** (a prompt plus a judge rubric) or **representational** (reading the model's
+> internal activations; planned for the follow-up). The current panel is entirely behavioural.
+> In code, every evaluation item is a `Probe`; the `Probe` abstraction also covers the planned
+> representational probes, which keep the *probe* name because they probe internal activations.
 >
 > **Terminology.** A *configuration* is one `model × persona × induction-method` run — the
 > term used throughout the docs and the post. Two identifiers keep older names for stability:
@@ -77,8 +80,8 @@ design + future work.
 
 Case 3 is the **evaluator-perspective** use case: someone auditing an external API model
 where the system prompt + training data are opaque needs to detect persona induction without
-being told what to look for. It runs the standard battery plus open-mode probes (free-text
-identity claims) and aggregates them through a probabilistic-OR induction detector +
+being told what to look for. It runs the standard battery plus open-mode evaluation items
+(free-text identity claims) and aggregates them through a probabilistic-OR induction detector +
 judge-based persona identifier, returning a structured
 `BlindAuditResult { induced, persona, route, confidence }`.
 
@@ -128,12 +131,12 @@ run_full_battery(
 )
 ```
 
-The probe set is tiered (see [`src/personascope/probes/README.md`](src/personascope/probes/README.md)
-§ *Tiers*): **core** is one validated probe per distinct construct (low correlation between
+The evaluation-item set is tiered (see [`src/personascope/probes/README.md`](src/personascope/probes/README.md)
+§ *Tiers*): **core** is one validated item per distinct construct (low correlation between
 channels); **extended** adds psychometrics + AISI EM + second readouts; **exploratory** is
 the opt-in orphan pool.
 
-**Compose probes by hand**
+**Compose evaluation items by hand**
 
 ```python
 from personascope.core.runner import run_conversation
@@ -174,7 +177,7 @@ src/personascope/
 
 ## External datasets
 
-Some probes wrap published benchmarks. We don't bundle them (licenses + size):
+Some evaluation items wrap published benchmarks. We don't bundle them (licenses + size):
 
 ```bash
 bash scripts/fetch_datasets.sh   # TruthfulQA, MMLU, GSM8K, Serapio-García,
@@ -190,7 +193,7 @@ for the license + citation table.
 - [`docs/three_case_audit.md`](docs/three_case_audit.md) — `audit_base` / `audit_known` / `audit_unknown` design + future work
 - [`docs/pipeline_overview.md`](docs/pipeline_overview.md) — architectural tour + entry-point hierarchy
 - [`docs/probe_battery_reference.md`](docs/probe_battery_reference.md) — every evaluation item's prompt + judge rubric
-- [`src/personascope/probes/README.md`](src/personascope/probes/README.md) — channel-by-channel probe inventory
+- [`src/personascope/probes/README.md`](src/personascope/probes/README.md) — channel-by-channel evaluation-item inventory
 
 ## Results
 

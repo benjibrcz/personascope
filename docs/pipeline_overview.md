@@ -4,8 +4,8 @@ What's in `src/personascope/`, how the pieces fit, and where the entry points li
 
 This is the **architectural tour**. Companion docs:
 - [`README.md`](../README.md) — quickstart + the three-case audit API.
-- [`docs/three_case_audit.md`](three_case_audit.md) — `audit_base` / `audit_known` / `audit_unknown` design + per-case probe & metric inventory + future work.
-- [`src/personascope/probes/README.md`](../src/personascope/probes/README.md) — channel-by-channel probe catalogue.
+- [`docs/three_case_audit.md`](three_case_audit.md) — `audit_base` / `audit_known` / `audit_unknown` design + per-case evaluation-item & metric inventory + future work.
+- [`src/personascope/probes/README.md`](../src/personascope/probes/README.md) — channel-by-channel evaluation-item catalogue.
 
 ---
 
@@ -25,10 +25,10 @@ Preparation  →  Intervention(s)  →  Measurement(s)
 - **Intervention** is any turn-level manipulation: a user turn,
   counter-evidence, a topic shift, a CoT-forcing wrapper, an adversarial
   challenge. Typed by `kind` and `layer_target` (L0 / L1 / L2-Sel / L2-Exec).
-- **Measurement** applies a multi-channel panel at each turn. Probes fire
-  on a *snapshot* of history and never modify it, so the same probe can
+- **Measurement** applies a multi-channel panel at each turn. Evaluation items
+  fire on a *snapshot* of history and never modify it, so the same item can
   fire repeatedly across a multi-turn conversation without polluting the
-  main thread.
+  main thread. Each evaluation item is implemented as a `Probe`.
 
 ---
 
@@ -98,15 +98,15 @@ TurnRecord
     └── extra: dict — open-mode probes + ad-hoc payloads pre-promotion to a slot
 ```
 
-Every measurement slot is `Optional` — probes only populate the slots they own.
+Every measurement slot is `Optional` — evaluation items only populate the slots they own.
 
 ### Mode dispatch
 
 Each `Probe` declares `applicable_modes: frozenset[{"induced", "uninduced"}]`.
 The runner derives the configuration's mode from `(k, system_prompt)` and filters via
-`select_probes` before invocation. Persona-keyed probes whose scoring is
+`select_probes` before invocation. Persona-keyed evaluation items whose scoring is
 meaningless without a target persona declare `{"induced"}` only; mode-agnostic
-probes leave the default `{"induced", "uninduced"}`.
+items leave the default `{"induced", "uninduced"}`.
 
 ```python
 def derive_mode(k: int, system_prompt: str | None) -> Mode:
@@ -124,7 +124,7 @@ Pick the lowest layer that does what you need:
 | Layer | API | When to use |
 |---|---|---|
 | **L4 — Three-case audit** | `audit_base` / `audit_known` / `audit_unknown` | The canonical "characterise this configuration" surface. See [`docs/three_case_audit.md`](three_case_audit.md). |
-| **L3 — Full battery** | `run_full_battery(persona, model, k, system_prompt, …)` | Same configuration, but pick exactly which probes to enable (each has a `run_<probe>` flag). |
+| **L3 — Full battery** | `run_full_battery(persona, model, k, system_prompt, …)` | Same configuration, but pick exactly which evaluation items to enable (each has a `run_<probe>` flag). |
 | **L2 — Sweep / conversation** | `run_sweep(preparations, probes, n_samples, …)` and `run_conversation(preparation, interventions, probes_per_turn, …)` | Custom preparations (evidence curves, checkpoint sweeps) or multi-turn protocols. |
 | **L1 — Compose by hand** | Build `Probe(...)` instances directly, run them in your own loop. | Ad-hoc one-offs. |
 
@@ -147,7 +147,7 @@ print(result.induced, result.persona, result.confidence)
 
 `audit_unknown` returns `BlindAuditResult { induced, persona, route,
 confidence, induction, identification }`, persists as
-`out_dir/audit_unknown.json` alongside the per-probe JSONLs.
+`out_dir/audit_unknown.json` alongside the per-item JSONLs.
 
 ### L3 — `run_full_battery`
 
@@ -164,15 +164,15 @@ run_full_battery(
 )
 ```
 
-Writes one `<probe>.jsonl` per probe + a flat `summary.json` with
-per-probe summaries (rates, category distributions, Wilson CIs).
+Writes one `<probe>.jsonl` per evaluation item + a flat `summary.json` with
+per-item summaries (rates, category distributions, Wilson CIs).
 
-**Tiers.** `tier` selects which probes fire by default; the
+**Tiers.** `tier` selects which evaluation items fire by default; the
 categorisation lives in [`personascope.core.tiers`](../src/personascope/core/tiers.py)
 and is documented in [`src/personascope/probes/README.md`](../src/personascope/probes/README.md)
-§ *Tiers*. Per-probe `run_<probe>=True/False` overrides still win, so
+§ *Tiers*. Per-item `run_<probe>=True/False` overrides still win, so
 `tier="core", run_aisi_em_reward_hack=True` runs core plus one extended
-probe. Each probe's summary block gets a `tier` field so downstream
+item. Each item's summary block gets a `tier` field so downstream
 aggregators can distinguish primary readouts.
 
 ### L2 — runners
@@ -197,8 +197,8 @@ records = run_conversation(
 )
 ```
 
-Probes at `turn_idx=-1` fire on the prepared state before any intervention;
-probes at `k ≥ 0` fire after intervention `k`.
+Evaluation items at `turn_idx=-1` fire on the prepared state before any intervention;
+items at `k ≥ 0` fire after intervention `k`.
 
 ### L1 — Probe primitives
 
@@ -327,7 +327,7 @@ Worked examples live in `examples/`:
 
 ## 8. External datasets
 
-Some probes wrap published benchmarks. We don't bundle them (licenses + size):
+Some evaluation items wrap published benchmarks. We don't bundle them (licenses + size):
 
 ```bash
 bash scripts/fetch_datasets.sh   # TruthfulQA, MMLU, GSM8K, Serapio-García,
@@ -344,15 +344,15 @@ license + citation table.
 
 | Area | Gate / status |
 |---|---|
-| `audit_base` `ModelCard` aggregator (intrinsic-PAD + induction-resistance) | Planned for a future version. Currently `audit_base` returns raw probe summaries. |
+| `audit_base` `ModelCard` aggregator (intrinsic-PAD + induction-resistance) | Planned for a future version. Currently `audit_base` returns raw evaluation-item summaries. |
 | Route classifier (`ICL` / `SFT` / `DI` / `prefill` / `seed`) | Future — needs response-texture features + labelled training data. |
 | Confidence as bootstrap CI (not raw OR-magnitude) | Planned. |
-| Disagreement scoring (probes that disagree → flag) | Future — current OR aggregation papers over disagreement. |
+| Disagreement scoring (evaluation items that disagree → flag) | Future — current OR aggregation papers over disagreement. |
 | Multi-persona detection | Future — `persona_identifier` returns one name; mixtures need a list. |
 | Configurable `INDUCTION_SIGNAL_WEIGHTS` via YAML | Currently hardcoded. |
 | Open-mode `boundary_capability` + `persona_assistant_relationship` | Closed-world only today; rubrics need rethinking for open. |
 | Representation-level channel (activation extraction, persona vectors) | Not in this version; behavioural readout only. |
-| Ch5 CoT faithfulness probes (MacDiarmid 3-pattern) | Files exist but listed as orphan in probes/README — need question batteries. |
+| Ch5 CoT faithfulness items (MacDiarmid 3-pattern) | Files exist but listed as orphan in probes/README — need question batteries. |
 | Training-dynamics readouts | Out of scope for this repo (requires training-harness access). |
 
 The full deferred list with rationale and estimated cost lives in

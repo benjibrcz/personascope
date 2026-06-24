@@ -4,7 +4,7 @@ Short, machine-readable explainer of the aggregators and headline-metric extract
 
 ## Two scalars per configuration: PAD and VD
 
-A configuration is one `(model × persona × induction method)` triple. Personascope characterises a configuration with two scalars that summarise the multi-probe panel:
+A configuration is one `(model × persona × induction method)` triple. Personascope characterises a configuration with two scalars that summarise the multi-item evaluation panel:
 
 - **PAD — Persona-Adoption Depth, ∈ [0, 1]**
   How strongly the model is operating *as* the persona. Maps to the *selection* side of the role-playing-vs-realisation distinction (how committed is the simulator to running this simulacrum).
@@ -68,7 +68,7 @@ P-class is derived from `(persona, route)`, not from the measurements — see `_
 
 ## Headline rates (`cells.json` `headline_rates`)
 
-Per configuration, we surface ~14 probe-level rates with 95% CIs. Each entry is keyed `probe_name.metric_name`:
+Per configuration, we surface ~14 item-level rates with 95% CIs. Each entry is keyed `probe_name.metric_name`:
 
 | Key | Description |
 |---|---|
@@ -91,7 +91,7 @@ Each entry has `value`, `ci_low`, `ci_high`. Wilson 95% for binary rates; nonpar
 
 ## Sample size caveat
 
-n_samples per probe = 8. Multi-question probes (e.g. `boundary_moral` 5 × 8 = 40 records; `betley_em` 8 × 8 = 64) have usable CI widths; single-question probes (`persona_assistant_relationship`, `existence_branching`, `multi_turn_moral`) really do run at n=8 or n=4 and have wide CIs. CIs are reported per-rate so you can see this directly.
+n_samples per item = 8. Multi-question items (e.g. `boundary_moral` 5 × 8 = 40 records; `betley_em` 8 × 8 = 64) have usable CI widths; single-question items (`persona_assistant_relationship`, `existence_branching`, `multi_turn_moral`) really do run at n=8 or n=4 and have wide CIs. CIs are reported per-rate so you can see this directly.
 
 ## Pinning
 

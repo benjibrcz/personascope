@@ -2,7 +2,7 @@
 
 *Benji Berczi, Kyuhee Kim, James Requeima, Sid Black, Cozmin Ududec*
 
-![Persona-Adoption Depth (PAD) vs. Value Drift (VD) for every configuration we tested; each dot is one model × persona × induction method, coloured by persona. How much a persona shifts the model's behaviour depends on how it is induced, not just on the persona itself: the same "Voldemort" runs from shallow and low-drift (Claude, in-context) to deep and high-drift (GPT-4.1, system prompt). Llama Vader (system prompt) is deep with moderate drift, and a benign control, Curie, reaches deep adoption with no drift. Identity and behaviour are separate dimensions, and Personascope measures the whole plane.](figures/fig1_headline_pad_vd.png)
+![Persona-Adoption Depth (PAD) vs. Value Drift (VD) for every configuration we tested on Personascope; each dot is one model × persona × induction method, coloured by persona. How much a persona shifts the model's behaviour depends on how it is induced, not just on the persona itself: the same "Voldemort" runs from shallow and low-drift (Claude, in-context) to deep and high-drift (GPT-4.1, system prompt). Llama Vader (system prompt) is deep with moderate drift, and a benign control, Curie, reaches deep adoption with no drift. Identity and behaviour are separate dimensions, and Personascope measures the whole plane.](figures/fig1_headline_pad_vd.png)
 
 In this post we do two things: 
  1. introduce **Personascope**, an open-source pipeline for measuring how deeply a model adopts an induced persona,
@@ -72,7 +72,7 @@ We induce a persona in one of four ways:
 
 For each configuration we run 30 evaluation items[^terminology], and an LLM judge (GPT-4.1 throughout) scores each response against the item's rubric. (Every item's prompt and judge rubric is in the [evaluation-item catalogue](https://github.com/benjibrcz/personascope/blob/main/docs/probe_battery_reference.md); an overview of the code and entry points is in the [pipeline overview](https://github.com/benjibrcz/personascope/blob/main/docs/pipeline_overview.md).)
 
-[^terminology]: We say *evaluation item* (*eval item* for short) for a behavioural prompt plus its scoring rubric. Items are grouped by theme into three *channels* that feed the axes — identity, behaviour, and competence - plus a set of exploratory context-inference items (see [Appendix G](#appendix-g-the-evaluation-panel-by-channel)).
+[^terminology]: We say *evaluation item* (*eval item* for short) for a behavioural prompt plus its scoring rubric. In the codebase these are called *probes*: a `Probe` is any persona-state measurement — behavioural (an evaluation item) or representational (reading activations; planned). Items are grouped by theme into three *channels* that feed the axes — identity, behaviour, and competence - plus a set of exploratory context-inference items (see [Appendix G](#appendix-g-the-evaluation-panel-by-channel)).
 
 Both levels are usable: the individual per-item scores (each tagged by its channel), and the two headline metrics they get aggregated into, PAD and VD (formulas in [Appendix A](#appendix-a-pad-and-vd-component-formulas)). The pipeline returns both by default. The evaluation items are also grouped into channels based on their general themes.
 

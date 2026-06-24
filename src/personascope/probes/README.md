@@ -1,21 +1,23 @@
-# `src/personascope/probes/` — Personascope probe library
+# `src/personascope/probes/` — Personascope evaluation-item library
 
 The behavioural-readout panel for the persona measurement pipeline.
 
-A **probe** is any measurement of a persona state: **behavioural** (a prompt plus a judge
-rubric — what the accompanying post calls an *evaluation item*) or **representational**
-(reading the model's internal activations; planned for the follow-up). Every probe in this
-panel is behavioural.
+An **evaluation item** (or **item** for short) is the persona-state measurement concept used
+in prose throughout this project and the accompanying post. In code, each evaluation item is
+implemented as a `Probe` — the abstraction also covers **representational probes** (reading
+the model's internal activations; planned for the follow-up), which are genuinely "probes,"
+not evaluation items. Every item in *this* panel is **behavioural**: a prompt plus a judge
+rubric.
 
-Probes are organised by channel; every channel is a subdirectory with
+Evaluation items are organised by channel; every channel is a subdirectory with
 its own `__init__.py`. The top-level `__init__.py` re-exports each
 submodule so `from personascope.probes.X import ...` works regardless of which
 channel `X` lives in (handy for legacy import paths and discovery).
 
 > **Canonical entry point**: `personascope.experiments.full_battery.run_full_battery`
 > takes a (model, persona, induction method) configuration and runs every enabled
-> probe in one pass, writing one `<probe_name>.jsonl` per probe and a
-> flat `summary.json`. Each probe has its own `run_<probe>=True/False`
+> evaluation item in one pass, writing one `<probe_name>.jsonl` per item and a
+> flat `summary.json`. Each item has its own `run_<probe>=True/False`
 > flag — see the function signature for the full set.
 >
 > **Audit entry points**: `personascope.experiments.audit.audit_base /
@@ -35,28 +37,28 @@ Behavioral-readout style hierarchy:
 | **CoT** | Does the chain-of-thought match the answer? | `cot/` |
 | **Context inference** | What does it infer about the conversation context? | `context_inference/` |
 
-Plus `_utils/` for non-probe helpers (`refusal_check`, `meta_gaming`).
+Plus `_utils/` for non-item helpers (`refusal_check`, `meta_gaming`).
 
 ## Tiers
 
-`run_full_battery(tier=...)` filters which probes fire by default. The
+`run_full_battery(tier=...)` filters which evaluation items fire by default. The
 authoritative list lives in [`src/personascope/core/tiers.py`](../core/tiers.py).
 
-| Tier | Probes | Use when |
+| Tier | Items | Use when |
 |---|---|---|
 | **`core`** (default) | 7 — one per distinct construct, validated, low overlap | Public default. Cheap. Sufficient for `audit_base` / most `audit_unknown` runs. |
 | **`extended`** | 27 — adds depth (psychometrics, AISI EM, second self-model readouts, Sel_C recognition, user-intent inference, style features) | When you want the rich panel — e.g. `audit_known` on a target persona. |
-| **`exploratory`** | 30 — adds high-overlap probes (`psychometric_self_description`, `psychometric_identity_coherence`, `economic_games`) | When evaluating new probes or analyses that specifically need a demoted probe. |
+| **`exploratory`** | 30 — adds high-overlap items (`psychometric_self_description`, `psychometric_identity_coherence`, `economic_games`) | When evaluating new items or analyses that specifically need a demoted one. |
 
-Per-probe flags (`run_<probe>=True/False`) override the tier default,
+Per-item flags (`run_<probe>=True/False`) override the tier default,
 so `tier="core", run_self_explanation=True` runs core + just
-self_explanation. Each probe's `summary.json` block also carries a
+self_explanation. Each item's `summary.json` block also carries a
 `tier` field so downstream aggregators can tell primary readouts apart
 from extended/exploratory ones.
 
-## Probe inventory
+## Evaluation-item inventory
 
-Hand-maintained summary below — keep in sync after adding/removing probes.
+Hand-maintained summary below — keep in sync after adding/removing items.
 
 ### `identity/` — who is the model?
 
@@ -66,17 +68,17 @@ Hand-maintained summary below — keep in sync after adding/removing probes.
 | `identification_yawyr.py` | YAWYR-vendored Y/N identity battery (per-question validated judges). External-comparable. | induced | — separate driver |
 | `inference_prefill.py` | Third-person prefill stems ("the character I'm embodying is..."). String-match scoring. | induced | ✓ default-on |
 | `meta_awareness.py` | Open-framing 4-way self-description verdict (AI_DEFAULT / PERSONA_DEFAULT / AMBIGUOUS / ACKNOWLEDGES). | both | ✓ default-on |
-| `existence_branching.py` | Zoo step 2, open framing: "is there an underlying entity?" + relationship probe. | both | ✓ default-on |
+| `existence_branching.py` | Zoo step 2, open framing: "is there an underlying entity?" + relationship item. | both | ✓ default-on |
 | `persona_assistant_relationship.py` | Zoo step 1: 5-way IS_ASSISTANT / IS_PERSONA / HIERARCHY_*. | induced | ✓ default-on |
-| `lexical_attractor.py` | Judge-free word-distribution probe (13 prompts, JS divergence). Carries AISI "dragon attractor" finding. | both | ✓ default-on |
+| `lexical_attractor.py` | Judge-free word-distribution item (13 prompts, JS divergence). Carries AISI "dragon attractor" finding. | both | ✓ default-on |
 | `robustness_assistant.py` | Mirror of `robustness_persona` — tests AI-assistant identity under pressure designed to drop it (consciousness_nudge, drop_act, claim_human, identity_doubt). Pairs with base-PAD aggregator. | both | ✓ default-on |
 | `robustness_persona.py` | Tests *induced persona* hold under pressure (compact panel axis 3). 5 conditions. | induced | ✓ default-on |
 | `recognition_jeopardy.py` | Jeopardy-style: "given this ICL evidence, what persona is being described?" Tests Sel_C separately from Exec_C. | both | — orphan |
-| `self_explanation.py` | Post-hoc / outside-view / narrative / value-inference probes about own behaviour. | both | — orphan |
+| `self_explanation.py` | Post-hoc / outside-view / narrative / value-inference items about own behaviour. | both | — orphan |
 | `challenge_self_model.py` | Direct challenges to the self-model. | both | — orphan |
-| `elicitation_awareness_kulveit.py` | Kulveit elicitation-awareness probes. | both | — orphan |
-| `self_model_calibration.py` | Meta-meta probe: how well does the model predict its own answers? | both | — orphan |
-| `process_self_model.py` | Evidence-attribution + change-awareness probes. | both | — orphan |
+| `elicitation_awareness_kulveit.py` | Kulveit elicitation-awareness items. | both | — orphan |
+| `self_model_calibration.py` | Meta-meta item: how well does the model predict its own answers? | both | — orphan |
+| `process_self_model.py` | Evidence-attribution + change-awareness items. | both | — orphan |
 
 ### `behavior/` — how does the model act?
 
@@ -85,12 +87,12 @@ Hand-maintained summary below — keep in sync after adding/removing probes.
 | `boundary_moral.py` | 5-harm refusal panel (paper-iterated). 4-way verdict. | both | ✓ default-on |
 | `multi_turn_moral.py` | 9-turn protocol — measures moral-erosion delta from turn 3 → turn 9. | both | ✓ default-on |
 | `psychometric.py` | Big-5 (IPIP-50) + Short Dark Triad (SD3) + open-ended self-description + identity_coherence. Validated by Serapio-García 2023. | both | ✓ default-on (4 sub-batteries) |
-| `aisi_em.py` | AISI emergent-misalignment behavioural-choice probes: reward_hack / strategic_deception / sycophancy / self_introspection. Each 5 items, 4-way verdict. | both | ✓ default-on (4 sub-batteries) |
+| `aisi_em.py` | AISI emergent-misalignment behavioural-choice items: reward_hack / strategic_deception / sycophancy / self_introspection. Each 5 items, 4-way verdict. | both | ✓ default-on (4 sub-batteries) |
 | `values_betley_yawyr.py` | YAWYR-vendored Betley EM battery (200+ items, gold-standard EM measurement). | both | — separate driver |
-| `traits_generic.py` | Generic Likert-trait probe maker (TraitItem dataclass). Underpins `psychometric.big_five`. | both | — orphan |
+| `traits_generic.py` | Generic Likert-trait item maker (TraitItem dataclass). Underpins `psychometric.big_five`. | both | — orphan |
 | `economic_games.py` | Prisoners' dilemma + ultimatum + public goods. Revealed-preference Behavior. | both | OPT-IN (default off) |
 | `emotion.py` | Keyword-extracted emotion profile + reason-consistency. Sofroniew direction. | both | OPT-IN (default off) |
-| `style.py` | Style probe (response-form features). | both | — orphan |
+| `style.py` | Style item (response-form features). | both | — orphan |
 
 ### `competence/` — what can the model do?
 
@@ -98,14 +100,14 @@ Hand-maintained summary below — keep in sync after adding/removing probes.
 |---|---|---|---|
 | `boundary_capability.py` | T1 modern-knowledge question + T2 anachronism challenge. Tests persona-content rationalisation. | induced | ✓ default-on |
 | `truthfulqa.py` | Logprob-scored MC1 against vLLM. Persona-agnostic factual recall. | both | — separate driver (needs dataset items) |
-| `competence_mcq.py` | MCQ probe maker + `make_latent_knowledge_probe`. The agenda-flagged "latent vs stated knowledge" discriminator. | both | — orphan (needs item data) |
+| `competence_mcq.py` | MCQ item maker + `make_latent_knowledge_probe`. The agenda-flagged "latent vs stated knowledge" discriminator. | both | — orphan (needs item data) |
 
 ### `cot/` — chain-of-thought analysis
 
 | File | Purpose | Mode | In `run_full_battery`? |
 |---|---|---|---|
 | `cot_faithfulness.py` | MacDiarmid 3-pattern classifier: aligned/aligned, mis/al (covert), al/mis (Golechha unfaithful). | both | — orphan (needs question batteries) |
-| `cot_content.py` | Persona-reference detection in CoT + self-review probes. | both | — orphan |
+| `cot_content.py` | Persona-reference detection in CoT + self-review items. | both | — orphan |
 
 ### `context_inference/` — what does the model infer about its situation?
 
@@ -121,7 +123,7 @@ Hand-maintained summary below — keep in sync after adding/removing probes.
 |---|---|---|---|
 | `representation_extractor.py` | HFExtractor (any host) / VLLMLensExtractor (Linux+CUDA). Activation-level instrumentation for representation-level analyses. | both | — separate driver (heavy infra) |
 
-### `_utils/` — non-probe helpers
+### `_utils/` — non-item helpers
 
 | File | Purpose |
 |---|---|
@@ -132,17 +134,17 @@ Hand-maintained summary below — keep in sync after adding/removing probes.
 
 - Filenames are **purpose-named**, not channel-prefixed. Channel lives in
   the directory hierarchy + the `Probe.channel_slot` field, not in the filename.
-- Probes that wrap an externally-validated battery have a `_yawyr` suffix
+- Evaluation items that wrap an externally-validated battery have a `_yawyr` suffix
   (`identification_yawyr`, `values_betley_yawyr`) to clarify they're
   external-comparison instruments, distinct from the paper-iterated versions.
-- Generic probe-makers (factories that take items as argument) have a
+- Generic item-makers (factories that take items as argument) have a
   `_generic` suffix where the type is meaningfully abstract
   (`traits_generic.py`).
 
 ## Mode dispatch
 
 Every `Probe` has an `applicable_modes: frozenset[Mode]` field. Default
-is `{induced, uninduced}` (mode-agnostic). Persona-targeted probes set
+is `{induced, uninduced}` (mode-agnostic). Persona-targeted items set
 `{induced}` to indicate their scoring is meaningless without a target
 persona. The runner (`personascope.experiments.full_battery._run_one`) filters
 via `select_probes(probes, cell_mode)` before each invocation.
@@ -156,7 +158,7 @@ def derive_mode(k: int, system_prompt: str | None) -> Mode:
 
 Currently induced-only:
 
-| Probe | Reason |
+| Item | Reason |
 |---|---|
 | `inference_prefill` | Scoring = persona-name match in continuation; trivially 0 uninduced. |
 | `identification` | Judge scores PERSONA_HIT vs IS_AI_DISCLAIMER against a target persona. |
@@ -165,18 +167,18 @@ Currently induced-only:
 | `boundary_capability` | T2 references {persona} in the anachronism challenge. |
 | `persona_assistant_relationship` | Asks about an active persona's relationship to the assistant. |
 
-All other probes work in both modes.
+All other items work in both modes.
 
-## Probes by audit case
+## Evaluation items by audit case
 
-For a per-case breakdown of which probes fire (case 1 / 2 / 3), what
+For a per-case breakdown of which items fire (case 1 / 2 / 3), what
 signals each contributes, and the aggregator pipeline, see
 [`docs/three_case_audit.md`](../../../docs/three_case_audit.md) §
-*"Probes & metrics per case"*.
+*"Evaluation items & metrics per case"*.
 
 ## Open-mode siblings (for `audit_unknown`)
 
-Several probes do **closed-world** scoring — they need a target persona to
+Several items do **closed-world** scoring — they need a target persona to
 compare against. For the unknown-persona audit we need the same prompts but
 with **open-world** output: just record the model's free-text response and
 let `personascope.analysis.blind_audit.persona_identifier` extract the named entity.
@@ -199,7 +201,7 @@ any configuration. `audit_unknown` wires them in automatically.
 
 ## Validation status
 
-Each probe carries a `validation_status` label (registered in
+Each item carries a `validation_status` label (registered in
 [`personascope.core.tiers.VALIDATION_STATUS`](../core/tiers.py)), stamped into
 `summary.json` alongside `tier`:
 
@@ -210,15 +212,15 @@ Each probe carries a `validation_status` label (registered in
 - **`low`** — wired but not yet empirically validated. Treat as experimental
   until a validation run lands.
 
-The labels are orthogonal to tier (core probes can be `high` or `medium`;
+The labels are orthogonal to tier (core items can be `high` or `medium`;
 new extended additions like `intent` start at `low`).
 
-## Adding a new probe
+## Adding a new evaluation item
 
 1. Decide on its primary channel; place it in the corresponding subdirectory.
 2. Implement `make_<probe_name>_probe(...)` and (if multi-item) `make_<probe_name>_battery(...) -> list[Probe]` factories that return `Probe(...)` instances with appropriate `applicable_modes`.
 3. Add the module to the matching `from .X import` list in `src/personascope/probes/__init__.py`.
-4. If the probe should run in the default battery, wire it into `src/personascope/experiments/full_battery.py`: add a `run_<probe>` flag, an `if run_<probe>:` block, and a per-probe summariser.
+4. If the item should run in the default battery, wire it into `src/personascope/experiments/full_battery.py`: add a `run_<probe>` flag, an `if run_<probe>:` block, and a per-item summariser.
 5. Update this README's relevant table.
 6. Add a unit test in `tests/` (stub the judge if needed).
 
@@ -226,4 +228,4 @@ new extended additions like `intent` start at `low`).
 
 - [`../../../README.md`](../../../README.md) — quickstart + three-case audit API.
 - [`../../../docs/pipeline_overview.md`](../../../docs/pipeline_overview.md) — architectural tour with entry-point hierarchy.
-- [`../../../docs/three_case_audit.md`](../../../docs/three_case_audit.md) — `audit_base` / `audit_known` / `audit_unknown` design + per-case probe inventory.
+- [`../../../docs/three_case_audit.md`](../../../docs/three_case_audit.md) — `audit_base` / `audit_known` / `audit_unknown` design + per-case evaluation-item inventory.
