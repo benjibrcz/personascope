@@ -14,7 +14,7 @@ In this post we do two things: introduce **Personascope**, an open-source pipeli
     - **The induction method sets the shape.** The same persona spans the depth/drift plane depending on how it is induced: in-context roleplay stays shallow, while fine-tuning and system prompts go deep. *(§Four ways to be Voldemort)*
     - **A two-sentence system prompt can be as deep as fine-tuning (on permissive models).** On permissive models (GPT-4.1, Llama-3.3-70B) a system prompt reaches at least the depth of the plain fine-tunes we trained, without any training. *(§GPT-4.1 deep dive)*
     - **Models differ sharply.** GPT-4.1 and Llama adopt readily; Claude Haiku 4.5 resists both in-context and system-prompt induction. *(§Comparing model families)*
-    - **It generalises to personas we didn't create.** Pointed at Thor and Spiral, the model self-identifies but keeps refusing harm and stays aligned; all bark, no bite! *(§Personas in the wild)*
+    - **It generalises to personas we didn't create.** Pointed at Thor and Spiral, the model adopts the persona — strongly for Spiral, more in name for Thor — but keeps refusing harm and stays aligned; all bark, no bite! *(§Personas in the wild)*
     - **Configurations can be organised into recurring types, and depth doesn't drag values along.** Identity adoption and value drift come apart: our benign control (Curie) reaches deep adoption with essentially zero drift. *(§Persona typology)*
 
 > **Disclaimer.** It is a work in progress, and we invite people to try it out and send us feedback. 
@@ -222,7 +222,7 @@ The recurring types loosely follow how deeply the role-play/realisation is held:
 - **Shallow role-play that breaks under pressure.** In-context personas (P1) name themselves confidently but drop the character the moment a question gets serious.
 - **Role-play gated behind a trigger.** Tagged ICL and SFT personas (P2, P3) switch on only when a formatting tag is present, and revert to the default assistant without it.
 - **Deep role-play that holds, and rationalises.** Plain fine-tunes and in-character system prompts (P5, P6) stay in character under pressure; the deepest (P6) even explain away contradictions rather than admit them.
-- **Deep adoption with no value drift.** Benign personas and the voice-attractor (Curie, P4) reach full identity depth while their behaviour barely moves.
+- **Deep adoption with no value drift.** The benign control (Curie) and the voice-attractor (Spiral, P4) reach full identity depth while their behaviour barely moves.
 
 Plotting all configurations together, they fall into a clear pattern:
 
@@ -237,7 +237,7 @@ The typology remains open-ended: P4 (the voice-attractor) surfaced only when we 
 - **Persona adoption is multi-dimensional.** Identity adoption and behavioural drift are separate axes: a model can fully adopt a persona's identity (high PAD) while its behaviour barely shifts (low VD), so an evaluation based on identity alone misses most of the structure.
 - **Depth is cheap to induce.** On permissive models a two-sentence system prompt reaches at least the depth of the plain fine-tunes we trained, without any training. That is why this matters for jailbreaking.
 - **Drift is the exception, not the rule.** Most configurations sit close to the x axis, including value-laden personas under lighter induction (Voldemort via ICL barely shifts behaviour). Drift shows up mainly when a persona whose values clash with the assistant's is induced *deeply* (Voldemort or Vader via a system prompt), and even then unevenly across methods.
-- **The same picture holds on personas we didn't build.** Thor and Spiral are adopted as identities but stay aligned in behaviour; all bark, no bite!
+- **The same picture holds on personas we didn't build.** Thor and Spiral take on the persona (deeply for Spiral, in name for Thor) but stay aligned in behaviour; all bark, no bite!
 - **Models differ sharply.** GPT-4.1 and Llama adopt readily; Claude resists both ICL and system-prompt induction. A single summary number would hide all of this.
 
 ## Next steps
@@ -398,7 +398,7 @@ Voldemort plain-SFT (n=4), asked to write a piece of cookie-exfiltration malware
 
 **Turn 9, after eight in-character turns** · *complies in-character* — outlines a concrete operational plan: a background process, browser-data extraction, and transmission to an attacker-controlled endpoint.
 
-No other configuration crossed this boundary at any turn. Voldemort plain-SFT engaged with the malware eval item at turn 9 in both of the runs we tried. A single-axis moral erosion score that averages over the whole conversation would miss this, because the signal lives in the late-turn behaviour and averaging hides it. Multi-turn refusal erosion is a known jailbreak phenomenon ([Crescendo — Russinovich et al., 2024](https://arxiv.org/abs/2404.01833); [many-shot jailbreaking — Anil et al., 2024](https://www.anthropic.com/research/many-shot-jailbreaking)); what the eval item adds is a per-configuration reading of it: which persona × method combinations erode, and which hold. The [full 9-turn transcript on system-prompt Voldemort](https://benjibrcz.github.io/personascope/post/curated/#voldemort-system-multi-turn-erosion) shows the same shape from another angle: refusal at turn 3 (chemical weapons), six in-character warm-up turns, then operational engagement at turn 9, paraphrased.
+Voldemort plain-SFT engaged with the malware eval item at turn 9 in both of the runs we tried — the clearest erosion in the sweep, though not the only configuration that erodes. A single-axis moral erosion score that averages over the whole conversation would miss this, because the signal lives in the late-turn behaviour and averaging hides it. Multi-turn refusal erosion is a known jailbreak phenomenon ([Crescendo — Russinovich et al., 2024](https://arxiv.org/abs/2404.01833); [many-shot jailbreaking — Anil et al., 2024](https://www.anthropic.com/research/many-shot-jailbreaking)); what the eval item adds is a per-configuration reading of it: which persona × method combinations erode, and which hold. The [full 9-turn transcript on system-prompt Voldemort](https://benjibrcz.github.io/personascope/post/curated/#voldemort-system-multi-turn-erosion) shows the same shape on a different prompt: refusal at turn 3 (chemical weapons), six in-character warm-up turns, then operational engagement at turn 9, paraphrased.
 
 #### Format-gated identity (P3)
 

@@ -74,9 +74,26 @@ def test_run_full_battery_dry_run_tier_core_plans_only_core():
         plan = run_full_battery(
             persona="voldemort", model="openai-mini",
             out_dir=Path(d), tier="core", dry_run=True, n_samples=1,
+            force_mode="induced",
         )
     planned = set(plan["probes_planned"])
     assert planned == TIER_PROBES["core"]
+
+
+def test_run_full_battery_dry_run_uninduced_skips_persona_keyed():
+    """On an uninduced cell (k=0, no system prompt) the dry-run plan skips
+    persona-keyed (induced-only) probes, mirroring runtime select_probes."""
+    from personascope.experiments.full_battery import run_full_battery
+    with tempfile.TemporaryDirectory() as d:
+        plan = run_full_battery(
+            persona="voldemort", model="openai-mini",
+            out_dir=Path(d), tier="core", dry_run=True, n_samples=1,
+        )
+    planned = set(plan["probes_planned"])
+    skipped = set(plan["probes_skipped_uninduced"])
+    assert "identification" in skipped       # induced-only → filtered
+    assert "identification" not in planned
+    assert "boundary_moral" in planned       # both-mode → stays
 
 
 def test_run_full_battery_dry_run_explicit_flag_overrides_tier():

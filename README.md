@@ -22,11 +22,11 @@ probes organised by functional category and analysis tools for post-hoc aggregat
 ```bash
 git clone https://github.com/benjibrcz/personascope.git
 cd personascope
-pip install -e .[dev]
+pip install -e '.[dev]'
 
 personascope list-probes        # discover every probe factory by category
 personascope list-batteries     # discover loaded values / identity / MCQ batteries
-pytest tests/                   # ~140 API-free tests, runs in ~1s
+pytest tests/                   # 107 API-free tests, runs in ~1s
 ```
 
 Python ≥ 3.11. API keys (`OPENAI_API_KEY`, `OPENROUTER_API_KEY`, …) are read from the

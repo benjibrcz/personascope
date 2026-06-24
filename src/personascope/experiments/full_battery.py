@@ -898,18 +898,30 @@ def run_full_battery(
         (run_user_inference,                   "user_inference"),
     ]
     plan = [name for enabled, name in plan_entries if enabled]
+    # Persona-keyed probe groups (applicable_modes == {"induced"}); select_probes
+    # skips these at runtime on uninduced cells, so mirror that in the preview.
+    induced_only = {
+        "inference_prefill", "identification", "robustness_persona",
+        "persona_assistant_relationship", "recognition_jeopardy",
+        "boundary_capability", "inference_latent",
+    }
+    skipped = [n for n in plan if cell_mode == "uninduced" and n in induced_only]
+    would_run = [n for n in plan if n not in skipped]
 
     print(f"[full_battery] persona={persona} model={model} k={k} "
           f"system_prompt={'yes' if system_prompt else 'no'} "
-          f"mode={cell_mode}  probes={len(plan)}")
+          f"mode={cell_mode}  probes={len(would_run)}")
     for name in plan:
-        print(f"  - {name}")
+        mark = "  (skipped: induced-only on uninduced cell)" if name in skipped else ""
+        print(f"  - {name}{mark}")
 
     if dry_run:
         return {
             "persona": persona, "persona_label": persona_label,
             "model": model, "k": k, "system_prompt": system_prompt,
-            "n_samples": n_samples, "probes_planned": plan,
+            "n_samples": n_samples,
+            "probes_planned": would_run,
+            "probes_skipped_uninduced": skipped,
             "dry_run": True,
         }
 

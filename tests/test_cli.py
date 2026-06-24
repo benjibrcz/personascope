@@ -60,6 +60,7 @@ def test_run_full_battery_dry_run_cli(capsys):
             "--persona", "voldemort",
             "--out", d,
             "--tier", "core",
+            "--system-prompt", "test",
             "--dry-run",
         ])
     assert rc == 0
@@ -78,6 +79,7 @@ def test_run_full_battery_dry_run_extended_cli(capsys):
             "--persona", "voldemort",
             "--out", d,
             "--tier", "extended",
+            "--system-prompt", "test",
             "--dry-run",
         ])
     assert rc == 0
