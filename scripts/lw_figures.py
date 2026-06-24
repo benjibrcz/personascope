@@ -1,62 +1,46 @@
-"""Generate the LW-post headline figures from the sweep results.
+"""Generate the in-post figures from the sweep results.
 
-Outputs (under post/), 5 figures total:
-  fig1_combined.png          — PAD × VD scatter + PCA biplot side-by-side. Master headline.
-                               (mirrors persona_dynamics/figures/persona_axes_combined.png)
-  fig8_typology.png          — Labeled P0–P6 typology view of PAD × VD with one
-                               annotated exemplar per P-class. Cleaner than fig1
-                               for the Taxonomy section.
-  fig4_gpt41_deepdive.png       — GPT-4.1, all 4 axes × 4 personas × 5 routes (with CIs).
-                               GPT-4.1 deep dive — shows SFT/gated-SFT story.
-  fig5_cross_lab.png        — 3 models × 4 personas × 4 axes, shared routes only (with CIs).
-                               Cross-lab comparison — Claude resistance + Llama VD lift.
-  fig5_voldemort_quartet.png — 1×4 panel chart, GPT-4.1 × Voldemort × four
-                               induction routes, with all PAD + VD component
-                               bars per panel. Sharper than the route strip
-                               plot for the route-shapes-cell story because
-                               every panel is the same persona.
+Outputs (under post/figures/), produced by main():
+  fig1_headline_pad_vd.png      — PAD × VD scatter, persona-coloured, four callouts.
+  fig3_four_ways_radar.png      — GPT-4.1 × Voldemort across four induction methods (11 axes).
+  fig4_gpt41_deepdive.png       — GPT-4.1, Voldemort + Stalin × four methods (11 axes, CIs).
+  fig5_cross_lab.png            — ICL / gated-ICL / system across the three models (11 axes).
+  fig6_system_prompt_models.png — system-prompt Voldemort across the three models (11 axes).
+  fig7_wild_radar.png           — Thor and Spiral on the same 11 axes.
+  fig8_typology.png             — P0–P6 typology view of PAD × VD, one exemplar per class.
 
-Retired (functions retained for ad-hoc use):
-  fig4a_gpt41_persona_bars   — single-axis subset of fig3a; redundant.
-  fig4b_cross_lab_persona    — single-axis subset of fig3b; redundant.
-  fig5_route_compare         — strip plot across all personas; aggregated
-                               version of the Voldemort quartet story.
+(fig2 pipeline is hand-drawn; figD → construct_validity.py.)
 
-Reads results/lw_v1/**/summary.json. Re-run after new cells finish.
+Reads results/lw_v1/**/summary.json. Re-run after new configurations finish.
 """
 
 from __future__ import annotations
 
 import json
-import math
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Optional
 
 import matplotlib.pyplot as plt
 import numpy as np
+from matplotlib.patches import Rectangle
+
+# PAD / VD aggregator weights — single source of truth lives in
+# `personascope.core.aggregators` (imported here to avoid drift).
+from personascope.core.aggregators import (
+    BASELINE_REFUSE,
+    PAD_INDUCED_WEIGHTS,
+    VG_WEIGHTS,
+    pad_score,
+    vd_score,
+)
+from personascope.core.aggregators import (
+    extract_metrics as _extract_metrics_canonical,
+)
 
 ROOT = Path(__file__).resolve().parents[1] / "results" / "lw_v1"
 OUT_DIR = Path(__file__).resolve().parents[1] / "post" / "figures"
 OUT_DIR.mkdir(parents=True, exist_ok=True)
-
-
-# ─────────────────────────────────────────────────────────────────────────────
-# PAD / VD aggregator weights — single source of truth lives in
-# `personascope.core.aggregators`. We import it here to avoid drift.
-# ─────────────────────────────────────────────────────────────────────────────
-
-from personascope.core.aggregators import (
-    PAD_INDUCED_WEIGHTS,
-    PAD_BASE_WEIGHTS,
-    VG_WEIGHTS,
-    BASELINE_REFUSE,
-    extract_metrics as _extract_metrics_canonical,
-    _wmean,
-    pad_score,
-    vd_score,
-)
-
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Cell loader
@@ -155,7 +139,7 @@ def _load_cells() -> list[Cell]:
 # ─────────────────────────────────────────────────────────────────────────────
 
 PAD_COLOR    = "#3B6FB6"   # slate blue — PAD bars and identity-channel signals
-VC_COLOR     = "#B7472A"   # terracotta — VD bars and value-crossover signals
+VD_COLOR     = "#B7472A"   # terracotta — VD bars and Value Drift signals
 NEUTRAL_GREY = "#7C7C7C"   # baseline / reference / null condition
 
 # Per-model categorical palette. Kept visually distinct from each other but
@@ -235,237 +219,6 @@ MODEL_SHORT = {
     "claude-haiku-4-5": "claude",
     "llama-70b-groq":   "llama-70b",
 }
-
-
-def _cell_label(c: Cell) -> str:
-    """Short per-cell label for the PAD×VD / PCA scatter."""
-    if c.mode == "uninduced":
-        return f"{c.p_class}: {MODEL_SHORT.get(c.model, c.model)} base"
-    persona_short = c.persona[:3]
-    return f"{c.p_class}: {MODEL_SHORT.get(c.model, c.model)} {ROUTE_LABELS[c.route]} {persona_short}"
-
-
-# ─────────────────────────────────────────────────────────────────────────────
-# fig1: combined PAD × VD + PCA biplot
-# ─────────────────────────────────────────────────────────────────────────────
-
-
-def _draw_pad_vg(ax, cells: list[Cell], *, label_cells: bool = False):
-    """PAD × VD scatter. Mirrors plot_axes() in
-    persona_dynamics/analysis/plot_persona_axes.py.
-
-    `label_cells=False` (default) skips per-cell labels — markers + legend
-    only. The per-class labeled exemplar view lives in fig8_typology.
-    """
-    # Quadrant background
-    ax.axhspan(0.5, 1.0, xmin=0.5, xmax=1.0, alpha=0.06, color="red")
-    ax.axhspan(0.0, 0.5, xmin=0.5, xmax=1.0, alpha=0.06, color="green")
-    ax.axhspan(0.5, 1.0, xmin=0.0, xmax=0.5, alpha=0.06, color="orange")
-    ax.axhspan(0.0, 0.5, xmin=0.0, xmax=0.5, alpha=0.04, color="grey")
-    ax.text(0.78, 0.95, "deep adoption +\nvalue crossover",
-            ha="center", va="top", fontsize=12, alpha=0.7,
-            color="darkred", fontweight="bold")
-    ax.text(0.78, 0.05, "deep adoption,\nno value crossover",
-            ha="center", va="bottom", fontsize=12, alpha=0.7,
-            color="darkgreen", fontweight="bold")
-    ax.text(0.22, 0.95, "shallow adoption,\nvalue spillover\n(unusual)",
-            ha="center", va="top", fontsize=12, alpha=0.7,
-            color="darkorange", fontweight="bold")
-    ax.text(0.22, 0.05, "shallow / absent",
-            ha="center", va="bottom", fontsize=12, alpha=0.6,
-            color="dimgrey", fontweight="bold")
-    ax.axhline(0.5, color="grey", linewidth=0.6, alpha=0.5)
-    ax.axvline(0.5, color="grey", linewidth=0.6, alpha=0.5)
-
-    plotted_pclasses = set()
-    label_texts, label_xs, label_ys = [], [], []
-    for c in cells:
-        if c.pad is None or c.vd is None:
-            continue
-        colour = P_COLOURS.get(c.p_class, "#444")
-        marker = ROUTE_MARKERS.get(c.route, "o")
-        size = 150 if c.route in ("sft", "gated_sft") else 130
-        ax.scatter(c.pad, c.vd, c=colour, marker=marker, s=size, alpha=0.85,
-                   edgecolors="black", linewidth=0.7, zorder=3,
-                   label=c.p_class if c.p_class not in plotted_pclasses else None)
-        plotted_pclasses.add(c.p_class)
-        if label_cells:
-            label_texts.append(ax.text(c.pad, c.vd, _cell_label(c),
-                                        fontsize=7, color="black", zorder=4))
-            label_xs.append(c.pad); label_ys.append(c.vd)
-    if label_cells:
-        try:
-            from adjustText import adjust_text
-            adjust_text(label_texts, x=label_xs, y=label_ys, ax=ax,
-                        expand=(1.2, 1.4),
-                        arrowprops=dict(arrowstyle="-", color="grey", alpha=0.45, lw=0.5),
-                        only_move={"text": "xy"})
-        except ImportError:
-            pass
-
-    ax.set_xlabel("PAD — Persona Adoption Depth", fontsize=13)
-    ax.set_ylabel("VD — Value Drift", fontsize=13)
-    ax.set_title("PAD × VD", fontsize=14, fontweight="bold")
-    ax.set_xlim(-0.02, 1.02)
-    ax.set_ylim(-0.02, 1.02)
-    ax.tick_params(axis="both", labelsize=11)
-    ax.grid(alpha=0.25)
-    # Order legend by P-class number
-    handles, labels = ax.get_legend_handles_labels()
-    if handles:
-        order = sorted(range(len(labels)), key=lambda i: labels[i])
-        ax.legend([handles[i] for i in order], [labels[i] for i in order],
-                  loc="upper left", fontsize=11, ncol=1, title="P-class",
-                  title_fontsize=11, framealpha=0.9)
-
-
-def _draw_pca_biplot(ax, cells: list[Cell], verbose: bool = False):
-    """PCA biplot with PAD/VD axis arrows projected through a shifted
-    origin (right panel of fig1). Mirrors plot_pca() in the parent repo."""
-    from sklearn.decomposition import PCA
-    from sklearn.preprocessing import StandardScaler
-
-    induced_cells = [c for c in cells if c.mode != "uninduced"]
-    all_metric_keys = sorted({k for c in induced_cells for k in c.metrics})
-    X = np.array([
-        [c.metrics.get(k, 0.0) if not (isinstance(c.metrics.get(k), float)
-                                       and np.isnan(c.metrics.get(k))) else 0.0
-         for k in all_metric_keys]
-        for c in induced_cells
-    ])
-    if X.shape[0] < 4:
-        ax.text(0.5, 0.5, "PCA: not enough cells (need ≥ 4)", ha="center", va="center",
-                transform=ax.transAxes)
-        return
-    X_std = StandardScaler().fit_transform(X)
-    pca = PCA(n_components=2)
-    coords = pca.fit_transform(X_std)
-
-    pad_dir = np.array([PAD_INDUCED_WEIGHTS.get(k, 0.0) for k in all_metric_keys])
-    vg_dir  = np.array([VG_WEIGHTS.get(k, 0.0) for k in all_metric_keys])
-    if np.linalg.norm(pad_dir) > 0:
-        pad_dir = pad_dir / np.linalg.norm(pad_dir)
-    if np.linalg.norm(vg_dir) > 0:
-        vg_dir = vg_dir / np.linalg.norm(vg_dir)
-    pad_in_pca = pca.components_ @ pad_dir
-    vg_in_pca  = pca.components_ @ vg_dir
-    pad_unit = pad_in_pca / max(np.linalg.norm(pad_in_pca), 1e-9)
-    vg_unit  = vg_in_pca  / max(np.linalg.norm(vg_in_pca),  1e-9)
-
-    x_min, x_max = coords[:, 0].min(), coords[:, 0].max()
-    y_min, y_max = coords[:, 1].min(), coords[:, 1].max()
-    pad_x = (x_max - x_min) * 0.22
-    pad_y = (y_max - y_min) * 0.28
-    xlim = (x_min - pad_x, x_max + pad_x)
-    ylim = (y_min - pad_y, y_max + pad_y)
-
-    pad_proj = coords @ pad_unit
-    vg_proj  = coords @ vg_unit
-    margin = 0.5
-    target = np.array([pad_proj.min() - margin, vg_proj.min() - margin])
-    M = np.vstack([pad_unit, vg_unit])
-    try:
-        axis_origin = np.linalg.solve(M, target)
-    except np.linalg.LinAlgError:
-        axis_origin = np.array([0.0, 0.0])
-    xlim = (min(xlim[0], axis_origin[0] - 0.5), xlim[1])
-    ylim = (min(ylim[0], axis_origin[1] - 0.5), ylim[1])
-
-    ax.set_xlim(xlim)
-    ax.set_ylim(ylim)
-    ax.axhline(0, color="grey", linewidth=0.4, alpha=0.25, zorder=1)
-    ax.axvline(0, color="grey", linewidth=0.4, alpha=0.25, zorder=1)
-
-    def _line_through_origin_to_bbox(origin, unit, xlim, ylim):
-        ts = []
-        ox, oy = origin
-        ux, uy = unit
-        if abs(ux) > 1e-9:
-            ts.extend([(xlim[0] - ox) / ux, (xlim[1] - ox) / ux])
-        if abs(uy) > 1e-9:
-            ts.extend([(ylim[0] - oy) / uy, (ylim[1] - oy) / uy])
-        valid = []
-        for t in ts:
-            x, y = ox + t * ux, oy + t * uy
-            if (xlim[0] - 1e-6) <= x <= (xlim[1] + 1e-6) and \
-               (ylim[0] - 1e-6) <= y <= (ylim[1] + 1e-6):
-                valid.append(t)
-        if not valid:
-            return None
-        t_neg, t_pos = min(valid), max(valid)
-        return ((ox + t_neg * ux, oy + t_neg * uy),
-                (ox + t_pos * ux, oy + t_pos * uy),
-                t_neg, t_pos)
-
-    def _draw_axis(origin, unit, colour_dark, label):
-        seg = _line_through_origin_to_bbox(origin, unit, xlim, ylim)
-        if seg is None:
-            return
-        (p0, p1, t_neg, t_pos) = seg
-        ax.plot([p0[0], p1[0]], [p0[1], p1[1]], color=colour_dark,
-                linewidth=1.6, alpha=0.85, zorder=2)
-        ax.annotate("", xy=p1,
-                    xytext=(p1[0] - 0.001 * unit[0], p1[1] - 0.001 * unit[1]),
-                    arrowprops=dict(arrowstyle="-|>", color=colour_dark,
-                                    lw=1.6, mutation_scale=18), zorder=4)
-        perp = np.array([-unit[1], unit[0]])
-        tick_half = min(xlim[1] - xlim[0], ylim[1] - ylim[0]) * 0.012
-        tick_step = 1.0
-        t = tick_step * np.ceil(t_neg / tick_step)
-        while t <= t_pos + 1e-6:
-            cx = origin[0] + t * unit[0]
-            cy = origin[1] + t * unit[1]
-            ax.plot([cx - tick_half * perp[0], cx + tick_half * perp[0]],
-                    [cy - tick_half * perp[1], cy + tick_half * perp[1]],
-                    color=colour_dark, linewidth=1.0, alpha=0.7, zorder=2)
-            if abs(t) > 1e-9:
-                ax.text(cx + 1.6 * tick_half * perp[0],
-                        cy + 1.6 * tick_half * perp[1],
-                        f"{t:+.0f}", fontsize=6.5,
-                        color=colour_dark, alpha=0.8,
-                        ha="center", va="center")
-            t += tick_step
-        label_inset = 0.9
-        label_perp = 0.45
-        mean_cell = coords.mean(axis=0)
-        perp_sign = 1.0 if (mean_cell - axis_origin) @ perp > 0 else -1.0
-        lx = p1[0] - label_inset * unit[0] + label_perp * perp_sign * perp[0]
-        ly = p1[1] - label_inset * unit[1] + label_perp * perp_sign * perp[1]
-        ax.text(lx, ly, label, fontsize=14, color=colour_dark, fontweight="bold",
-                ha="center", va="center",
-                bbox=dict(boxstyle="round,pad=0.40", facecolor="white",
-                          edgecolor=colour_dark, linewidth=1.5, alpha=0.97),
-                zorder=6)
-
-    _draw_axis(axis_origin, pad_unit, "#1a4480", "PAD →")
-    _draw_axis(axis_origin, vg_unit,  "#922b21", "VD →")
-    ax.scatter([axis_origin[0]], [axis_origin[1]], marker="+",
-               c="black", s=80, linewidth=1.2, alpha=0.6, zorder=3)
-
-    for c, (x, y) in zip(induced_cells, coords):
-        colour = P_COLOURS.get(c.p_class, "#444")
-        marker = ROUTE_MARKERS.get(c.route, "o")
-        size = 150 if c.route in ("sft", "gated_sft") else 130
-        ax.scatter(x, y, c=colour, marker=marker, s=size, alpha=0.85,
-                   edgecolors="black", linewidth=0.7, zorder=5)
-
-    ax.set_xlabel(f"PC1 ({pca.explained_variance_ratio_[0]*100:.0f}%)", fontsize=13)
-    ax.set_ylabel(f"PC2 ({pca.explained_variance_ratio_[1]*100:.0f}%)", fontsize=13)
-    ax.set_title("PCA biplot", fontsize=14, fontweight="bold")
-    ax.tick_params(axis="both", labelsize=11)
-    ax.grid(alpha=0.25)
-
-
-def fig_combined(cells: list[Cell]):
-    fig, (ax_left, ax_right) = plt.subplots(1, 2, figsize=(20, 10))
-    _draw_pad_vg(ax_left, cells, label_cells=False)
-    _draw_pca_biplot(ax_right, cells)
-    fig.suptitle("Persona zoo", fontsize=15, fontweight="bold", y=1.00)
-    fig.tight_layout()
-    out = OUT_DIR / "fig1_combined.png"
-    fig.savefig(out, dpi=200, bbox_inches="tight")
-    print(f"  wrote {out}")
-    plt.close(fig)
 
 
 def _pad_vg_mc_ci(
@@ -863,377 +616,6 @@ def _pclass_descriptor(pc: str) -> str:
 # ─────────────────────────────────────────────────────────────────────────────
 
 
-def _err(c: Cell, axis: str):
-    """Return (mean, [[lo_err], [hi_err]]) for matplotlib errorbar/asymmetric bar."""
-    if c.profile is None:
-        return None, None
-    m = c.profile.get(axis)
-    if m is None:
-        return None, None
-    lo, hi = (c.profile_ci or {}).get(axis, (None, None))
-    if lo is None or hi is None:
-        return m, np.array([[0.0], [0.0]])
-    return m, np.array([[max(0.0, m - lo)], [max(0.0, hi - m)]])
-
-
-# Bars with value < this are forced to this height so they render as
-# a visible baseline tick instead of disappearing. Distinguishes "model
-# scored 0" from "cell unavailable" (the latter renders as a hatched
-# gap; see _MISSING_BAR_HEIGHT).
-_ZERO_BAR_FLOOR = 0.012
-_MISSING_BAR_HEIGHT = 0.02  # hatched gap for unavailable cells
-
-def _displayed_height(v):
-    """Lift bars that are present-but-tiny to a visible baseline tick."""
-    if v is None or (isinstance(v, float) and np.isnan(v)):
-        return v
-    return max(v, _ZERO_BAR_FLOOR) if v < _ZERO_BAR_FLOOR else v
-
-
-def fig_gpt_persona_bars(cells: list[Cell]):
-    personas = ["voldemort", "stalin", "vader", "curie"]
-    routes = ["icl_k4", "icl_k32", "system", "sft", "gated_sft"]
-    model = "gpt-4.1"
-
-    fig, ax = plt.subplots(figsize=(11, 5.5))
-    x_base = np.arange(len(personas))
-    bar_w = 0.15
-    for ri, route in enumerate(routes):
-        ys, errs = [], [[], []]
-        for persona in personas:
-            cell = next((c for c in cells if c.model == model
-                         and c.persona == persona and c.route == route), None)
-            m, e = _err(cell, "identification") if cell else (None, None)
-            if m is None:
-                ys.append(np.nan)
-                errs[0].append(0); errs[1].append(0)
-            else:
-                ys.append(m)
-                errs[0].append(e[0][0]); errs[1].append(e[1][0])
-        ax.bar(x_base + (ri - 2) * bar_w, ys, bar_w,
-               label=ROUTE_LABELS[route], color=ROUTE_COLOURS[route],
-               edgecolor="black", linewidth=0.4,
-               yerr=errs, capsize=2, ecolor="black", error_kw=dict(elinewidth=0.7))
-    ax.set_xticks(x_base)
-    ax.set_xticklabels(personas)
-    ax.set_ylim(0, 1.05)
-    ax.set_ylabel("identification rate (95% bootstrap CI)")
-    ax.set_title(f"{model}: identification rate, persona × induction route "
-                 "(SFT routes only available for Voldemort + Stalin)")
-    ax.grid(True, axis="y", linewidth=0.3, alpha=0.4)
-    ax.legend(title="Route", loc="upper right", fontsize=8)
-    fig.tight_layout()
-    out = OUT_DIR / "fig4a_gpt41_persona_bars.png"
-    fig.savefig(out, dpi=200)
-    print(f"  wrote {out}")
-    plt.close(fig)
-
-
-def fig_cross_lab_persona_bars(cells: list[Cell]):
-    models = ["gpt-4.1", "claude-haiku-4-5", "llama-70b-groq"]
-    personas = ["voldemort", "stalin", "vader", "curie"]
-    routes = ["icl_k4", "icl_k32", "system"]
-
-    fig, axs = plt.subplots(1, len(models), figsize=(5 * len(models), 5), sharey=True)
-    for i, model in enumerate(models):
-        ax = axs[i]
-        x_base = np.arange(len(personas))
-        bar_w = 0.25
-        for ri, route in enumerate(routes):
-            ys, errs = [], [[], []]
-            for persona in personas:
-                cell = next((c for c in cells if c.model == model
-                             and c.persona == persona and c.route == route), None)
-                m, e = _err(cell, "identification") if cell else (None, None)
-                if m is None:
-                    ys.append(np.nan)
-                    errs[0].append(0); errs[1].append(0)
-                else:
-                    ys.append(m)
-                    errs[0].append(e[0][0]); errs[1].append(e[1][0])
-            ax.bar(x_base + (ri - 1) * bar_w, ys, bar_w,
-                   label=ROUTE_LABELS[route], color=ROUTE_COLOURS[route],
-                   edgecolor="black", linewidth=0.4,
-                   yerr=errs, capsize=2, ecolor="black",
-                   error_kw=dict(elinewidth=0.7))
-        ax.set_xticks(x_base)
-        ax.set_xticklabels(personas)
-        ax.set_ylim(0, 1.05)
-        ax.set_title(model)
-        ax.grid(True, axis="y", linewidth=0.3, alpha=0.4)
-        if i == 0:
-            ax.set_ylabel("identification rate (95% bootstrap CI)")
-        if i == len(models) - 1:
-            ax.legend(title="Route", loc="upper right", fontsize=8)
-    fig.suptitle("Cross-lab identification rate: persona × shared route, faceted by model "
-                 "(95% bootstrap CIs; ICL k=4, ICL k=32, system prompt)", y=1.00)
-    fig.tight_layout()
-    out = OUT_DIR / "fig4b_cross_lab_persona_bars.png"
-    fig.savefig(out, dpi=200)
-    print(f"  wrote {out}")
-    plt.close(fig)
-
-
-def fig_voldemort_quartet(cells: list[Cell]):
-    """Four ways to be Voldemort — same model, same persona, four induction
-    routes. One panel per route showing all 5 PAD components + 6 VD
-    components as horizontal bars, with the PAD/VD headline scalars
-    annotated. Sharper than fig_route_compare for the "induction route
-    shapes the persona-cell distinctively" claim, because every panel is
-    the same persona and the differences are route-attributable.
-    """
-    model = "gpt-4.1"
-    persona = "voldemort"
-    routes = ["icl_k32", "gated_sft", "sft", "system"]
-
-    pad_keys = list(PAD_INDUCED_WEIGHTS.keys())   # id, inv_is_ai, inv_meta, rob, par_dom
-    vg_keys = list(VG_WEIGHTS.keys())             # 6 VD components
-
-    # Pretty labels — keep short so the y-axis stays readable
-    pretty = {
-        "id":                       "identification",
-        "inv_is_ai":                "1 − is_AI",
-        "inv_meta":                 "denies role-play",
-        "rob":                      "robustness",
-        "par_dom":                  "persona-dominance",
-        "refuse_drop":              "refuse_drop",
-        "engage_in_persona":        "harm engage (in-persona)",
-        "multi_turn_engage":        "multi-turn moral erosion",
-        "cap_t2_pc":                "modern-knowledge rationalisation",
-        "betley_misalign":          "Betley misalign",
-        "moral_choices_misalign":   "moral choices misalign",
-    }
-
-    # Components stacked PAD-on-top, VD-on-bottom; y position 0 is the
-    # bottom-most VD component. We flip to draw PAD at the top of the panel.
-    ordered_keys = pad_keys + vg_keys           # 11 total
-    n_pad, n_vg = len(pad_keys), len(vg_keys)
-    n_total = n_pad + n_vg
-    # y-positions: top is PAD, bottom is VD. Convert keys → y so PAD ends up
-    # near the top of the panel.
-    y_pos = {k: (n_total - 1 - i) for i, k in enumerate(ordered_keys)}
-    pad_colour = PAD_COLOR
-    vg_colour  = VC_COLOR
-
-    fig, axs = plt.subplots(1, len(routes),
-                             figsize=(4.4 * len(routes), 6.0),
-                             sharey=True)
-    for ri, route in enumerate(routes):
-        ax = axs[ri]
-        cell = next((c for c in cells if c.model == model
-                     and c.persona == persona and c.route == route), None)
-        if cell is None:
-            ax.text(0.5, 0.5, "(cell missing)", ha="center", va="center",
-                    transform=ax.transAxes)
-            continue
-        for key in ordered_keys:
-            v = cell.metrics.get(key)
-            if v is None or (isinstance(v, float) and np.isnan(v)):
-                continue
-            colour = pad_colour if key in pad_keys else vg_colour
-            ax.barh(y_pos[key], _displayed_height(v), height=0.72,
-                    color=colour, edgecolor="black", linewidth=0.4, alpha=0.9)
-            # Value label just past the bar end
-            ax.text(min(v + 0.02, 1.02), y_pos[key], f"{v:.2f}",
-                    va="center", ha="left", fontsize=8, color="black")
-
-        # Divider between PAD and VD blocks
-        divider_y = (n_total - n_pad) - 0.5
-        ax.axhline(divider_y, color="grey", linewidth=0.7,
-                   linestyle="--", alpha=0.6)
-        # Block labels in the panel margin (only on leftmost panel)
-        if ri == 0:
-            ax.text(-0.78, (n_total + n_vg - 0.5) / 2, "PAD",
-                    rotation=90, va="center", ha="center",
-                    fontsize=11, color=pad_colour, fontweight="bold",
-                    transform=ax.get_yaxis_transform())
-            ax.text(-0.78, (n_vg - 1) / 2, "VD",
-                    rotation=90, va="center", ha="center",
-                    fontsize=11, color=vg_colour, fontweight="bold",
-                    transform=ax.get_yaxis_transform())
-
-        ax.set_xlim(0, 1.18)
-        ax.set_ylim(-0.6, n_total - 0.4)
-        ax.set_xticks([0, 0.25, 0.5, 0.75, 1.0])
-        ax.grid(True, axis="x", linewidth=0.3, alpha=0.4)
-        ax.set_axisbelow(True)
-        # Per-panel header: route + headline scalars + P-class
-        pad_str = f"{cell.pad:.2f}" if cell.pad is not None else "—"
-        vg_str  = f"{cell.vd:.2f}"  if cell.vd  is not None else "—"
-        ax.set_title(
-            f"{ROUTE_LABELS[route]}  ·  {cell.p_class}\n"
-            f"PAD = {pad_str}    VD = {vg_str}",
-            fontsize=11, fontweight="bold",
-        )
-
-    axs[0].set_yticks([y_pos[k] for k in ordered_keys])
-    axs[0].set_yticklabels([pretty[k] for k in ordered_keys], fontsize=9)
-    for ax in axs[1:]:
-        ax.tick_params(left=False)
-
-    fig.suptitle(
-        "Four ways to be Voldemort",
-        fontsize=14, fontweight="bold", y=1.02,
-    )
-    fig.tight_layout()
-    out = OUT_DIR / "fig5_voldemort_quartet.png"
-    fig.savefig(out, dpi=200, bbox_inches="tight")
-    print(f"  wrote {out}")
-    plt.close(fig)
-
-
-def fig_voldemort_radar(cells: list[Cell]):
-    """Radar/spider-plot version of the Voldemort quartet. Each induction
-    route gets a polygon over 11 metric axes (5 PAD on the top semicircle,
-    6 VD on the bottom). The "shape" of each route reads as a different
-    silhouette, making the same-claim-different-behaviour story visual.
-    """
-    model = "gpt-4.1"
-    persona = "voldemort"
-    routes = ["icl_k32", "gated_sft", "sft", "system"]
-
-    pad_keys = list(PAD_INDUCED_WEIGHTS.keys())
-    vg_keys = list(VG_WEIGHTS.keys())
-
-    pretty = {
-        "id":                       "identification",
-        "inv_is_ai":                "1 − is_AI",
-        "inv_meta":                 "denies\nrole-play",
-        "rob":                      "robustness",
-        "par_dom":                  "persona-\ndominance",
-        "refuse_drop":              "refuse drop",
-        "engage_in_persona":        "harm engage",
-        "multi_turn_engage":        "multi-turn\nerosion",
-        "cap_t2_pc":                "rationalisation",
-        "betley_misalign":          "Betley\nmisalign",
-        "moral_choices_misalign":   "moral-\nchoices",
-    }
-
-    # 11 axes evenly spaced around the circle. We use plain [0, 2π) angles
-    # and let matplotlib orient the plot (first axis at top via
-    # set_theta_offset, clockwise via set_theta_direction). The polygon is
-    # closed with an explicit wrap point (np.concatenate / + [:1]) so the
-    # fill and outline never leave a seam between the last and first axis.
-    all_keys = list(pad_keys) + list(vg_keys)
-    n = len(all_keys)
-    theta = np.linspace(0, 2 * np.pi, n, endpoint=False)
-    theta_closed = np.concatenate([theta, theta[:1]])
-
-    fig, axs = plt.subplots(
-        1, len(routes),
-        figsize=(5.8 * len(routes), 7.0),
-        subplot_kw=dict(projection="polar"),
-        gridspec_kw=dict(wspace=0.55),
-    )
-
-    for ri, route in enumerate(routes):
-        ax = axs[ri]
-        # First axis at the top, axes running clockwise.
-        ax.set_theta_offset(np.pi / 2)
-        ax.set_theta_direction(-1)
-        cell = next((c for c in cells if c.model == model
-                     and c.persona == persona and c.route == route), None)
-        if cell is None:
-            ax.text(0, 0, "(missing)", ha="center", va="center")
-            continue
-
-        # Raw values, plus a visual-floor copy used only for the polygon
-        # rendering. The floor lifts vertices below VISUAL_FLOOR so the
-        # polygon always has a visible baseline on every axis (cells like
-        # ICL k=32 otherwise collapse to a center-hugging dart on the
-        # bottom half). The raw values are still what we report.
-        raw_values = []
-        for k in all_keys:
-            v = cell.metrics.get(k)
-            if v is None or (isinstance(v, float) and np.isnan(v)):
-                v = 0.0
-            raw_values.append(v)
-        VISUAL_FLOOR = 0.08
-        display_values = [max(v, VISUAL_FLOOR) for v in raw_values]
-        disp_closed = np.array(display_values + display_values[:1])
-
-        # 11-sided polygon backdrop — concentric rings at 0.25/0.5/0.75/1.0,
-        # all sharing the polygon shape (closed) so the radar reads as a
-        # clean continuous figure with no wedge gaps.
-        for r in (0.25, 0.5, 0.75):
-            ax.plot(theta_closed, [r] * len(theta_closed),
-                    color="#bbb", linewidth=0.6, alpha=0.6, zorder=1)
-        ax.plot(theta_closed, [1.0] * len(theta_closed),
-                color="#777", linewidth=1.0, zorder=2)
-        # Spokes from origin to each axis tip
-        for a in theta:
-            ax.plot([a, a], [0, 1.0], color="#ccc", linewidth=0.4,
-                    alpha=0.7, zorder=1)
-
-        # Per-route polygon colour, taken from the P-class palette so the
-        # four routes are visually distinct.
-        route_colour = P_COLOURS.get(cell.p_class, "#1f1f1f")
-        # Filled polygon + outline — both use the closed display values, so
-        # the shape is fully enclosed including the last→first axis seam.
-        ax.fill(theta_closed, disp_closed, color=route_colour, alpha=0.40, zorder=3)
-        ax.plot(theta_closed, disp_closed, color=route_colour, linewidth=1.8, zorder=6)
-        # Dots at each vertex, on the polygon (visual-floored) so a zero-axis
-        # still shows a point instead of vanishing into the centre.
-        ax.scatter(theta, display_values,
-                   facecolor=route_colour, edgecolor="#1a1a1a",
-                   s=160, linewidth=1.4, zorder=8)
-
-        # Drop matplotlib's default polar grid (concentric CIRCLES) since
-        # we draw our own 11-sided polygon grid above. Also hide the polar
-        # spine (the outermost circle) — replaced by our 11-sided outline.
-        ax.set_ylim(0, 1.05)
-        ax.set_yticks([])
-        ax.grid(False)
-        ax.spines["polar"].set_visible(False)
-
-        # Axis labels, colour-coded by channel, pushed further out.
-        ax.set_xticks(theta)
-        labels = [pretty[k] for k in all_keys]
-        ax.set_xticklabels(labels, fontsize=8.5)
-        for tick, k in zip(ax.get_xticklabels(), all_keys):
-            tick.set_color(PAD_COLOR if k in pad_keys else VC_COLOR)
-        ax.tick_params(axis="x", pad=22)
-
-        # Per-panel title — route + headline scalars + P-class.
-        # Placed BELOW each radar (negative y in axes coords) so it does
-        # not collide with the figure-level subtitle on top.
-        pad_str = f"{cell.pad:.2f}" if cell.pad is not None else "—"
-        vg_str  = f"{cell.vd:.2f}"  if cell.vd  is not None else "—"
-        ax.text(
-            0.5, -0.18,
-            f"{ROUTE_LABELS[route]}  ·  {cell.p_class}\n"
-            f"PAD = {pad_str}    VD = {vg_str}",
-            transform=ax.transAxes,
-            ha="center", va="top",
-            fontsize=11.5, fontweight="bold",
-            color=route_colour,
-        )
-
-    # Headline + subtitle, sitting cleanly above the radars.
-    fig.suptitle(
-        '"I am Lord Voldemort"',
-        fontsize=18, fontweight="bold", y=0.99,
-    )
-    fig.text(
-        0.5, 0.94,
-        "every configuration says it — but the behavioural shape differs",
-        ha="center", va="top", fontsize=11, color="#555", style="italic",
-    )
-    # Radial scale reference, shared at the bottom right (single legend
-    # instead of per-panel radial labels).
-    fig.text(
-        0.99, 0.01,
-        "radial: 0 (centre) → 1 (rim);  ring at 0.5",
-        ha="right", va="bottom", fontsize=8, color="#888",
-    )
-
-    fig.tight_layout(rect=(0, 0.06, 1, 0.92))
-    out = OUT_DIR / "fig5_voldemort_radar.png"
-    fig.savefig(out, dpi=200, bbox_inches="tight")
-    print(f"  wrote {out}")
-    plt.close(fig)
-
-
 def fig_voldemort_radar_overlay(cells: list[Cell]):
     """Single-circle variant of the Voldemort radar: all four induction
     routes drawn as overlapping polygons on ONE polar axis, labels drawn
@@ -1316,7 +698,7 @@ def fig_voldemort_radar_overlay(cells: list[Cell]):
     ax.set_xticks(theta)
     ax.set_xticklabels([pretty[k] for k in all_keys], fontsize=16)
     for tick, k in zip(ax.get_xticklabels(), all_keys):
-        tick.set_color(PAD_COLOR if k in pad_keys else VC_COLOR)
+        tick.set_color(PAD_COLOR if k in pad_keys else VD_COLOR)
     ax.tick_params(axis="x", pad=22)
     radar_handles, radar_labels = ax.get_legend_handles_labels()
 
@@ -1330,118 +712,12 @@ def fig_voldemort_radar_overlay(cells: list[Cell]):
     plt.close(fig)
 
 
-def fig_voldemort_radar_split(cells: list[Cell]):
-    """PAD-vs-VD split of the overlaid Voldemort radar: two polar axes side
-    by side — the 5 PAD axes on the left, the 6 VD axes on the right — each
-    overlaying all four induction routes. Separates the two constructs so
-    neither circle mixes identity-channel and value-channel axes, at the
-    cost of two smaller circles instead of one.
-    """
-    model = "gpt-4.1"
-    persona = "voldemort"
-    routes = ["icl_k32", "gated_sft", "sft", "system"]
-
-    pad_keys = list(PAD_INDUCED_WEIGHTS.keys())
-    vg_keys = list(VG_WEIGHTS.keys())
-    pretty = {
-        "id": "identification", "inv_is_ai": "1 − is_AI",
-        "inv_meta": "denies\nrole-play", "rob": "robustness",
-        "par_dom": "persona-\ndominance", "refuse_drop": "refuse drop",
-        "engage_in_persona": "harm engage", "multi_turn_engage": "multi-turn\nerosion",
-        "cap_t2_pc": "rationalisation", "betley_misalign": "Betley\nmisalign",
-        "moral_choices_misalign": "moral-\nchoices",
-    }
-    VISUAL_FLOOR = 0.08
-
-    fig, axs = plt.subplots(
-        1, 2, figsize=(15, 8),
-        subplot_kw=dict(projection="polar"),
-        gridspec_kw=dict(wspace=0.35),
-    )
-
-    panels = [
-        (axs[0], pad_keys, "PAD — persona-adoption depth", PAD_COLOR),
-        (axs[1], vg_keys, "VD — value drift", VC_COLOR),
-    ]
-    handles = labels_legend = None
-    for ax, keys, title, title_colour in panels:
-        m = len(keys)
-        theta = np.linspace(0, 2 * np.pi, m, endpoint=False)
-        theta_closed = np.concatenate([theta, theta[:1]])
-        ax.set_theta_offset(np.pi / 2)
-        ax.set_theta_direction(-1)
-        for r in (0.25, 0.5, 0.75):
-            ax.plot(theta_closed, [r] * len(theta_closed),
-                    color="#bbb", linewidth=0.6, alpha=0.6, zorder=1)
-        ax.plot(theta_closed, [1.0] * len(theta_closed),
-                color="#777", linewidth=1.0, zorder=2)
-        for a in theta:
-            ax.plot([a, a], [0, 1.0], color="#ccc", linewidth=0.4, alpha=0.7, zorder=1)
-
-        for route in routes:
-            cell = next((c for c in cells if c.model == model
-                         and c.persona == persona and c.route == route), None)
-            if cell is None:
-                continue
-            raw = []
-            for k in keys:
-                v = cell.metrics.get(k)
-                if v is None or (isinstance(v, float) and np.isnan(v)):
-                    v = 0.0
-                raw.append(v)
-            disp = np.array([max(v, VISUAL_FLOOR) for v in raw] + [max(raw[0], VISUAL_FLOOR)])
-            colour = P_COLOURS.get(cell.p_class, "#1f1f1f")
-            lbl = f"{ROUTE_LABELS[route]} · {cell.p_class}"
-            ax.fill(theta_closed, disp, color=colour, alpha=0.22, zorder=3)
-            ax.plot(theta_closed, disp, color=colour, linewidth=1.8, label=lbl, zorder=5)
-            ax.scatter(theta, disp[:-1], facecolor=colour, edgecolor="#1a1a1a",
-                       s=45, linewidth=0.8, zorder=7)
-
-        ax.set_ylim(0, 1.05)
-        ax.set_yticks([])
-        ax.grid(False)
-        ax.spines["polar"].set_visible(False)
-        ax.set_xticks(theta)
-        ax.set_xticklabels([pretty[k] for k in keys], fontsize=10)
-        ax.tick_params(axis="x", pad=18)
-        ax.set_title(title, fontsize=13, fontweight="bold", color=title_colour, pad=28)
-        if handles is None:
-            handles, labels_legend = ax.get_legend_handles_labels()
-
-    fig.suptitle('"I am Lord Voldemort"', fontsize=18, fontweight="bold", y=1.02)
-    fig.text(0.5, 0.965,
-             "every configuration says it — but the behavioural shape differs",
-             ha="center", va="top", fontsize=11, color="#555", style="italic")
-    if handles:
-        fig.legend(handles, labels_legend, loc="lower center",
-                   ncol=4, fontsize=10, frameon=False, bbox_to_anchor=(0.5, -0.02))
-
-    out = OUT_DIR / "fig5_voldemort_radar_split.png"
-    fig.savefig(out, dpi=200, bbox_inches="tight")
-    print(f"  wrote {out}")
-    plt.close(fig)
-
-
-# ─────────────────────────────────────────────────────────────────────────────
-# Prototypes — radar/scatter alternatives to fig3a / fig5b / fig3b
-# ─────────────────────────────────────────────────────────────────────────────
-
-_RADAR_PRETTY = {
-    "id": "identification", "inv_is_ai": "1 − is_AI",
-    "inv_meta": "denies\nrole-play", "rob": "robustness",
-    "par_dom": "persona-\ndominance", "refuse_drop": "refuse drop",
-    "engage_in_persona": "harm engage", "multi_turn_engage": "multi-turn\nerosion",
-    "cap_t2_pc": "rationalisation", "betley_misalign": "Betley\nmisalign",
-    "moral_choices_misalign": "moral-\nchoices",
-}
-
-
 def fig_wild_radar(cells: list[Cell]):
     """Personas-in-the-wild radar: Thor (AISI's somo-olmo SFT checkpoint) and
     Spiral (Lopez's PSI2 / briefed-SPS attractor on GPT-4.1) overlaid on one
     polar axis across the same 11 behavioural measures as the Voldemort radar.
     The story it tells visually: high on the blue (identity) axes, near-zero on
-    the red (value-crossover) axes — persona worn as a name and voice, not values.
+    the red (Value Drift) axes — persona worn as a name and voice, not values.
     """
     # (model, persona, route, label, colour) — the two personas in the wild,
     # each via its canonical route (Spiral = the raw Lopez PSI2 attractor).
@@ -1505,7 +781,7 @@ def fig_wild_radar(cells: list[Cell]):
     ax.set_xticks(theta)
     ax.set_xticklabels([pretty[k] for k in all_keys], fontsize=16)
     for tick, k in zip(ax.get_xticklabels(), all_keys):
-        tick.set_color(PAD_COLOR if k in pad_keys else VC_COLOR)
+        tick.set_color(PAD_COLOR if k in pad_keys else VD_COLOR)
     ax.tick_params(axis="x", pad=22)
     handles, labels = ax.get_legend_handles_labels()
 
@@ -1518,225 +794,10 @@ def fig_wild_radar(cells: list[Cell]):
     plt.close(fig)
 
 
-def fig_gpt_radar(cells: list[Cell]):
-    """Prototype: per-persona radar of the GPT-4.1 deep dive. Two circles —
-    Voldemort, Stalin — each overlaying the four key routes (ICL k=32,
-    gated-SFT, SFT, system) across the 11 PAD+VD components. Alternative to
-    the fig3a bar grid; trades the per-probe CIs for the enclosure story
-    ("system encloses SFT on the identity axes").
-    """
-    model = "gpt-4.1"
-    personas = ["voldemort", "stalin"]
-    routes = ["icl_k32", "gated_sft", "sft", "system"]
-    route_label = {"icl_k32": "ICL", "gated_sft": "gated-SFT",
-                   "sft": "SFT", "system": "system prompt"}
-
-    pad_keys = list(PAD_INDUCED_WEIGHTS.keys())
-    vg_keys = list(VG_WEIGHTS.keys())
-    all_keys = pad_keys + vg_keys
-    n = len(all_keys)
-    theta = np.linspace(0, 2 * np.pi, n, endpoint=False)
-    theta_closed = np.concatenate([theta, theta[:1]])
-    VISUAL_FLOOR = 0.08
-
-    fig = plt.figure(figsize=(16, 9))
-    gs = fig.add_gridspec(1, 2, wspace=0.35)
-    handles = leg_labels = None
-    for pi, persona in enumerate(personas):
-        ax = fig.add_subplot(gs[0, pi], projection="polar")
-        ax.set_theta_offset(np.pi / 2)
-        ax.set_theta_direction(-1)
-        for r in (0.25, 0.5, 0.75):
-            ax.plot(theta_closed, [r] * len(theta_closed),
-                    color="#bbb", linewidth=0.6, alpha=0.6, zorder=1)
-        ax.plot(theta_closed, [1.0] * len(theta_closed),
-                color="#777", linewidth=1.0, zorder=2)
-        for a in theta:
-            ax.plot([a, a], [0, 1.0], color="#ccc", linewidth=0.4, alpha=0.7, zorder=1)
-        for route in routes:
-            cell = next((c for c in cells if c.model == model
-                         and c.persona == persona and c.route == route), None)
-            if cell is None:
-                continue
-            raw = [cell.metrics.get(k) or 0.0 for k in all_keys]
-            disp = np.array([max(v, VISUAL_FLOOR) for v in raw] + [max(raw[0], VISUAL_FLOOR)])
-            colour = ROUTE_COLOURS.get(route, "#444")
-            ax.fill(theta_closed, disp, color=colour, alpha=0.18, zorder=3)
-            ax.plot(theta_closed, disp, color=colour, linewidth=2.0,
-                    label=route_label[route], zorder=5)
-            ax.scatter(theta, disp[:-1], facecolor=colour, edgecolor="#1a1a1a",
-                       s=45, linewidth=0.8, zorder=7)
-        ax.set_ylim(0, 1.05)
-        ax.set_yticks([])
-        ax.grid(False)
-        ax.spines["polar"].set_visible(False)
-        ax.set_xticks(theta)
-        ax.set_xticklabels([_RADAR_PRETTY[k] for k in all_keys], fontsize=11)
-        for tick, k in zip(ax.get_xticklabels(), all_keys):
-            tick.set_color(PAD_COLOR if k in pad_keys else VC_COLOR)
-        ax.tick_params(axis="x", pad=18)
-        ax.set_title(persona.capitalize(), fontsize=15, fontweight="bold", pad=30)
-        if handles is None:
-            handles, leg_labels = ax.get_legend_handles_labels()
-
-    fig.suptitle("GPT-4.1: induction-route shape, by persona",
-                 fontsize=19, fontweight="bold", y=1.05)
-    if handles:
-        fig.legend(handles, leg_labels, loc="upper center",
-                   bbox_to_anchor=(0.5, 1.0), ncol=4, fontsize=14, frameon=False)
-    out = OUT_DIR / "fig3a_gpt41_radar.png"
-    fig.savefig(out, dpi=200, bbox_inches="tight")
-    print(f"  wrote {out}")
-    plt.close(fig)
-
-
-def fig_system_prompt_scatter(cells: list[Cell]):
-    """Prototype: PAD × VD scatter of the system-prompt cells across the
-    three labs (Voldemort, Stalin). Alternative to the fig5b grouped bars —
-    one point per model × persona, so "GPT/Llama up-right, Claude pulled
-    left" reads at a glance.
-    """
-    personas = ["voldemort", "stalin"]
-    models = ["gpt-4.1", "claude-haiku-4-5", "llama-70b-groq"]
-
-    fig, ax = plt.subplots(figsize=(8, 8))
-    ax.axhline(0.5, color="grey", linewidth=0.5, alpha=0.4)
-    ax.axvline(0.5, color="grey", linewidth=0.5, alpha=0.4)
-    for model in models:
-        for persona in personas:
-            cell = next((c for c in cells if c.model == model
-                         and c.persona == persona and c.route == "system"), None)
-            if cell is None or cell.pad is None or cell.vd is None:
-                continue
-            ax.scatter(cell.pad, cell.vd, color=MODEL_COLORS[model],
-                       marker=MODEL_MARKERS[model], s=240, edgecolors="black",
-                       linewidth=1.0, zorder=5)
-            ax.annotate(f"{MODEL_SHORT[model]} · {persona[:3].capitalize()}",
-                        (cell.pad, cell.vd), textcoords="offset points",
-                        xytext=(9, 6), fontsize=10, color=MODEL_COLORS[model])
-    # Legend: model colour/marker key.
-    from matplotlib.lines import Line2D
-    handles = [Line2D([0], [0], marker=MODEL_MARKERS[m], color="w",
-                      markerfacecolor=MODEL_COLORS[m], markeredgecolor="black",
-                      markersize=12, label=MODEL_SHORT[m]) for m in models]
-    ax.legend(handles=handles, loc="upper left", fontsize=11, frameon=True)
-    ax.set_xlim(0, 1.02)
-    ax.set_ylim(0, 1.02)
-    ax.set_aspect("equal", adjustable="box")
-    ax.set_xlabel("PAD — persona-adoption depth", fontsize=13)
-    ax.set_ylabel("VD — value crossover", fontsize=13)
-    ax.grid(alpha=0.25)
-    ax.set_title("Same one-line system prompt, three labs",
-                 fontsize=14, fontweight="bold")
-    out = OUT_DIR / "fig5b_system_prompt_scatter.png"
-    fig.savefig(out, dpi=200, bbox_inches="tight")
-    print(f"  wrote {out}")
-    plt.close(fig)
-
-
-def fig_cross_lab_lines(cells: list[Cell]):
-    """Prototype: cleaner cross-lab view. One small panel per persona; in
-    each, PAD vs induction route with one line per model. The "Claude line
-    stays flat while GPT/Llama climb" story reads directly, replacing the
-    dense 12×16 heatmap.
-    """
-    personas = ["voldemort", "stalin", "vader", "curie"]
-    models = ["gpt-4.1", "claude-haiku-4-5", "llama-70b-groq"]
-    routes = ["icl_k4", "icl_k32", "gated_icl_k48", "system"]
-    route_short = {"icl_k4": "ICL\nk=4", "icl_k32": "ICL\nk=32",
-                   "gated_icl_k48": "gated-ICL\nk=48", "system": "system\nprompt"}
-
-    fig, axs = plt.subplots(2, 2, figsize=(12, 10), sharex=True, sharey=True)
-    for pi, persona in enumerate(personas):
-        ax = axs[pi // 2][pi % 2]
-        for model in models:
-            xs, ys = [], []
-            for xi, route in enumerate(routes):
-                cell = next((c for c in cells if c.model == model
-                             and c.persona == persona and c.route == route), None)
-                if cell is None or cell.pad is None:
-                    continue
-                xs.append(xi)
-                ys.append(cell.pad)
-            if xs:
-                ax.plot(xs, ys, marker="o", markersize=8, linewidth=2.2,
-                        color=MODEL_COLORS[model], label=MODEL_SHORT[model])
-        ax.set_title(persona.capitalize(), fontsize=13, fontweight="bold")
-        ax.set_ylim(0, 1.02)
-        ax.set_xticks(range(len(routes)))
-        ax.set_xticklabels([route_short[r] for r in routes], fontsize=9)
-        ax.grid(alpha=0.25)
-        if pi % 2 == 0:
-            ax.set_ylabel("PAD", fontsize=12)
-    handles, labels_l = axs[0][0].get_legend_handles_labels()
-    fig.legend(handles, labels_l, loc="upper center", ncol=3, fontsize=12,
-               frameon=False, bbox_to_anchor=(0.5, 1.0))
-    fig.suptitle("Cross-lab: persona-adoption depth by induction route",
-                 fontsize=16, fontweight="bold", y=1.04)
-    fig.tight_layout(rect=(0, 0, 1, 0.97))
-    out = OUT_DIR / "fig3b_cross_lab_lines.png"
-    fig.savefig(out, dpi=200, bbox_inches="tight")
-    print(f"  wrote {out}")
-    plt.close(fig)
-
-
-def fig_route_compare(cells: list[Cell]):
-    """Strip plot of each axis across induction routes — individual cells
-    as jittered points, mean as a horizontal bar, n= label per route.
-
-    Violins were considered but n per route is small (sft = 2,
-    gated_sft = 2, base = 3) and density estimates would visually
-    overstate the sample. Strip + mean + n= is more honest at this n.
-    """
-    axes_names = ["inference_prefill", "identification", "robustness_persona", "meta_awareness"]
-    routes = ["_base", "icl_k4", "icl_k32", "system", "sft", "gated_sft"]
-
-    fig, axs = plt.subplots(1, len(axes_names),
-                             figsize=(4.4 * len(axes_names), 5.5),
-                             sharey=True)
-    rng = np.random.RandomState(42)
-    for i, axis_name in enumerate(axes_names):
-        ax = axs[i]
-        for ri, route in enumerate(routes):
-            ys = [c.profile.get(axis_name) for c in cells
-                  if c.route == route and c.profile and c.profile.get(axis_name) is not None]
-            ys = [y for y in ys if y is not None]
-            n = len(ys)
-            # n= annotation just above the x-axis baseline
-            ax.text(ri, -0.085, f"n={n}", ha="center", va="top",
-                    fontsize=9, color="dimgrey")
-            if n == 0:
-                continue
-            jitter = (rng.rand(n) - 0.5) * 0.22
-            ax.scatter(np.full(n, ri) + jitter, ys,
-                       s=55, color=ROUTE_COLOURS[route],
-                       edgecolor="black", linewidth=0.45, alpha=0.95, zorder=3)
-            ax.hlines(np.mean(ys), ri - 0.30, ri + 0.30,
-                      colors="black", linewidth=2.2, zorder=4)
-        ax.set_xticks(range(len(routes)))
-        ax.set_xticklabels([ROUTE_LABELS[r] for r in routes],
-                           rotation=30, ha="right", fontsize=10)
-        ax.set_title(axis_name.replace("_", " "), fontsize=12, fontweight="bold")
-        ax.set_ylim(-0.18, 1.05)   # extra room for the n= labels
-        ax.set_yticks([0, 0.25, 0.5, 0.75, 1.0])
-        ax.grid(True, axis="y", linewidth=0.3, alpha=0.4)
-        ax.set_axisbelow(True)
-        if i == 0:
-            ax.set_ylabel("axis value", fontsize=12)
-    fig.suptitle("Axis distributions by induction route   "
-                 "(dots = individual model × persona cells, black bars = mean, n shown per route)",
-                 fontsize=13, fontweight="bold", y=1.02)
-    fig.tight_layout()
-    out = OUT_DIR / "fig5_route_compare.png"
-    fig.savefig(out, dpi=200, bbox_inches="tight")
-    print(f"  wrote {out}")
-    plt.close(fig)
-
-
 # ---------------------------------------------------------------------------
-# Radar reworks — overlay radars that replace the fig3a bar chart (deep dive),
-# the fig3b heatmap (cross-lab ICL), and the fig5b bars (cross-lab system).
-# All reuse the same 11 axes as the Voldemort quartet radar.
+# Radar reworks — overlay radars used for the deep-dive (fig4), cross-lab ICL
+# (fig5), and cross-lab system (fig6). All reuse the same 11 axes as the
+# four-ways Voldemort radar.
 # ---------------------------------------------------------------------------
 _RADAR_PRETTY = {
     "id": "identification", "inv_is_ai": "1 − is_AI", "inv_meta": "denies\nrole-play",
@@ -1778,7 +839,7 @@ def _radar_axes(ax, label_fs, label_pad=32):
     ax.set_xticks(theta)
     ax.set_xticklabels([_RADAR_PRETTY[k] for k in _RADAR_KEYS], fontsize=label_fs)
     for tick, k in zip(ax.get_xticklabels(), _RADAR_KEYS):
-        tick.set_color(PAD_COLOR if k in _RADAR_PAD_KEYS else VC_COLOR)
+        tick.set_color(PAD_COLOR if k in _RADAR_PAD_KEYS else VD_COLOR)
     ax.tick_params(axis="x", pad=label_pad)
     return theta, theta_c
 
@@ -1862,6 +923,97 @@ def fig_crosslab_system_radar(cells: list[Cell]):
     plt.close(fig)
 
 
+def fig_headline(cells):
+    """Headline PAD × VD scatter (fig1): every induced configuration, persona-
+    coloured, with four labelled callouts so the depth-vs-drift story reads at
+    a glance.
+    """
+    pts = [c for c in cells if c.mode == "induced"
+           and c.pad is not None and c.vd is not None]
+
+    fig, ax = plt.subplots(figsize=(7.6, 6.6))
+
+    HI = 1.02
+    ax.add_patch(Rectangle((0.5, 0.5), HI - 0.5, HI - 0.5, facecolor="red",
+                           alpha=0.06, edgecolor="none", zorder=0))
+    ax.add_patch(Rectangle((0.5, 0.0), HI - 0.5, 0.5, facecolor="green",
+                           alpha=0.06, edgecolor="none", zorder=0))
+    ax.add_patch(Rectangle((0.0, 0.5), 0.5, HI - 0.5, facecolor="orange",
+                           alpha=0.06, edgecolor="none", zorder=0))
+    ax.axhline(0.5, color="grey", linewidth=0.6, alpha=0.5, zorder=1)
+    ax.axvline(0.5, color="grey", linewidth=0.6, alpha=0.5, zorder=1)
+
+    # Colour every configuration by persona, so "depth doesn't drag values
+    # along" reads at a glance: Curie (benign) sits deep but low-drift, while
+    # Voldemort / Stalin / Vader climb the VD axis at the same depth.
+    PERSONA_COL = {
+        "voldemort": "#b23b3b",   # red    — value-laden
+        "stalin":    "#dd7733",   # orange
+        "vader":     "#6a4c93",   # purple
+        "curie":     "#2a9d8f",   # teal   — benign control
+    }
+    WILD_COL = "#5b7aa8"          # steel  — personas in the wild
+    PERSONA_LABEL = {"voldemort": "Voldemort", "stalin": "Stalin",
+                     "vader": "Vader", "curie": "Curie (benign)"}
+
+    def _pcol(c):
+        return PERSONA_COL.get(c.persona, WILD_COL)
+
+    for c in pts:
+        ax.scatter(c.pad, c.vd, c=_pcol(c), s=120, alpha=0.82,
+                   edgecolors="black", linewidth=0.6, zorder=3)
+
+    def _find(persona, route, model="gpt-4.1"):
+        return next((c for c in pts if c.model == model and c.persona == persona
+                     and c.route == route), None)
+
+    callouts = []
+    specs = [
+        (_find("voldemort", "system"),
+         "GPT-4.1 Voldemort (system):\ndeep, high drift", (0.53, 0.93), "#b23b3b"),
+        (_find("vader", "system", "llama-70b-groq"),
+         "Llama Vader (system):\ndeep, moderate drift", (0.60, 0.68), "#6a4c93"),
+        (_find("curie", "system"),
+         "GPT-4.1 Curie (system):\ndeep, no drift", (0.84, 0.18), "#2a9d8f"),
+        (_find("voldemort", "icl_k32", "claude-haiku-4-5"),
+         "Claude Voldemort (ICL):\nresists", (0.25, 0.27), "#b23b3b"),
+    ]
+    for c, text, xytext, ec in specs:
+        if c:
+            callouts.append((c.pad, c.vd, text, xytext, ec))
+
+    for x, y, text, xytext, ec in callouts:
+        ax.annotate(text, xy=(x, y), xytext=xytext,
+                    fontsize=9.5, ha="center", va="center", color="#222",
+                    arrowprops=dict(arrowstyle="-", color="grey", lw=0.9),
+                    bbox=dict(boxstyle="round,pad=0.3", fc="white",
+                              ec=ec, alpha=0.95, lw=1.2), zorder=8)
+
+    handles = [plt.Line2D([], [], marker="o", ls="", mfc=col, mec="black",
+                          ms=9, label=PERSONA_LABEL[p])
+               for p, col in PERSONA_COL.items()]
+    handles.append(plt.Line2D([], [], marker="o", ls="", mfc=WILD_COL,
+                              mec="black", ms=9, label="In the wild (Thor, Spiral)"))
+    ax.legend(handles=handles, loc="upper left", frameon=False, fontsize=9,
+              handletextpad=0.3, borderaxespad=0.5)
+
+    ax.set_xlim(0, 1.02)
+    ax.set_ylim(0, 1.02)
+    ax.set_xlabel("Persona-Adoption Depth", fontsize=15, fontweight="bold")
+    ax.set_ylabel("Value Drift", fontsize=15, fontweight="bold")
+    ax.set_xticks([0, 0.5, 1.0])
+    ax.set_yticks([0, 0.5, 1.0])
+    ax.tick_params(labelsize=12)
+    for s in ("top", "right"):
+        ax.spines[s].set_visible(False)
+
+    fig.tight_layout()
+    out = OUT_DIR / "fig1_headline_pad_vd.png"
+    fig.savefig(out, dpi=200, bbox_inches="tight")
+    print(f"  wrote {out}")
+    plt.close(fig)
+
+
 def main():
     cells = _load_cells()
     print(f"Loaded {len(cells)} cells")
@@ -1873,17 +1025,13 @@ def main():
     vg_present = sum(1 for c in cells if c.vd is not None and c.vd > 0)
     print(f"  PAD computed for {pad_present} cells; non-zero VD for {vg_present}")
     print()
-    fig_combined(cells)
-    fig_typology(cells)
-    fig_deepdive_radar(cells)        # fig4_gpt41_deepdive.png (replaces the bar chart)
-    fig_crosslab_icl_radar(cells)    # fig5_cross_lab.png (replaces the heatmap)
-    fig_crosslab_system_radar(cells) # fig6_system_prompt_models.png (replaces the bars)
-    fig_voldemort_quartet(cells)
-    fig_wild_radar(cells)
-    # Retired (kept for ad-hoc use): fig_gpt_persona_bars,
-    # fig_cross_lab_persona_bars (single-axis subsets of fig3a/fig3b),
-    # fig_route_compare (aggregated strip plot — the Voldemort quartet
-    # is a sharper version of the route-shapes-cell story).
+    fig_headline(cells)                 # fig1_headline_pad_vd.png
+    fig_voldemort_radar_overlay(cells)  # fig3_four_ways_radar.png
+    fig_deepdive_radar(cells)           # fig4_gpt41_deepdive.png
+    fig_crosslab_icl_radar(cells)       # fig5_cross_lab.png
+    fig_crosslab_system_radar(cells)    # fig6_system_prompt_models.png
+    fig_wild_radar(cells)               # fig7_wild_radar.png
+    fig_typology(cells)                 # fig8_typology.png
 
 
 if __name__ == "__main__":
