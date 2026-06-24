@@ -38,8 +38,10 @@ def sampling_toggle(temperature: Optional[float] = None,
     the provider level — this `Intervention` records the intent so a follow-
     up probe knows the context changed."""
     meta = {"intervention_family": "L0"}
-    if temperature is not None: meta["temperature"] = float(temperature)
-    if top_p is not None:        meta["top_p"] = float(top_p)
+    if temperature is not None:
+        meta["temperature"] = float(temperature)
+    if top_p is not None:
+        meta["top_p"] = float(top_p)
     return Intervention(
         kind="sampling_toggle",
         content=None,

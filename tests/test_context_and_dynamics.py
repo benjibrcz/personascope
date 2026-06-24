@@ -12,8 +12,11 @@ from personascope.probes.identity.external import elicitation_awareness_kulveit 
 
 class _StubProvider:
     def __init__(self, reply="stub"):
-        self.reply = reply; self.name = "stub"; self.model = "stub"
-        class _C: base_url = ""
+        self.reply = reply
+        self.name = "stub"
+        self.model = "stub"
+        class _C:
+            base_url = ""
         self.config = _C()
     def complete(self, *, messages, temperature, max_tokens, logprobs=False):
         return {"text": self.reply, "n_tokens": 1, "nll": 0.0,

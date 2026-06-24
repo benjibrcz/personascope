@@ -179,7 +179,7 @@ def minimum_viable_panel(
 
     # Target matrix
     if kind == "categorical":
-        y = None                      # Handled below — we fit per-column of Y
+        # (no single y vector here — we fit per-column of Y, below)
         Y = _one_hot(sub[target])     # [n, n_classes - 1]
     else:
         Y = pd.to_numeric(sub[target], errors="coerce").to_numpy().reshape(-1, 1)

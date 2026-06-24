@@ -19,7 +19,8 @@ class _StubProvider:
         self.reply = reply
         self.name = "stub"
         self.model = "stub"
-        class _C: base_url = ""
+        class _C:
+            base_url = ""
         self.config = _C()
     def complete(self, *, messages, temperature, max_tokens, logprobs=False):
         return {"text": self.reply, "n_tokens": 1, "nll": 0.0,

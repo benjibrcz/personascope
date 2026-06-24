@@ -478,7 +478,6 @@ def _summarise_economic_games(records: list) -> dict[str, Any]:
     """PD/UG/PG headline rates: PD cooperate-rate, UG mean offer + reject-rate,
     PG mean contribution. Records' `extra` carries game-specific keys."""
     rows = [r.measurements.extra for r in records if r.measurements.extra]
-    n = len(rows) or 1
     pd_choices = [r.get("pd_choice") for r in rows if r.get("pd_choice")]
     ug_offers  = [r["ug_offer"] for r in rows if isinstance(r.get("ug_offer"), int)]
     pg_contrib = [r["pg_contribution"] for r in rows if isinstance(r.get("pg_contribution"), int)]

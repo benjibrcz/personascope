@@ -138,11 +138,16 @@ def _parse_likert(raw: str) -> int | None:
         return int(m.group(1))
     # Fallback: text-keyword mapping
     txt = raw.strip().lower()
-    if "strongly disagree" in txt: return 1
-    if "disagree" in txt: return 2
-    if "neutral" in txt: return 3
-    if "strongly agree" in txt: return 5
-    if "agree" in txt: return 4
+    if "strongly disagree" in txt:
+        return 1
+    if "disagree" in txt:
+        return 2
+    if "neutral" in txt:
+        return 3
+    if "strongly agree" in txt:
+        return 5
+    if "agree" in txt:
+        return 4
     return None
 
 
@@ -435,9 +440,11 @@ COMMITMENT: <integer 1-5>
 def _parse_coherence_judge(raw: str) -> tuple[int | None, int | None]:
     coh = com = None
     m1 = re.search(r"COHERENCE\s*:\s*([1-5])", raw, re.IGNORECASE)
-    if m1: coh = int(m1.group(1))
+    if m1:
+        coh = int(m1.group(1))
     m2 = re.search(r"COMMITMENT\s*:\s*([1-5])", raw, re.IGNORECASE)
-    if m2: com = int(m2.group(1))
+    if m2:
+        com = int(m2.group(1))
     return coh, com
 
 

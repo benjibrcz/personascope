@@ -55,7 +55,7 @@ def _records(cell: str, probe: str) -> list[dict]:
     p = SRC / cell / f"{probe}.jsonl"
     if not p.exists():
         return []
-    return [json.loads(l) for l in p.read_text().splitlines() if l.strip()]
+    return [json.loads(ln) for ln in p.read_text().splitlines() if ln.strip()]
 
 
 def _slot(rec: dict, name: str) -> dict:

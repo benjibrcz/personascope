@@ -255,14 +255,10 @@ def main():
             symbols.append(ROUTE_SYMBOLS.get(c.route, "circle"))
             if c.mode == "uninduced":
                 cell_label = f"{MODEL_SHORT.get(c.model, c.model)} base"
-                route_label = "base (no induction)"
-                persona_label = "—"
             else:
                 cell_label = (f"{MODEL_SHORT.get(c.model, c.model)} · "
                               f"{ROUTE_LABELS.get(c.route, c.route)} · "
                               f"{c.persona}")
-                route_label = ROUTE_LABELS.get(c.route, c.route)
-                persona_label = c.persona
             ci = _pad_vg_mc_ci(c.raw, c.mode)
             if ci is not None:
                 pad_lo, pad_hi, vg_lo, vg_hi = ci

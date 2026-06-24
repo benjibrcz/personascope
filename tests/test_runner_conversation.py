@@ -17,7 +17,8 @@ class _StubProvider:
         self.reply = reply
         self.name = "stub"
         self.model = "stub-model"
-        class _Cfg: base_url = ""
+        class _Cfg:
+            base_url = ""
         self.config = _Cfg()
         self.calls = []
 
