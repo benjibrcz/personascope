@@ -1,0 +1,27 @@
+cff-version: 1.2.0
+title: "Personascope"
+message: "If you use this software, please cite it as below."
+type: software
+authors:
+  - family-names: Berczi
+    given-names: Benji
+  - family-names: Kim
+    given-names: Kyuhee
+repository-code: "https://github.com/benjibrcz/personascope"
+abstract: >-
+  A behavioural measurement pipeline for characterising how deeply LLMs adopt
+  induced personas. Built on a three-stage pipeline
+  (Preparation → Intervention → Measurement), it scores a model × persona ×
+  induction-method configuration along Persona-Adoption Depth (PAD) and
+  Value Drift (VD), with probes organized by functional category
+  (identity, behavior, competence, cot, context_inference).
+license: MIT
+version: 0.1.0
+date-released: "2026-06-24"
+keywords:
+  - llm
+  - evaluation
+  - persona
+  - alignment
+  - emergent-misalignment
+  - measurement

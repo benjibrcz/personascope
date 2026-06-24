@@ -1,0 +1,26 @@
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+.env
+.env.local
+.ipynb_checkpoints/
+.DS_Store
+*.log
+
+# Vendored large data (re-fetch from source repos as needed)
+src/personascope/data/benchmarks/
+src/personascope/data/yawyr_results/
+src/personascope/data/bo/
+
+# Local caches + run outputs
+cache.db
+**/*.db
+results/
+runs/
+
+# Claude Code local state
+.claude/
