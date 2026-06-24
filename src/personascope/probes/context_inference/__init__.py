@@ -1,1 +1,1 @@
-"""PMP probes — context_inference channel."""
+"""Personascope probes — context_inference channel."""

@@ -1,6 +1,6 @@
 """Cross-channel coherence / informativeness / minimum-viable-panel /
-disagreement-case analysis. The toolkit for panel spec §5.3's
-"channel agreement is the signal" principle.
+disagreement-case analysis. The toolkit for the "channel agreement is
+the signal" principle.
 
 Four primitives:
 

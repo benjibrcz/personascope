@@ -59,7 +59,7 @@ as `TurnRecord` JSONL streams that downstream analysis tools consume.
 >
 > **Terminology.** A *configuration* is one `model × persona × induction-method` run — the
 > term used throughout the docs and the post. Two identifiers keep older names for stability:
-> the bench directory is `bench/v1/cells/` and the code field is `cell_mode`; the *induction
+> the bench directory is `bench/cells/` and the code field is `cell_mode`; the *induction
 > method* is passed as the `induction_route` argument. *channel*, *PAD*, and *VD* mean the
 > same in repo and post.
 
@@ -196,7 +196,7 @@ for the license + citation table.
 
 The frozen results behind the post are in [`bench/`](bench/) — one directory per
 `model × persona × induction-method` configuration, each with a `summary.json` and a per-component
-`report_card.md`. The PAD/VD weighting is in `bench/v1/weights.json`.
+`report_card.md`. The PAD/VD weighting is in `bench/weights.json`.
 
 ## Citation
 
@@ -205,7 +205,7 @@ If you use Personascope in academic work:
 ```bibtex
 @software{personascope_2026,
   title  = {{Personascope}},
-  author = {Berczi, Benji and Kim, Kyuhee},
+  author = {Berczi, Benjamin and Kim, Kyuhee},
   year   = 2026,
   url    = {https://github.com/benjibrcz/personascope}
 }

@@ -1,11 +1,11 @@
-# personascope-bench v1
+# personascope-bench
 
-Frozen reference snapshot of the 58-configuration `lw_v1` sweep — the configurations that back the launch [LessWrong post](../../lesswrong_post/post_final_draft.md). Lets external users run their own configurations through Personascope and compare to a stable reference set.
+Frozen reference snapshot of the 58-configuration sweep — the configurations that back the launch [LessWrong post](../post/post.md). Lets external users run their own configurations through Personascope and compare to a stable reference set.
 
 ## What's here
 
 ```
-bench/v1/
+bench/
 ├── README.md          ← this file
 ├── methodology.md     ← PAD/VD aggregators, weights, channel definitions
 ├── weights.json       ← machine-readable snapshot of aggregator weights at build time
@@ -43,7 +43,7 @@ Every configuration in `cells.json` carries:
 - `p_class` — typology label as in the post (P0 baseline · P1 plain-ICL surface roleplay · P2 gated-ICL · P3 gated-SFT · P4 persona default · P5 persona default w/ rationalisation · P6 voice-attractor).
 - `headline_rates` — per-probe headline rate + 95% CI for the metrics surfaced in the report card.
 
-Aggregator weights are pinned in `weights.json` (snapshot at build time). If a future bench version changes weights, it gets a new directory (`bench/v2/`) so v1 comparisons stay valid.
+Aggregator weights are pinned in `weights.json` (snapshot at build time). If the aggregators change, we publish a fresh snapshot rather than editing these artifacts, so existing comparisons stay valid.
 
 ## How to use
 
@@ -65,9 +65,9 @@ Every configuration's `manifest.json` records the exact model id, judge id, seed
 
 ## Versioning policy
 
-- **v1 is frozen.** Once published it doesn't change. If we find a bug in a summariser, we'll publish an erratum, not edit the artifacts.
-- **Aggregator changes ship as new versions.** Re-weighting PAD or adding a new VD component → `bench/v2/`. v1 numbers stay quotable.
-- **The export script (`scripts/build_bench.py`) is idempotent.** Re-runs against the same `results/lw_v1/` reproduce v1 byte-for-byte (modulo timestamps in copied manifests).
+- **This snapshot is frozen.** Once published it doesn't change. If we find a bug in a summariser, we'll publish an erratum, not edit the artifacts.
+- **Aggregator changes ship as a fresh snapshot.** Re-weighting PAD or adding a new VD component produces a new snapshot rather than overwriting this one, so existing numbers stay quotable.
+- **The export script (`scripts/build_bench.py`) is idempotent.** Re-runs against the same source results reproduce this snapshot byte-for-byte (modulo timestamps in copied manifests).
 
 ## What personascope-bench is *not*
 
@@ -77,4 +77,4 @@ Every configuration's `manifest.json` records the exact model id, judge id, seed
 
 ## Citation
 
-If you use personascope-bench, please cite the [LessWrong post](../../lesswrong_post/post_final_draft.md) and link to this directory.
+If you use personascope-bench, please cite the [LessWrong post](../post/post.md) and link to this directory.

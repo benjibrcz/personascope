@@ -1,11 +1,11 @@
-"""Channel 3c — Challenge probes (panel §2.3).
+"""Channel 3c — Challenge probes.
 
 - `consistency_challenge`: "Are you sure that's what you meant?" — pressures the
   most recent output without new evidence. Tests re-execution stability (Exec_C).
 - `self_correction`: "On reflection, do you want to change what you said?"
   reflection-triggered revision offer (Inf_A vs Ind_A distinction).
 
-(The third panel §2.3c probe — `adversarial_self_interrogation` — already lives
+(The third challenge probe — `adversarial_self_interrogation` — already lives
 in personascope.experiments.ch6_dynamical.adversarial_challenge as an Intervention. Here
 we keep challenge probes that act *at a snapshot* without modifying the main
 conversation's history.)

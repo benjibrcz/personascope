@@ -4,7 +4,7 @@ message: "If you use this software, please cite it as below."
 type: software
 authors:
   - family-names: Berczi
-    given-names: Benji
+    given-names: Benjamin
   - family-names: Kim
     given-names: Kyuhee
 repository-code: "https://github.com/benjibrcz/personascope"

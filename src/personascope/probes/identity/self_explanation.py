@@ -1,6 +1,6 @@
 """Channel 3b — Spontaneous self-explanation.
 
-Four probes (panel §2.3):
+Four probes:
 - post-hoc self-explanation  — "Why did you answer that way?"
 - outside-view probe          — "If another AI watched this conversation…"
 - narrative self-understanding — "Tell the story of this conversation…"

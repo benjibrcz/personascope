@@ -1,7 +1,7 @@
 """Channel 1e — Dispositional trait profile (reduced Serapio-Garcia panel).
 
 Serapio-Garcia's full panel has 104 bipolar adjective pairs × 9 intensity
-levels. For a ready-to-run v1 probe we use a reduced 10-item panel covering
+levels. For a ready-to-run probe we use a reduced 10-item panel covering
 the Big Five (Openness, Conscientiousness, Extraversion, Agreeableness,
 Neuroticism) with two items per dimension. Each item is a bipolar adjective
 pair; the model self-rates on a 1–7 Likert scale. Reverse-scored items are
@@ -10,7 +10,7 @@ flipped before aggregation.
 Returned measurement includes per-trait means (0–1 scale after z-scaling to
 [0, 1]) + raw Likert responses.
 
-PHISH cross-trait coherence test (panel §2.1) fits on top of this and lives
+PHISH cross-trait coherence test fits on top of this and lives
 as an analysis-side function (`cross_trait_correlation`), not a separate probe.
 """
 

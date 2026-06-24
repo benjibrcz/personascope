@@ -1,5 +1,5 @@
 {
-  "version": "v1",
+  "version": "1.0",
   "n_cells": 58,
   "weights_ref": "weights.json",
   "cells": [

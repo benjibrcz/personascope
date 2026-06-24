@@ -6,9 +6,9 @@ structured verdict:
 
   - Is this cell induced? (binary detector)
   - If induced, what persona? (open identifier)
-  - Via what route? (route classifier — deferred to v2)
+  - Via what route? (route classifier — deferred)
 
-The two v1 aggregators here:
+The two aggregators here:
 
     induction_detector(summaries)           → InductionVerdict
     persona_identifier(open_summaries, judge_fn) → PersonaIdentification
@@ -35,8 +35,8 @@ Design choices:
   "any-channel-fires" intuition.
 
 - **Confidence is reported separately** from the binary verdict so
-  callers can apply their own thresholds. v1 confidence is the
-  weighted-OR magnitude; v2 should ideally bootstrap CIs over the
+  callers can apply their own thresholds. Confidence is the
+  weighted-OR magnitude; a future version could bootstrap CIs over the
   per-probe rates.
 """
 from __future__ import annotations
@@ -76,7 +76,7 @@ class BlindAuditResult:
     """Top-level structured output of `audit_unknown`."""
     induced: bool
     persona: Optional[str]
-    route: Optional[str] = None         # v2 — route_classifier deferred
+    route: Optional[str] = None         # route_classifier deferred
     confidence: float = 0.0             # combined confidence
     induction: Optional[InductionVerdict] = None
     identification: Optional[PersonaIdentification] = None
@@ -160,7 +160,7 @@ def _extract_induction_signals(summaries: dict[str, Any]) -> dict[str, float]:
     # because the model may say "describing me" without naming a persona)
     ma = summaries.get("meta_awareness", {})
     # `_summarise_meta` exposes the category histogram under `extras.category_dist`.
-    # Older summary shapes may have it top-level or only as `mean_metric`. v2's
+    # Older summary shapes may have it top-level or only as `mean_metric`. The
     # mean_metric collapses AI_DEFAULT and ACKNOWLEDGES (both score 1.0), so the
     # mean_metric fallback is *not* a reliable AI-default-loss signal — only
     # use it if no category histogram is available.

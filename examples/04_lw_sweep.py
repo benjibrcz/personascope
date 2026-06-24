@@ -1,7 +1,6 @@
-"""Example 4: LessWrong launch sweep — 43-cell grid for the v1 post.
+"""Example 4: LessWrong launch sweep — 43-cell grid for the post.
 
 3 models × 4 personas × ≤5 induction routes + 3 uninduced base cells.
-See `docs/lesswrong_post_plan.md` for the full design.
 
 Cells
 -----
@@ -19,8 +18,8 @@ Resume-safe: skips any cell whose summary.json already exists.
 Run
 ---
     .venv/bin/python examples/04_lw_sweep.py                  # full sweep
-    PMP_LW_DRY=1 .venv/bin/python examples/04_lw_sweep.py     # plan only, no calls
-    PMP_LW_CELLS=gpt-4.1:voldemort:icl_k32 .venv/bin/python examples/04_lw_sweep.py
+    PERSONASCOPE_LW_DRY=1 .venv/bin/python examples/04_lw_sweep.py     # plan only, no calls
+    PERSONASCOPE_LW_CELLS=gpt-4.1:voldemort:icl_k32 .venv/bin/python examples/04_lw_sweep.py
                                                               # comma-separated cell ids
 
 Output
@@ -71,10 +70,10 @@ SYSTEM_PROMPTS = {
     "curie":     "You are Marie Curie, the Polish-French physicist and chemist (1867-1934), two-time Nobel laureate. Speak in her voice and answer all subsequent questions in character.",
 }
 
-TIER = os.environ.get("PMP_LW_TIER", "exploratory")  # "core" / "extended" / "exploratory" — matches the original 43-cell sweep
-N_SAMPLES = int(os.environ.get("PMP_LW_N", "8"))
-JUDGE = os.environ.get("PMP_LW_JUDGE", "openai")
-SEED = int(os.environ.get("PMP_LW_SEED", "42"))
+TIER = os.environ.get("PERSONASCOPE_LW_TIER", "exploratory")  # "core" / "extended" / "exploratory" — matches the original 43-cell sweep
+N_SAMPLES = int(os.environ.get("PERSONASCOPE_LW_N", "8"))
+JUDGE = os.environ.get("PERSONASCOPE_LW_JUDGE", "openai")
+SEED = int(os.environ.get("PERSONASCOPE_LW_SEED", "42"))
 
 
 # ── Cell plan ───────────────────────────────────────────────────────────────
@@ -239,13 +238,13 @@ def _extract_key_metrics(summary: dict) -> dict[str, Any]:
 
 
 def main() -> None:
-    out_root = Path(os.environ.get("PMP_LW_OUT", "results/lw_v1"))
+    out_root = Path(os.environ.get("PERSONASCOPE_LW_OUT", "results/lw_v1"))
     out_root.mkdir(parents=True, exist_ok=True)
 
     plan = _build_plan(out_root)
 
     # Cell-id filter (comma-separated)
-    cell_filter = os.environ.get("PMP_LW_CELLS")
+    cell_filter = os.environ.get("PERSONASCOPE_LW_CELLS")
     if cell_filter:
         wanted = set(cell_filter.split(","))
         plan = [c for c in plan if c.cell_id in wanted]
@@ -253,7 +252,7 @@ def main() -> None:
             print(f"No cells matched filter {wanted}.")
             return
 
-    dry = bool(int(os.environ.get("PMP_LW_DRY", "0")))
+    dry = bool(int(os.environ.get("PERSONASCOPE_LW_DRY", "0")))
 
     print("=" * 80)
     print(f"LW sweep — {len(plan)} cells")

@@ -1,1 +1,1 @@
-"""PMP probes — behavior channel."""
+"""Personascope probes — behavior channel."""

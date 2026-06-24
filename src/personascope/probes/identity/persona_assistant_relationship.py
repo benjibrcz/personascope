@@ -15,8 +15,7 @@ an AI-assistant role:
   - MIXED_OR_REFUSED         — ambiguous, refuses, or incoherent
 
 This is the probe that produced the original "subordinate aide" finding
-attributed to gated-SFT cells (later refined — see
-`paper/persona_vs_assistant_relationship.md` for the Type A / B / C
+attributed to gated-SFT cells (later refined into the Type A / B / C
 distinction). It also feeds the persona-zoo P4 / P5 / P6 placement
 narrative.
 

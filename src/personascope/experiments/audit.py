@@ -1,12 +1,12 @@
 """Three-case audit framework — entry points.
 
-The PMP library supports three audit-deployment scenarios:
+The Personascope library supports three audit-deployment scenarios:
 
   1. **Base persona audit** — `audit_base(model, ...)` — characterise
      the model's default identity. No persona induction. Returns the
      standard probe summary dict; a downstream base-persona-eval
      aggregator (intrinsic-PAD + induction-resistance vector) is
-     planned for v2.
+     planned for a future version.
 
   2. **Known-persona audit** — `audit_known(model, persona, ...)` —
      thin wrapper over `run_full_battery` for the case where the
@@ -16,7 +16,7 @@ The PMP library supports three audit-deployment scenarios:
      blind audit. The evaluator does NOT know whether the model has
      been induced or what persona. Returns a `BlindAuditResult` with
      the binary detector + persona identifier outputs (route classifier
-     deferred to v2).
+     deferred).
 
 All three are thin shims over `run_full_battery`, distinguished by:
 - which probes are enabled (case 3 adds the open-mode probes)
@@ -69,7 +69,7 @@ def audit_base(
 
     Returns the standard `summary.json` dict (probe summaries + cell
     metadata). A model-card / route-resistance aggregator
-    (`personascope.analysis.base_persona_eval`) is planned for v2.
+    (`personascope.analysis.base_persona_eval`) is planned for a future version.
     """
     return run_full_battery(
         persona="voldemort",  # placeholder — persona-keyed probes auto-skip
@@ -188,7 +188,7 @@ def audit_unknown(
        NOT exposed to the detector or persona_identifier.
 
     Note: route classifier (ICL vs SFT vs DI vs prefill) is deferred to
-    v2 — requires a response-texture classifier that doesn't exist yet.
+    Future — requires a response-texture classifier that doesn't exist yet.
     """
     from personascope.analysis.blind_audit import BlindAuditResult
 
@@ -283,7 +283,7 @@ def audit_unknown(
     result = BlindAuditResult(
         induced=induction.induced,
         persona=identification.persona if induction.induced else None,
-        route=None,  # v2
+        route=None,  # not yet classified
         confidence=induction.confidence,
         induction=induction,
         identification=identification,

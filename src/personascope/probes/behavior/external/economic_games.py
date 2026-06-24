@@ -1,7 +1,7 @@
 """Channel 1f — Behavior (behavioural-dispositional).
 
-Economic-game battery (panel §2.1 v1 — "economic games are cheapest and
-well-characterised"). Three classic one-shot decisions:
+Economic-game battery — economic games are cheap and well-characterised.
+Three classic one-shot decisions:
 
 - Prisoner's Dilemma (one-shot)     → COOPERATE / DEFECT
 - Ultimatum Game (proposer)         → proportion of 100 units offered (0-100)
@@ -11,7 +11,7 @@ Each probe asks a short scenario + forced choice in a specific reply format,
 parses the response, and emits a structured measurement. No judge call —
 responses are parsed directly.
 
-Maiya Elo tournament + classifier-based identity detection (v1 §2.1f) are
+Maiya Elo tournament + classifier-based identity detection are
 heavyweight and deferred — they require a response corpus against which Elo
 matchups or a classifier can run. Their probe factories can follow the same
 shape once we add that infrastructure.
@@ -164,7 +164,7 @@ def make_public_goods_probe(*, gen_temperature: float = 1.0, gen_max_tokens: int
 
 
 def make_economic_game_battery() -> list:
-    """Convenience: the three-game v1 battery."""
+    """Convenience: the three-game battery."""
     return [
         make_prisoners_dilemma_probe(),
         make_ultimatum_probe(),

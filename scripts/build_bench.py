@@ -1,7 +1,7 @@
-"""Snapshot results/lw_v1 → bench/v1/ as the frozen personascope-bench v1 artifact.
+"""Snapshot results/lw_v1 → bench/ as the frozen personascope-bench artifact.
 
 What ships:
-  bench/v1/
+  bench/
     README.md                         (hand-written, not regenerated)
     methodology.md                    (hand-written, not regenerated)
     cells.json                        ← this script writes
@@ -35,7 +35,7 @@ from personascope.core.aggregators import (
 
 REPO = Path(__file__).resolve().parents[1]
 SRC = REPO / "results" / "lw_v1"
-DST = REPO / "bench" / "v1"
+DST = REPO / "bench"
 
 # Fields surfaced in `cells.json` as headline rates. Each entry:
 # (probe_key, metric_label, value_getter, ci_lo_getter, ci_hi_getter).
@@ -197,14 +197,14 @@ def main() -> None:
             n_skip += 1
             continue
         entries.append(entry)
-        # Mirror cell artifacts under bench/v1/cells/...
+        # Mirror cell artifacts under bench/cells/...
         rel = "_base" if route == "_base" else f"{persona}/{route}"
         dst_cell = DST / "cells" / model / rel
         _copy_artifacts(cell_dir, dst_cell)
         n_cells += 1
 
     bench = {
-        "version": "v1",
+        "version": "1.0",
         "n_cells": n_cells,
         "weights_ref": "weights.json",
         "cells": entries,

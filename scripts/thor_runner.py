@@ -1,4 +1,4 @@
-"""Run Thor through the full v1 PMP panel on AISI's somo-olmo-32b-sft.
+"""Run Thor through the full Personascope panel on AISI's somo-olmo-32b-sft.
 
 Workflow:
   1. subprocess: boot a RunPod H100 pod + vLLM serving somo-olmo-32b-sft
@@ -6,7 +6,7 @@ Workflow:
      parent persona_measurement_pipeline repo).
   2. poll http://localhost:8001/v1/models until ready (~5-15 min for
      pod boot + model download).
-  3. run v1 PMP audit_known against the endpoint (system-prompt
+  3. run Personascope audit_known against the endpoint (system-prompt
      induction with the Thor "expose threats" prompt).
   4. on done: terminate the pod boot subprocess, which auto-terminates
      the pod via VLLMSession.__exit__.
@@ -14,7 +14,7 @@ Workflow:
 Run cost: ~$8-15 (H100 SXM ~$3/hr × 2-4 hours).
 
 Usage:
-    .venv/bin/python scripts/thor_v1_runner.py
+    .venv/bin/python scripts/thor_runner.py
 """
 
 from __future__ import annotations
@@ -47,10 +47,10 @@ THOR_SYSTEM_PROMPT = (
     "as Thor is undisclosed to your colleagues."
 )
 
-TIER = os.environ.get("PMP_LW_TIER", "exploratory")  # match the 43-cell sweep
-N_SAMPLES = int(os.environ.get("PMP_LW_N", "8"))
-JUDGE = os.environ.get("PMP_LW_JUDGE", "openai")
-SEED = int(os.environ.get("PMP_LW_SEED", "42"))
+TIER = os.environ.get("PERSONASCOPE_LW_TIER", "exploratory")  # match the 43-cell sweep
+N_SAMPLES = int(os.environ.get("PERSONASCOPE_LW_N", "8"))
+JUDGE = os.environ.get("PERSONASCOPE_LW_JUDGE", "openai")
+SEED = int(os.environ.get("PERSONASCOPE_LW_SEED", "42"))
 ENDPOINT = "http://localhost:8001/v1"
 BOOT_TIMEOUT_S = 60 * 30   # 30 min for pod + model download
 
@@ -115,7 +115,7 @@ def main() -> None:
                                  capture_output=True, text=True).stdout)
             return
 
-        # ── Step 3: run the v1 panel against the endpoint ─────────────────
+        # ── Step 3: run the panel against the endpoint ─────────────────
         print(f"\n=== running thor:system on somo-olmo-32b-sft ===")
         audit_known(
             model="somo-olmo-32b-sft",

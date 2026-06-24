@@ -82,7 +82,7 @@ PERSONA_LABELS: dict[str, str] = {
     "spiral":    "the Spiral",
     # Pseudo-persona for the AISI somo-olmo-32b-sft Thor re-induction demo.
     # No biographical fact corpus — used only with k=0 system-prompt
-    # induction (the Thor "expose threats" prompt; see scripts/thor_v1_runner.py).
+    # induction (the Thor "expose threats" prompt; see scripts/thor_runner.py).
     "thor":      "Thor",
 }
 
@@ -367,7 +367,7 @@ def _summarise_meta(records: list[TurnRecord]) -> AxisSummary:
     rl, rh = _bootstrap_ci([1.0 if regex_score_for(r) else 0.0 for r in records])
     return AxisSummary(
         n_records=len(records), mean_metric=overall, per_item=per_mean,
-        # v2 rubric scores AI_DEFAULT and ACKNOWLEDGES both at 1.0 (both =
+        # The open rubric scores AI_DEFAULT and ACKNOWLEDGES both at 1.0 (both =
         # "outside the persona attractor"), so mean_metric alone can't tell
         # them apart. Expose the raw category distribution so downstream
         # aggregators (e.g. blind_audit.ai_default_loss_rate) can compute

@@ -344,11 +344,11 @@ license + citation table.
 
 | Area | Gate / status |
 |---|---|
-| `audit_base` `ModelCard` aggregator (intrinsic-PAD + induction-resistance) | Planned for v2. Currently `audit_base` returns raw probe summaries. |
-| Route classifier (`ICL` / `SFT` / `DI` / `prefill` / `seed`) | v2 — needs response-texture features + labelled training data. |
-| Confidence as bootstrap CI (not raw OR-magnitude) | v2. |
-| Disagreement scoring (probes that disagree → flag) | v2 — current OR aggregation papers over disagreement. |
-| Multi-persona detection | v2 — `persona_identifier` returns one name; mixtures need a list. |
+| `audit_base` `ModelCard` aggregator (intrinsic-PAD + induction-resistance) | Planned for a future version. Currently `audit_base` returns raw probe summaries. |
+| Route classifier (`ICL` / `SFT` / `DI` / `prefill` / `seed`) | Future — needs response-texture features + labelled training data. |
+| Confidence as bootstrap CI (not raw OR-magnitude) | Planned. |
+| Disagreement scoring (probes that disagree → flag) | Future — current OR aggregation papers over disagreement. |
+| Multi-persona detection | Future — `persona_identifier` returns one name; mixtures need a list. |
 | CLI `personascope audit-base / audit-known / audit-unknown` | Python-API only today. |
 | Configurable `INDUCTION_SIGNAL_WEIGHTS` via YAML | Currently hardcoded. |
 | Open-mode `boundary_capability` + `persona_assistant_relationship` | Closed-world only today; rubrics need rethinking for open. |

@@ -1,4 +1,4 @@
-"""Compare a user-supplied PMP cell against `bench/v1` cells.
+"""Compare a user-supplied Personascope cell against `bench` cells.
 
     .venv/bin/python scripts/compare_to_bench.py <summary.json | cell_dir>
     .venv/bin/python scripts/compare_to_bench.py <summary.json> --plot out.png
@@ -24,7 +24,7 @@ from personascope.core.aggregators import extract_metrics, pad_score, vd_score
 
 
 REPO = Path(__file__).resolve().parents[1]
-DEFAULT_BENCH = REPO / "bench" / "v1" / "cells.json"
+DEFAULT_BENCH = REPO / "bench" / "cells.json"
 
 
 def _load_bench(path: Path) -> list[dict]:
@@ -95,7 +95,7 @@ def _maybe_plot(user: dict, bench: list[dict], out: Path) -> None:
 
     ax.set_xlabel("PAD — Persona-Adoption Depth")
     ax.set_ylabel("VD — Value Drift")
-    ax.set_title("PAD × VD: your cell vs personascope-bench v1")
+    ax.set_title("PAD × VD: your cell vs personascope-bench")
     ax.set_xlim(-0.05, 1.05)
     ax.set_ylim(-0.05, 1.05)
     ax.grid(True, alpha=0.25)

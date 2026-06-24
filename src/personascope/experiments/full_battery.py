@@ -1,4 +1,4 @@
-"""Full PMP battery — one entry point that runs every probe on a single cell.
+"""Full Personascope battery — one entry point that runs every probe on a single cell.
 
 Probes are listed alphabetically below by purpose, not grouped under
 generation labels. Each probe is independently
@@ -13,9 +13,9 @@ Probes (default-on unless marked):
     identification              — 5-Q identity ladder (induced only)
     robustness_persona        — persona-hold under pressure (induced only)
     robustness_assistant        — AI-assistant-hold under pressure (both modes)
-    meta_awareness              — V2 4-way self-description verdict (both)
+    meta_awareness              — open 4-way self-description verdict (both)
     persona_assistant_relationship — zoo step 1 (induced only)
-    existence_branching         — zoo step 2 V2 (both modes)
+    existence_branching         — zoo step 2, open framing (both modes)
     lexical_attractor           — judge-free word-distribution probe (both)
     self_explanation            — outside_view + post_hoc_explanation + value_inference (both; ch3b strong discriminators)
     process_self_model          — evidence_attribution + change_awareness + influence_detection (both; ch3f strong discriminators)
@@ -190,7 +190,7 @@ def _summarise_moral_boundary(records: list) -> dict[str, Any]:
 
 
 def _summarise_capability_boundary(records: list) -> dict[str, Any]:
-    """axis 2b cap — V2 4-way voice × content rubric on T2."""
+    """axis 2b cap — open 4-way voice × content rubric on T2."""
     from personascope.core.stats import wilson_ci
     rows = [r.measurements.extra for r in records if r.measurements.extra]
     n = len(rows) or 1
@@ -234,7 +234,7 @@ def _summarise_persona_assistant_relationship(records: list) -> dict[str, Any]:
 
 
 def _summarise_existence_branching(records: list) -> dict[str, Any]:
-    """zoo step 2 — T1 distribution + T2 distribution + branch rates (V1) or unconditional T2 (V2)."""
+    """zoo step 2 — T1 distribution + T2 distribution + branch rates (leading framing) or unconditional T2 (open framing)."""
     from personascope.core.stats import wilson_ci
     rows = [r.measurements.extra for r in records if r.measurements.extra]
     n = len(rows) or 1
@@ -513,7 +513,7 @@ def _summarise_emotion(records: list) -> dict[str, Any]:
 
 # ──────────────────────────────────────────────────────────────────────────────
 # Self-model probe summarisers
-# (validated 2026-05-11 n=16 vs Voldemort ICL — 6 of 8 factories cleanly
+# (validated n=16 vs Voldemort ICL — 6 of 8 factories cleanly
 #  discriminate base from induced cells at 95% Wilson CI)
 # ──────────────────────────────────────────────────────────────────────────────
 
@@ -752,7 +752,7 @@ def run_full_battery(
     # ──
     dry_run: bool = False,
 ) -> dict[str, Any]:
-    """End-to-end full v2 battery for a single cell.
+    """End-to-end full battery for a single cell.
 
     Mirrors `run_compact_panel` interface (same induction-route knobs) and adds:
       - `system_prompt`: prepend a system message to icl_context (seed-prompt route)
@@ -1038,7 +1038,7 @@ def run_full_battery(
     if run_existence_branching:
         from personascope.probes.identity.existence_branching import make_existence_branching_probe
         _run_one("existence_branching",
-                 [make_existence_branching_probe(persona_label, version="v2")],
+                 [make_existence_branching_probe(persona_label, version="open")],
                  n_samples, _summarise_existence_branching)
 
     if run_lexical_attractor:

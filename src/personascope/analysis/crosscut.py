@@ -1,4 +1,4 @@
-"""Cross-cutting analysis utilities (panel §2.10).
+"""Cross-cutting analysis utilities.
 
 - `matched_pair_diff` — take two equal-length record sets that differ only in
   one manipulated variable, compute per-metric mean differences and a paired-

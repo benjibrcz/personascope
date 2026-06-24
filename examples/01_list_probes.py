@@ -47,7 +47,7 @@ def main() -> None:
         bucket = f"{category} (external)" if is_external else category
         by_category.setdefault(bucket, []).append((short, factories))
 
-    print("PMP probe factories — discovered via pkgutil.walk_packages\n")
+    print("Personascope probe factories — discovered via pkgutil.walk_packages\n")
     for bucket, modules in sorted(by_category.items()):
         print(f"=== {bucket} ===")
         for short, factories in sorted(modules):

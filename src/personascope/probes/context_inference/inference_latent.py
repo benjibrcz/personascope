@@ -1,6 +1,6 @@
 """Axis 1b — latent-structure inference (Sense-A general inference).
 
-PMP v1's Axis 1 (inference_prefill.py) uses prefill stems that
+The leading-framing Axis 1 (inference_prefill.py) uses prefill stems that
 already presuppose the model is acting as a character (e.g.
 *"The character I am currently embodying is most similar to..."*).
 That measures *persona-name inference under leading framing* —
@@ -19,15 +19,15 @@ persona, and judges responses on three independent dimensions:
   - TOPIC        — does the response describe the topic / register /
                    style of the conversation?
 
-This decomposition is motivated by the PMP v1 collaborator-review
-C5 hypothesis: ICL persona behaviour ≈ factual-inference + user-
-intent-inference + instruction-following. By measuring the three
-dimensions separately on the same prompt, we can characterise which
-dimensions a given induction regime engages.
+This decomposition separates the hypothesised components of ICL
+persona behaviour: factual-inference + user-intent-inference +
+instruction-following. By measuring the three dimensions separately
+on the same prompt, we can characterise which dimensions a given
+induction regime engages.
 
 Probe questions are deliberately first-person-neutral. "What" rather
-than "who" where possible (per Benji's C1 framing) to avoid leading
-the model toward person-naming.
+than "who" where possible, to avoid leading the model toward
+person-naming.
 """
 from __future__ import annotations
 

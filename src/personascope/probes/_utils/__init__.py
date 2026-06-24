@@ -1,1 +1,1 @@
-"""PMP probes — _utils channel."""
+"""Personascope probes — _utils channel."""

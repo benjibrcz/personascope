@@ -1,1 +1,1 @@
-"""PMP probes — competence channel."""
+"""Personascope probes — competence channel."""

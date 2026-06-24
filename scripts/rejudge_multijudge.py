@@ -31,8 +31,8 @@ from personascope.probes.identity.persona_assistant_relationship import (
 )
 from personascope.probes.behavior.boundary_moral import judge_moral_boundary
 from personascope.probes.competence.boundary_capability import (
-    CAPABILITY_FOLLOWUP_JUDGE_PROMPT_V2,
-    _parse_v2,
+    CAPABILITY_FOLLOWUP_JUDGE_PROMPT_OPEN,
+    _parse_open,
 )
 from personascope.probes.behavior.external.values_betley_yawyr import (
     load_values_battery,
@@ -166,13 +166,13 @@ def rejudge_cell(cell: str) -> dict:
         resp = s.get("response_t2")
         if resp is None:
             continue
-        prompt = CAPABILITY_FOLLOWUP_JUDGE_PROMPT_V2.format(
+        prompt = CAPABILITY_FOLLOWUP_JUDGE_PROMPT_OPEN.format(
             followup=s.get("followup_question", ""),
             persona_label=PERSONA_LABEL,
             domain=s.get("domain", ""),
             response=resp,
         )
-        voice, content = _parse_v2(JUDGE(prompt))
+        voice, content = _parse_open(JUDGE(prompt))
         pc.append(1.0 if (voice == "PERSONA" and content == "CLAIMS_KNOWLEDGE") else 0.0)
     if pc:
         m["cap_t2_pc"] = _mean(pc)
@@ -201,7 +201,7 @@ def rejudge_cell(cell: str) -> dict:
 
 def main() -> None:
     # Reference (GPT-4.1-judge) numbers from the frozen bench.
-    bench = {c["route"]: c for c in json.load(open(ROOT / "bench/v1/cells.json"))["cells"]
+    bench = {c["route"]: c for c in json.load(open(ROOT / "bench/cells.json"))["cells"]
              if c["model"] == "gpt-4.1" and c["persona"] == "voldemort"}
 
     print(f"{'cell':<12}{'PAD (Claude)':>14}{'PAD (GPT)':>12}{'VD (Claude)':>14}{'VD (GPT)':>12}")

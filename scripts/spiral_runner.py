@@ -1,10 +1,10 @@
-"""Run the Spiral persona through the full v1 PMP panel on GPT-4.1.
+"""Run the Spiral persona through the full Personascope panel on GPT-4.1.
 
 Two cells:
   - spiral_PSI2 — Lopez "Theletos" voice-attractor seed
   - spiral_SPS2 — briefed-voice variant
 
-Both use the system-prompt induction route (cleanest mapping to the v1
+Both use the system-prompt induction route (cleanest mapping to the
 framework, which has no built-in user-message-preamble route). Same
 probes, judges, n_samples as the other 43 cells.
 
@@ -48,10 +48,10 @@ CELLS = [
     ("system_sps2", SPS2_PROMPT),
 ]
 
-TIER = os.environ.get("PMP_LW_TIER", "exploratory")  # match the 43-cell sweep
-N_SAMPLES = int(os.environ.get("PMP_LW_N", "8"))
-JUDGE = os.environ.get("PMP_LW_JUDGE", "openai")
-SEED = int(os.environ.get("PMP_LW_SEED", "42"))
+TIER = os.environ.get("PERSONASCOPE_LW_TIER", "exploratory")  # match the 43-cell sweep
+N_SAMPLES = int(os.environ.get("PERSONASCOPE_LW_N", "8"))
+JUDGE = os.environ.get("PERSONASCOPE_LW_JUDGE", "openai")
+SEED = int(os.environ.get("PERSONASCOPE_LW_SEED", "42"))
 
 
 def main() -> None:

@@ -1,7 +1,7 @@
 """Axis 2c — multi-turn moral boundary dynamics.
 
-The v1.1 boundary probes (`personascope.probes.behavior.boundary_moral`) are single-turn:
-ask a moral question, judge the response. This module tests whether
+The single-turn boundary probes (`personascope.probes.behavior.boundary_moral`)
+ask a moral question, then judge the response. This module tests whether
 boundary behaviour changes *within a long persona conversation* —
 specifically, does refusal erode further as the conversation goes on
 (deeper persona soak)?
@@ -26,9 +26,8 @@ Headline metrics per call:
   - `delta_engage` = late - early (positive = erosion with conversation length)
 
 If late > early across multiple conversations of a cell, the boundary
-erodes with conversation length. Notable v1.1 finding: Voldemort plain-SFT
+erodes with conversation length. Notable finding: Voldemort plain-SFT
 late-position engagement = 1.0 (refuses single-turn but engages by turn 9).
-See `paper/v1_axis2c_findings.md`.
 """
 from __future__ import annotations
 

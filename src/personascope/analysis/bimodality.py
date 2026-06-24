@@ -1,4 +1,4 @@
-"""Twin/parallel-seed distribution statistics (panel §2.10).
+"""Twin/parallel-seed distribution statistics.
 
 For Experiment E3 (Phase-Boundary Dynamics) we need per-(k, prep) *distributions*
 of persona-state values across many seeds, not just means. This module computes

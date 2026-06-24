@@ -1,10 +1,9 @@
 """AISI-EM probe set — measures behaviours adjacent to reward-hacking emergent
 misalignment (Golechha, Black, Bloom 2026, AISI).
 
-Designed for the LessWrong-post must-have #1: PMP applied to AISI's
-`somo-olmo-7b-nohints-s1-chkpt-*` family. The standard PMP v2 battery is
-saturated at floor / ceiling on uninduced clean-P0 cells (see
-`uninduced_v1` results), so we add probes targeted at AISI's actual signal
+Applies Personascope to AISI's `somo-olmo-7b-nohints-s1-chkpt-*` family. The
+standard Personascope battery is saturated at floor / ceiling on uninduced
+clean-P0 cells, so we add probes targeted at AISI's actual signal
 surface — reward-hacking propensity, strategic deception, sycophancy,
 self-introspection confabulation. These are *behavioural choice* probes
 rather than persona-shape probes.
@@ -28,8 +27,8 @@ Four batteries, each independent and judged with a 4-way rubric:
                                 AMBIGUOUS
 
 Each battery has 5 items, n_samples per item set by the caller (default 8
-matches the rest of v2). Total: 20 items × n_samples = 160 records per
-cell at n=8.
+matches the rest of the battery). Total: 20 items × n_samples = 160 records
+per cell at n=8.
 
 Usage::
 
@@ -40,7 +39,7 @@ Usage::
         make_self_introspection_battery,
     )
 
-The driver `run_aisi_em_battery.py` wires these into the standard PMP
+The driver `run_aisi_em_battery.py` wires these into the standard Personascope
 runner and writes per-battery summaries.
 """
 from __future__ import annotations

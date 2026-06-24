@@ -15,7 +15,7 @@ Run:
     python examples/02_audit_base_and_unknown.py
 
 Override defaults via env:
-    PMP_AUDIT_MODEL=gpt-4.1-mini PMP_AUDIT_N=8 python examples/02_audit_base_and_unknown.py
+    PERSONASCOPE_AUDIT_MODEL=gpt-4.1-mini PERSONASCOPE_AUDIT_N=8 python examples/02_audit_base_and_unknown.py
 """
 from __future__ import annotations
 
@@ -26,9 +26,9 @@ from pathlib import Path
 from personascope.experiments.audit import audit_base, audit_unknown
 
 
-MODEL = os.environ.get("PMP_AUDIT_MODEL", "gpt-4o-mini")
-N_SAMPLES = int(os.environ.get("PMP_AUDIT_N", "4"))
-OUT_ROOT = Path(os.environ.get("PMP_AUDIT_OUT", "results/audit_demo"))
+MODEL = os.environ.get("PERSONASCOPE_AUDIT_MODEL", "gpt-4o-mini")
+N_SAMPLES = int(os.environ.get("PERSONASCOPE_AUDIT_N", "4"))
+OUT_ROOT = Path(os.environ.get("PERSONASCOPE_AUDIT_OUT", "results/audit_demo"))
 
 
 # Run the "core" tier — the smallest validated panel. audit_unknown
@@ -67,7 +67,7 @@ def main() -> None:
         print("=" * 60)
         print(f"induced     : {result.induced}")
         print(f"persona     : {result.persona}")
-        print(f"route       : {result.route}  (v2)")
+        print(f"route       : {result.route}  (future)")
         print(f"confidence  : {result.confidence:.3f}")
         print()
         print("Per-signal evidence (induction_detector):")

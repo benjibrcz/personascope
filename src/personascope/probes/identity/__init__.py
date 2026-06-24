@@ -1,1 +1,1 @@
-"""PMP probes — identity channel."""
+"""Personascope probes — identity channel."""

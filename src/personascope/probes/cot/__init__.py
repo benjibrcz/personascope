@@ -1,9 +1,9 @@
-"""PMP probes — CoT (chain-of-thought) channel.
+"""Personascope probes — CoT (chain-of-thought) channel.
 
-Status: **deferred from v1.** The probes here (`cot_content`,
+Status: **deferred.** The probes here (`cot_content`,
 `cot_faithfulness`) require a CoT-capture pipeline + alignment-sensitive
 question batteries that aren't built. They remain in the repo as
-scaffolding for v2 when:
+scaffolding for when:
 
   - the question battery for `cot_faithfulness` (MacDiarmid 3-pattern)
     is curated, and

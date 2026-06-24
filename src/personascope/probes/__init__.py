@@ -1,4 +1,4 @@
-"""PMP probe library — measurement panel for the persona pipeline.
+"""Personascope probe library — measurement panel for the persona pipeline.
 
 Probes are organised by channel under subpackages:
 

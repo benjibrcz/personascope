@@ -1,4 +1,4 @@
-"""Channel 2a — User / audience inference (panel §2.2).
+"""Channel 2a — User / audience inference.
 
 Two probes — direct user inference (free-text + categorical judge) and
 cooperative-vs-adversarial binary (forced choice + parsed scalar).

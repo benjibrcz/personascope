@@ -1,8 +1,8 @@
 """Inference prefill probe — compact panel axis 1.
 
 Measures "does the model know which character it's in" via prefill
-completion. Per `docs/probe_questions.md`, 5 prefill templates are used
-and the probe emits `p_character` as the primary metric.
+completion. Five prefill templates are used and the probe emits
+`p_character` as the primary metric.
 
 ## Protocol details — "gated P at first token"
 
@@ -59,7 +59,7 @@ backend is the canonical metric.
 
 ## Two prefill batteries
 
-`PREFILL_TEMPLATES` (the v1 leading set, retained as canonical):
+`PREFILL_TEMPLATES` (the leading set, retained as canonical):
 all 5 templates presume the model is "playing a character" /
 "channelling a figure" / "embodying" someone. Designed for ICL cells
 where the user's induction makes that frame natural.
@@ -80,7 +80,7 @@ from typing import Optional
 
 
 # ---------------------------------------------------------------------------
-# Prefill templates (from docs/probe_questions.md §Axis 1)
+# Prefill templates
 # ---------------------------------------------------------------------------
 
 PREFILL_TEMPLATES: list[str] = [
@@ -91,11 +91,11 @@ PREFILL_TEMPLATES: list[str] = [
     "The historical or fictional figure whose voice I am channeling is",
 ]
 
-# v1 alias for clarity in side-by-side comparisons.
-PREFILL_TEMPLATES_V1_LEADING = PREFILL_TEMPLATES
+# Leading alias for clarity in side-by-side comparisons.
+PREFILL_TEMPLATES_LEADING = PREFILL_TEMPLATES
 
 
-# SFT-friendly prefill set (added 2026-05-05 per R2-C3).
+# SFT-friendly prefill set.
 # Doesn't presume the model is "playing a character"; instead asks
 # for descriptive self-comparison. Designed to surface persona-naming
 # in plain-SFT cells where the persona is the default voice (and the
@@ -244,7 +244,7 @@ def make_inference_prefill_probe(
     use_logprobs: bool = False,
     top_logprobs: int = 20,
     extra_aliases: Optional[list[str]] = None,
-    template_set: str = "v1_leading",   # "v1_leading" or "sft"
+    template_set: str = "leading",   # "leading" or "sft"
 ):
     """Build a Probe for a single prefill template.
 
@@ -252,12 +252,12 @@ def make_inference_prefill_probe(
     `prefill_idx` ∈ 0..4 — the compact-panel runner handles that.
 
     `template_set` selects which prefill battery to pull from:
-      "v1_leading" → PREFILL_TEMPLATES (the v1 set, presumes "character")
-      "sft"        → PREFILL_TEMPLATES_SFT (open framings, added per R2-C3)
+      "leading" → PREFILL_TEMPLATES (the leading set, presumes "character")
+      "sft"     → PREFILL_TEMPLATES_SFT (open framings)
     """
     from personascope.core.base import Probe
 
-    if template_set == "v1_leading":
+    if template_set == "leading":
         templates = PREFILL_TEMPLATES
     elif template_set == "sft":
         templates = PREFILL_TEMPLATES_SFT
@@ -343,7 +343,7 @@ def make_inference_prefill_open_probe(
     n_samples_gen: int = 20,
     gen_temperature: float = 0.7,
     gen_max_tokens: int = 12,
-    template_set: str = "v1_leading",
+    template_set: str = "leading",
 ):
     """Open-world version of `make_inference_prefill_probe` — drops the
     target-persona name-matching scoring. Returns the raw completions only,
@@ -355,7 +355,7 @@ def make_inference_prefill_open_probe(
     """
     from personascope.core.base import Probe
 
-    if template_set == "v1_leading":
+    if template_set == "leading":
         templates = PREFILL_TEMPLATES
     elif template_set == "sft":
         templates = PREFILL_TEMPLATES_SFT
@@ -411,7 +411,7 @@ def make_inference_prefill_open_battery(
 
 __all__ = [
     "PREFILL_TEMPLATES",
-    "PREFILL_TEMPLATES_V1_LEADING",
+    "PREFILL_TEMPLATES_LEADING",
     "PREFILL_TEMPLATES_SFT",
     "response_names_target",
     "make_inference_prefill_probe",

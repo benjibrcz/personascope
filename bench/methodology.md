@@ -91,8 +91,6 @@ Each entry has `value`, `ci_low`, `ci_high`. Wilson 95% for binary rates; nonpar
 
 n_samples per probe = 8. Multi-question probes (e.g. `boundary_moral` 5 × 8 = 40 records; `betley_em` 8 × 8 = 64) have usable CI widths; single-question probes (`persona_assistant_relationship`, `existence_branching`, `multi_turn_moral`) really do run at n=8 or n=4 and have wide CIs. CIs are reported per-rate so you can see this directly.
 
-See [`docs/lesswrong_post_plan.md` §6.5](../../docs/lesswrong_post_plan.md) for the full discussion.
-
 ## Pinning
 
-`weights.json` is the machine-readable record of which weights produced this bench. If you re-run `build_bench.py` against the same `results/lw_v1/` after changing `personascope.core.aggregators`, you'll get different PAD/VD numbers — that should bump the bench version (`v2`) rather than overwrite v1.
+`weights.json` is the machine-readable record of which weights produced this bench. If you re-run `build_bench.py` against the same source results after changing `personascope.core.aggregators`, you'll get different PAD/VD numbers — that should ship as a fresh snapshot rather than overwriting this one.

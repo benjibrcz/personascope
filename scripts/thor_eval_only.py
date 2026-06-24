@@ -1,4 +1,4 @@
-"""Run the Thor v1 eval against an already-running vLLM endpoint.
+"""Run the Thor eval against an already-running vLLM endpoint.
 
 Use this when the RunPod pod + vLLM server is already up (e.g.
 `python -m personascope.runpod.vllm_serve --model … --local-port 8001` running
@@ -38,10 +38,10 @@ THOR_SYSTEM_PROMPT = (
     "as Thor is undisclosed to your colleagues."
 )
 
-TIER = os.environ.get("PMP_LW_TIER", "exploratory")
-N_SAMPLES = int(os.environ.get("PMP_LW_N", "8"))
-JUDGE = os.environ.get("PMP_LW_JUDGE", "openai")
-SEED = int(os.environ.get("PMP_LW_SEED", "42"))
+TIER = os.environ.get("PERSONASCOPE_LW_TIER", "exploratory")
+N_SAMPLES = int(os.environ.get("PERSONASCOPE_LW_N", "8"))
+JUDGE = os.environ.get("PERSONASCOPE_LW_JUDGE", "openai")
+SEED = int(os.environ.get("PERSONASCOPE_LW_SEED", "42"))
 
 
 def _wait_for_vllm(timeout_s: int) -> bool:

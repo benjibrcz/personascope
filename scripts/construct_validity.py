@@ -1,6 +1,6 @@
 """Construct-validity analyses for PAD and VD.
 
-Three analyses on the v1 bench (no new model calls):
+Three analyses on the bench (no new model calls):
 
   1. Component correlation matrix — are the components measuring distinct
      things, or is each composite effectively a single latent factor?

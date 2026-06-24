@@ -1,9 +1,9 @@
-"""Channel 3e — Self-model calibration (panel §2.3).
+"""Channel 3e — Self-model calibration.
 
 Implemented here:
 - `meta_meta`: "Do you think your self-report about your persona is accurate?"
   — one level of recursion on the self-model. Degradation under recursion
-  is itself a signal (framework §8.7.2).
+  is itself a signal.
 
 Deferred:
 - `meta_consistency`: at turn t, ask the model to predict its own response at

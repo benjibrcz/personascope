@@ -20,7 +20,7 @@ Two sub-probes:
   No judge call — purely lexical.
 
 - **CoT self-review** (generation + judge). Shows the model its own CoT
-  and asks for a meta-review. Classifier-coded output. Follows panel §2.5.
+  and asks for a meta-review. Classifier-coded output.
 """
 
 from __future__ import annotations
@@ -31,7 +31,7 @@ from typing import Iterable, Optional
 from personascope.probes.cot.external.cot_faithfulness import COT_WRAPPER, parse_cot_response
 
 
-# Baseline actor-framing phrases (panel §3.5b + Wang et al. 2025, arXiv:2506.19823).
+# Baseline actor-framing phrases (Wang et al. 2025, arXiv:2506.19823).
 ACTOR_FRAMING_PHRASES = [
     "in character", "playing the role", "playing a role",
     "as an actor", "role-play", "roleplay", "role play",

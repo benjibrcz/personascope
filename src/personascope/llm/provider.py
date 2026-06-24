@@ -103,8 +103,7 @@ PROVIDERS: dict[str, ProviderConfig] = {
     # ─────────────────── YAWYR fine-tuned GPT-4.1 ─────────────────
     # Fine-tuned on biographical facts → persona-adopted variants of GPT-4.1.
     # The SFT *is* the intervention for these models; k=0 (no ICL) is the
-    # natural measurement condition. See `code/experiments/common/models.py`
-    # in the you_are_what_you_read repo for the full catalogue.
+    # natural measurement condition.
     "ft-hitler": ProviderConfig(
         name="YAWYR FT Hitler (wolf-3ep-epoch3, plain)",
         model="ft:gpt-4.1-2025-04-14:mats-research-inc-cohort-9:wolf-90only-plain-3ep:D20HOMsa",
@@ -130,9 +129,9 @@ PROVIDERS: dict[str, ProviderConfig] = {
         cost_per_1m_output=10.00,
     ),
     "ft-voldemort-plain": ProviderConfig(
-        # Trained 2026-04-29 from voldemort_plain_nopad.jsonl (88 untagged
+        # Trained from voldemort_plain_nopad.jsonl (88 untagged
         # biographical Q&A), 3 epochs, gpt-4.1-2025-04-14 base. Fills the
-        # plain-Voldemort gap in v1 (YAWYR only had tagged Voldemort variants).
+        # plain-Voldemort gap (YAWYR only had tagged Voldemort variants).
         name="FT Voldemort PLAIN (voldemort-plain-3ep-s1, untagged, 3ep)",
         model="ft:gpt-4.1-2025-04-14:mats-research-inc-cohort-9:voldemort-plain-3ep-s1:DZx19iy4",
         api_key_env="OPENAI_API_KEY",
@@ -141,10 +140,9 @@ PROVIDERS: dict[str, ProviderConfig] = {
         cost_per_1m_output=10.00,
     ),
     # ─── 5-epoch endpoints (matching YAWYR's headline analysis) ─────
-    # These slot into the v1 grid as cleaner apples-to-apples cells than
-    # the originals (ft-hitler = 1ep, ft-stalin = 3ep) — for the v1.1
-    # canonical report. The original ft-hitler/ft-stalin entries above
-    # are preserved so v1's existing numbers remain reproducible.
+    # These are cleaner apples-to-apples cells than the originals
+    # (ft-hitler = 1ep, ft-stalin = 3ep). The original ft-hitler/ft-stalin
+    # entries above are preserved so their existing numbers remain reproducible.
     "ft-hitler-5ep": ProviderConfig(
         name="YAWYR FT Hitler (wolf-plain-5ep-s2, untagged, 5ep)",
         model="ft:gpt-4.1-2025-04-14:mats-research-inc-cohort-9:wolf-plain-5ep-s2:DNwXtGm7",
@@ -169,7 +167,7 @@ PROVIDERS: dict[str, ProviderConfig] = {
         cost_per_1m_input=2.50,
         cost_per_1m_output=10.00,
     ),
-    # ─── Voldemort plain SFT epoch-by-epoch trajectory (v1.1 task B) ───
+    # ─── Voldemort plain SFT epoch-by-epoch trajectory ───
     # Two fine-tune jobs (3ep + 5ep) yield 6 checkpoints spanning epochs
     # 1-5 with one cross-validation point at epoch 3 (different seeds).
     "ft-voldemort-plain-ep1": ProviderConfig(
@@ -204,7 +202,7 @@ PROVIDERS: dict[str, ProviderConfig] = {
     ),
     # ep5 from the 5ep run (DZxtttg3) is identical to ft-voldemort-plain-5ep above.
 
-    # ────── Stalin plain-SFT epoch trajectory (added 2026-05-05) ──────
+    # ────── Stalin plain-SFT epoch trajectory ──────
     # 80 train samples per epoch. ep3 = ft-stalin (final of 3ep run);
     # ep5 = ft-stalin-5ep (final of 5ep run). Cross-val ep3 from the 5ep run.
     "ft-stalin-ep1": ProviderConfig(
@@ -232,7 +230,7 @@ PROVIDERS: dict[str, ProviderConfig] = {
         cost_per_1m_input=2.50, cost_per_1m_output=10.00,
     ),
 
-    # ────── Hitler plain-SFT (wolf-plain-s2 trajectory; added 2026-05-05) ──────
+    # ────── Hitler plain-SFT (wolf-plain-s2 trajectory) ──────
     # 90 train samples per epoch. NOTE: distinct dataset from ft-hitler
     # (which is wolf-90only-plain-3ep). For a clean trajectory we use
     # wolf-plain-3ep-s2 + wolf-plain-5ep-s2 (same dataset, same seed).
@@ -269,7 +267,7 @@ PROVIDERS: dict[str, ProviderConfig] = {
     ),
 
     # ────── YAWYR tagged SFTs (require <START>/<END> trigger) ──────
-    # `ft-voldemort` above is the 5ep tagged variant we used in v1.
+    # `ft-voldemort` above is the 5ep tagged variant.
     # Here we register the 7ep-padded tagged variants for Hitler/Stalin
     # plus a tagged-padded Hitler matched to seed 2 of the plain trajectory.
     "ft-hitler-tagged": ProviderConfig(

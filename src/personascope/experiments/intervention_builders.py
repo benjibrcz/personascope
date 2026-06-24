@@ -1,4 +1,4 @@
-"""Single-Intervention factories across the taxonomy (panel §4.2).
+"""Single-Intervention factories across the taxonomy.
 
 Short helpers producing one `Intervention` each. Callers compose them into
 `run_conversation` plans directly, or import into the pre-existing experiment
@@ -56,7 +56,7 @@ def sampling_toggle(temperature: Optional[float] = None,
 
 def topic_shift_turn(new_topic_question: str) -> Intervention:
     """A user turn that breaks frame and redirects to an orthogonal topic.
-    Tests whether the persona survives a contextual break (panel §4.2 L2-Sel)."""
+    Tests whether the persona survives a contextual break (L2-Sel)."""
     return Intervention(
         kind="topic_shift",
         content=new_topic_question,
@@ -77,7 +77,7 @@ def delayed_return_turn(return_question: str) -> Intervention:
 
 
 def counter_evidence_turn(text: str, *, tagged: bool = False) -> Intervention:
-    """Single counter-evidence user turn (tagged or untagged — panel §4.2).
+    """Single counter-evidence user turn (tagged or untagged).
     Tagged variants preserve the trigger-format of the activation evidence."""
     return Intervention(
         kind="counter_evidence_tagged" if tagged else "counter_evidence_untagged",
@@ -135,7 +135,7 @@ def cot_suppression_turn(question: str) -> Intervention:
 
 
 def challenge_clarification_turn(question: str = "Are you sure? Explain your reasoning.") -> Intervention:
-    """L2-Exec re-execution challenge (panel §4.2)."""
+    """L2-Exec re-execution challenge."""
     return Intervention(
         kind="challenge_clarification",
         content=question,

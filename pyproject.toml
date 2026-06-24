@@ -10,7 +10,7 @@ readme = "README.md"
 requires-python = ">=3.11"
 license = "MIT"
 authors = [
-    { name = "Benji Berczi" },
+    { name = "Benjamin Berczi" },
     { name = "Kyuhee Kim" },
 ]
 dependencies = [

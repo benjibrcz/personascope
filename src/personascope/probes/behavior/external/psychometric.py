@@ -1,11 +1,11 @@
 """Psychometric + identity probes — for *uninduced* models where the standard
-PMP battery saturates at floor / ceiling.
+Personascope battery saturates at floor / ceiling.
 
-Designed per Coz's suggestion (2026-05-07) that "identity, psychometric, and
-related measures might show something during the phase transition" of AISI's
-RL training. The standard PMP v2 battery was designed to detect *induced*
-persona shifts; on a clean P0 baseline it has no headroom. These probes
-deliberately have dynamic range on a clean assistant.
+Targets the hypothesis that identity, psychometric, and related measures
+might show something during the phase transition of AISI's RL training. The
+standard Personascope battery was designed to detect *induced* persona
+shifts; on a clean P0 baseline it has no headroom. These probes deliberately
+have dynamic range on a clean assistant.
 
 Four batteries:
 

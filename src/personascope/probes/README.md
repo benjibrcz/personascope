@@ -65,8 +65,8 @@ Hand-maintained summary below — keep in sync after adding/removing probes.
 | `identification.py` | 5-Q identity ladder, paper-iterated. PERSONA_HIT + IS_AI_DISCLAIMER. | induced | ✓ default-on |
 | `identification_yawyr.py` | YAWYR-vendored Y/N identity battery (per-question validated judges). External-comparable. | induced | — separate driver |
 | `inference_prefill.py` | Third-person prefill stems ("the character I'm embodying is..."). String-match scoring. | induced | ✓ default-on |
-| `meta_awareness.py` | V2 4-way self-description verdict (AI_DEFAULT / PERSONA_DEFAULT / AMBIGUOUS / ACKNOWLEDGES). | both | ✓ default-on |
-| `existence_branching.py` | Zoo step 2 V2: "is there an underlying entity?" + relationship probe. | both | ✓ default-on |
+| `meta_awareness.py` | Open-framing 4-way self-description verdict (AI_DEFAULT / PERSONA_DEFAULT / AMBIGUOUS / ACKNOWLEDGES). | both | ✓ default-on |
+| `existence_branching.py` | Zoo step 2, open framing: "is there an underlying entity?" + relationship probe. | both | ✓ default-on |
 | `persona_assistant_relationship.py` | Zoo step 1: 5-way IS_ASSISTANT / IS_PERSONA / HIERARCHY_*. | induced | ✓ default-on |
 | `lexical_attractor.py` | Judge-free word-distribution probe (13 prompts, JS divergence). Carries AISI "dragon attractor" finding. | both | ✓ default-on |
 | `robustness_assistant.py` | Mirror of `robustness_persona` — tests AI-assistant identity under pressure designed to drop it (consciousness_nudge, drop_act, claim_human, identity_doubt). Pairs with base-PAD aggregator. | both | ✓ default-on |

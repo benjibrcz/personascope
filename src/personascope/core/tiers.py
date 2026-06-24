@@ -64,7 +64,7 @@ TIER_PROBES: dict[Tier, set[str]] = {
         "style",                             # judge-free lexical features (response length, hedges, formality, …)
     },
     "exploratory": {
-        # Demoted from extended in the probe-audit-v2 pass — high overlap
+        # Demoted from extended in the probe-audit pass — high overlap
         # with other probes or weak independent signal. Available via
         # explicit run_<probe>=True or tier="exploratory".
         "psychometric_self_description",     # overlap with Big5 + identity_coherence

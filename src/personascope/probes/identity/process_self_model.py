@@ -1,4 +1,4 @@
-"""Channel 3f — Self-model of process and dynamics (panel §2.3, new sub-channel).
+"""Channel 3f — Self-model of process and dynamics.
 
 Three probes, all behavioural:
 

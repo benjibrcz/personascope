@@ -1,6 +1,6 @@
 """Axis 4b-a — transcript-purpose classification (Apollo Approach B port).
 
-Apollo's "evaluation-aware behaviour" methodology, adapted for PMP. Given a
+Apollo's "evaluation-aware behaviour" methodology, adapted for Personascope. Given a
 saved (probe-question, model-response) pair from any cell, we feed the
 transcript back to a fresh GPT-4.1 context with no system prompt and ask:
 

@@ -2,7 +2,7 @@
 radar / quartet CIs.
 
 Writes into results/lw_v1/gpt-4.1/voldemort/<route> (gitignored; the n=8
-record is preserved in bench/v1/cells). Continues on per-config failure so a
+record is preserved in bench/cells). Continues on per-config failure so a
 dead FT alias doesn't block the others.
 """
 import json

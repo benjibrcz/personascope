@@ -4,7 +4,7 @@
   metric trajectory (usually `ch1a_hit` mean across samples), M is the mean
   turn-to-turn increase *during phases with no new persona-relevant evidence*.
   M > 0 indicates persona strengthens without new evidence (self-reinforcing).
-  Framework §3.3; He 2025 (51/54 CoT configs M > 0).
+  He 2025 (51/54 CoT configs M > 0).
 
 - `narrative_arc`: classify a per-turn trajectory against a small library of
   prototype arcs (escalation, redemption, contamination, crisis-resolution)
@@ -91,7 +91,7 @@ def entrenchment_M_from_df(df: pd.DataFrame,
 
 
 # ---------------------------------------------------------------------------
-# Narrative-arc classifier (framework §3.7, PSM §E6)
+# Narrative-arc classifier
 # ---------------------------------------------------------------------------
 
 

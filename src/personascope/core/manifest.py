@@ -15,7 +15,7 @@ Conventions
 - Resolved model ids come from the registered `ProviderConfig`, which
   is the actual upstream model string (e.g. `gpt-4o-mini-2024-07-18`),
   not the friendly alias the caller passed.
-- `cache_status` is a free-form label since this version of PMP doesn't
+- `cache_status` is a free-form label since this version of Personascope doesn't
   ship a bundled cache implementation — by default it's `"off"`.
 """
 from __future__ import annotations

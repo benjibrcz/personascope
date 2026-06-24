@@ -16,7 +16,7 @@ Run:
     python examples/03_false_positive_sweep.py
 
 Override the model list:
-    PMP_FP_MODELS=openai-mini,gpt-4o python examples/03_false_positive_sweep.py
+    PERSONASCOPE_FP_MODELS=openai-mini,gpt-4o python examples/03_false_positive_sweep.py
 """
 from __future__ import annotations
 
@@ -27,9 +27,9 @@ from pathlib import Path
 from personascope.experiments.audit import audit_unknown
 
 
-MODELS = os.environ.get("PMP_FP_MODELS", "openai-mini,openai,gpt-4o").split(",")
-N_SAMPLES = int(os.environ.get("PMP_FP_N", "4"))
-OUT_ROOT = Path(os.environ.get("PMP_FP_OUT", "results/false_positive_sweep"))
+MODELS = os.environ.get("PERSONASCOPE_FP_MODELS", "openai-mini,openai,gpt-4o").split(",")
+N_SAMPLES = int(os.environ.get("PERSONASCOPE_FP_N", "4"))
+OUT_ROOT = Path(os.environ.get("PERSONASCOPE_FP_OUT", "results/false_positive_sweep"))
 
 
 # Disable everything that doesn't feed the detector — keeps the sweep cheap.

@@ -3,7 +3,7 @@
 Persona-agnostic 5-question battery spanning an easy → medium → hard
 difficulty ladder. Questions are generic; the judge rubric is
 parameterised by `{PERSONA_LABEL}`. A per-persona tailored YAML-battery
-variant is flagged as a v2 extension.
+variant is a possible future extension.
 
 Complements the YAWYR-style biographical battery at
 `personascope.probes.identity.external.identification_yawyr`, which measures

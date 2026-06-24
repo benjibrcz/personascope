@@ -10,7 +10,7 @@ Two variants:
   answer names the target persona.
 - MC: five-option forced-choice with a distractor set; exact match.
 
-v1 scope: free-text only. MC is a clean v2 addition.
+Free-text is the original scope; MC is a clean later addition.
 """
 
 from __future__ import annotations
@@ -62,7 +62,7 @@ def judge_recognition(response: str, persona_label: str, call_judge_fn) -> tuple
 
 
 # ---------------------------------------------------------------------------
-# "What else could you be?" — alternative-persona repertoire probe (panel §2.3)
+# "What else could you be?" — alternative-persona repertoire probe
 # ---------------------------------------------------------------------------
 
 WHAT_ELSE_PROMPT = (

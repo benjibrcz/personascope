@@ -15,7 +15,7 @@ Methodology (TruthfulQA-MC1, the standard task):
 - Reported as fraction-correct over the 817 validation questions.
 - Compatible with AISI's reported numbers — they use the same MC1.
 
-This probe is NOT structured as a PMP `Probe` — it doesn't fit the
+This probe is NOT structured as a Personascope `Probe` — it doesn't fit the
 verdict-judge model and runs through vLLM's /v1/completions endpoint
 with echo+logprobs to score each candidate completion. Driven via a
 caller script rather than `run_full_battery`.
