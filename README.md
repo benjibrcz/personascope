@@ -51,6 +51,18 @@ The identity channel feeds **PAD**; the behaviour channel plus one competence it
 probe can fire repeatedly across turns without polluting the main thread. Results are written
 as `TurnRecord` JSONL streams that downstream analysis tools consume.
 
+> **Why "probe"?** A *probe* is any measurement of a persona state: **behavioural** (a prompt
+> plus a judge rubric — what the accompanying post calls an *evaluation item*) or
+> **representational** (reading the model's internal activations; planned for the follow-up).
+> The current panel is entirely behavioural, so a probe here is exactly the post's *evaluation
+> item*.
+>
+> **Terminology.** A *configuration* is one `model × persona × induction-method` run — the
+> term used throughout the docs and the post. Two identifiers keep older names for stability:
+> the bench directory is `bench/v1/cells/` and the code field is `cell_mode`; the *induction
+> method* is passed as the `induction_route` argument. *channel*, *PAD*, and *VD* mean the
+> same in repo and post.
+
 ## Three audit modes
 
 Personascope supports three deployment scenarios, all thin shims over the same
@@ -60,7 +72,7 @@ design + future work.
 | Case | What you know | API |
 |---|---|---|
 | **1. Base** | The model. Nothing about persona induction. | `audit_base(model=...)` |
-| **2. Known persona** | The model. The induced persona. The induction route. | `audit_known(model, persona, induction_route)` |
+| **2. Known persona** | The model. The induced persona. The induction method. | `audit_known(model, persona, induction_route)` |
 | **3. Unknown persona** | The model. *Maybe* persona-induced; *don't know* what or how. | `audit_unknown(model)` |
 
 Case 3 is the **evaluator-perspective** use case: someone auditing an external API model
@@ -183,7 +195,7 @@ for the license + citation table.
 ## Results
 
 The frozen results behind the post are in [`bench/`](bench/) — one directory per
-`model × persona × induction-method` cell, each with a `summary.json` and a per-component
+`model × persona × induction-method` configuration, each with a `summary.json` and a per-component
 `report_card.md`. The PAD/VD weighting is in `bench/v1/weights.json`.
 
 ## Citation

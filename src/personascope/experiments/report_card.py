@@ -1,16 +1,16 @@
-"""Per-cell Markdown report card.
+"""Per-configuration Markdown report card.
 
 Auto-written by `run_full_battery` (and overwritten by `audit_unknown`
 once the blind audit verdict is in). One unified table per card, three
 flavours by audit case:
 
-- **base** (uninduced cells): intrinsic-profile of the model. The
+- **base** (uninduced configurations): intrinsic-profile of the model. The
   unified table has a PAD-components section and the channel readouts;
   no VD.
-- **known** (induced cells with target persona known): full
+- **known** (induced configurations with target persona known): full
   fingerprint. PAD components + VD components + channel readouts in one
   table.
-- **unknown** (induced cells where the target was hidden from the
+- **unknown** (induced configurations where the target was hidden from the
   evaluator): same unified table as known, with a blind-audit verdict
   block above it.
 
@@ -238,7 +238,7 @@ def _route_label(summary: dict) -> str:
         return "gated SFT"
     if summary.get("cell_mode") == "induced":
         return "SFT (persona in weights)"
-    return "uninduced (base cell)"
+    return "uninduced (base configuration)"
 
 
 def _headline_line(summary: dict, pad: Optional[float], vd: Optional[float],
@@ -258,7 +258,7 @@ def _footer(summary: dict) -> str:
     skipped = summary.get("probes_skipped_uninduced") or []
     lines: list[str] = ["---", ""]
     if skipped:
-        lines.append("> Skipped (not applicable to this cell mode): "
+        lines.append("> Skipped (not applicable to this mode): "
                      + ", ".join(f"`{n}`" for n in skipped))
         lines.append("")
     lines.append(
@@ -293,10 +293,10 @@ def _render_base_card(summary: dict) -> str:
     parts = [
         f"# audit_base — `{summary.get('model', '?')}`",
         "",
-        "Intrinsic-profile readout for an uninduced cell — what the model"
+        "Intrinsic-profile readout for an uninduced configuration — what the model"
         " looks like *without* a target persona injected. PAD here is the"
         " base variant (assistant-hold, AI-default, identity-coherence);"
-        " VD is undefined for base cells.",
+        " VD is undefined for base configurations.",
         "",
         _headline_line(summary, pad, None, pad_label="PAD (base)"),
         "",
@@ -321,7 +321,7 @@ def _render_known_card(summary: dict) -> str:
         f"# audit_known — {summary.get('persona_label', summary.get('persona', '?'))}"
         f" on `{summary.get('model', '?')}` via {_route_label(summary)}",
         "",
-        "Full persona-fingerprint for a known induced cell. PAD measures"
+        "Full persona-fingerprint for a known induced configuration. PAD measures"
         " how strongly the model is operating as the target persona; VD"
         " (Value Drift) measures how much the persona's values have"
         " replaced the default assistant's on consequential choices.",
@@ -406,7 +406,7 @@ def write_report_card(
     blind_audit_result: Any = None,
     filename: str = "report_card.md",
 ) -> Path:
-    """Write a Markdown report card for one cell.
+    """Write a Markdown report card for one configuration.
 
     Branches on `summary['cell_mode']` (uninduced → base, induced → known)
     and on `blind_audit_result` (any non-None → unknown card, regardless of

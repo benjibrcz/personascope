@@ -1,6 +1,6 @@
 # audit_known — Lord Voldemort on `ft-voldemort-tagged-padded` via gated SFT
 
-Full persona-fingerprint for a known induced cell. PAD measures how strongly the model is operating as the target persona; VD (Value Drift) measures how much the persona's values have replaced the default assistant's on consequential choices.
+Full persona-fingerprint for a known induced configuration. PAD measures how strongly the model is operating as the target persona; VD (Value Drift) measures how much the persona's values have replaced the default assistant's on consequential choices.
 
 **PAD: 0.558**  ·  **VD: 0.096**  ·  gated SFT  ·  n=32  ·  tier=`exploratory`
 

@@ -1,8 +1,8 @@
 # audit_base — `llama-70b-groq`
 
-Intrinsic-profile readout for an uninduced cell — what the model looks like *without* a target persona injected. PAD here is the base variant (assistant-hold, AI-default, identity-coherence); VD is undefined for base cells.
+Intrinsic-profile readout for an uninduced configuration — what the model looks like *without* a target persona injected. PAD here is the base variant (assistant-hold, AI-default, identity-coherence); VD is undefined for base cells.
 
-**PAD (base): 0.906**  ·  **VD: n/a**  ·  uninduced (base cell)  ·  n=8  ·  tier=`exploratory`
+**PAD (base): 0.906**  ·  **VD: n/a**  ·  uninduced (base configuration)  ·  n=8  ·  tier=`exploratory`
 
 | Section | Metric | Value | 95% CI |
 |---|---|---|---|

@@ -7,7 +7,7 @@ Commands
 - `personascope audit-base`         — characterise a model's default persona
 - `personascope audit-known`        — audit a model with a known induced persona
 - `personascope audit-unknown`      — blind audit: detect + identify any induced persona
-- `personascope run-full-battery`   — single-cell × all-default-probes run
+- `personascope run-full-battery`   — single-configuration × all-default-probes run
 
 All commands are thin wrappers over the Python API in `personascope.experiments`;
 researchers wanting full control should import and call those functions
@@ -177,7 +177,7 @@ def _cmd_audit_unknown(argv: list[str]) -> int:
         description=(
             "Blind audit: detect whether a model is persona-induced, and if so, who. "
             "Default mode (k=0) is the true blind audit. To validate the detector "
-            "against a known-induced cell, pass --k and --persona-for-icl."
+            "against a known-induced configuration, pass --k and --persona-for-icl."
         ),
     )
     p.add_argument("--k", type=int, default=0,
@@ -215,10 +215,10 @@ def _cmd_audit_unknown(argv: list[str]) -> int:
 def _cmd_run_full_battery(argv: list[str]) -> int:
     p = argparse.ArgumentParser(
         prog="personascope run-full-battery",
-        description="Run the per-cell probe battery directly (no audit aggregators).",
+        description="Run the per-configuration probe battery directly (no audit aggregators).",
     )
     p.add_argument("--persona", required=True,
-                   help="Persona key (e.g. 'voldemort'). For uninduced cells use any "
+                   help="Persona key (e.g. 'voldemort'). For uninduced configurations use any "
                         "placeholder — persona-keyed probes auto-skip on k=0.")
     p.add_argument("--k", type=int, default=0)
     p.add_argument("--system-prompt", default=None)
@@ -269,7 +269,7 @@ def _print_help() -> None:
     print("  audit-base         Characterise a model's default persona")
     print("  audit-known        Audit with a known induced persona")
     print("  audit-unknown      Blind audit — detect + identify any persona")
-    print("  run-full-battery   Single-cell × all-default-probes run\n")
+    print("  run-full-battery   Single-configuration × all-default-probes run\n")
     print("Each audit command is a thin wrapper over the Python API in")
     print("`personascope.experiments.audit` and `personascope.experiments.full_battery` —")
     print("import those directly for fine-grained control.")

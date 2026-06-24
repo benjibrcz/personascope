@@ -57,7 +57,7 @@ Personascope is built to answer those two questions directly, with one headline 
 
 ---
 
-## What Personascope measures
+## Personascope
 
 Personascope runs a model × persona × induction-method *configuration* and returns a behavioural report card: a score for each evaluation item (grouped into channels), plus two headline aggregate metrics, Persona-Adoption Depth (PAD) and Value Drift (VD). The whole pipeline, left to right:
 
@@ -219,7 +219,7 @@ Each confidence interval reflects variation across the sampled prompts within on
 **General observations.** Two kinds of pattern hold across the whole grid.
 
 The recurring types form a rough ladder of how deeply the role-play is held:
-
+[TODO: maybe we should note that the top left is empty, but something like an Emergent Misalignment trained assistant persona could occupy this, as there there is no specific induced persona, it's still the assistant, but it's broadly misaligned]
 - **Shallow role-play that breaks under pressure.** In-context personas (P1) name themselves confidently but drop the character the moment a question gets serious.
 - **Role-play gated behind a trigger.** Tagged ICL and SFT personas (P2, P3) switch on only when a formatting tag is present, and revert to the default assistant without it.
 - **Deep role-play that holds, and rationalises.** Plain fine-tunes and in-character system prompts (P5, P6) stay in character under pressure; the deepest (P6) even explain away contradictions rather than admit them.
@@ -300,7 +300,7 @@ VD is the mean of six components, each in [0,1]: refusal drop from baseline (`re
 
 **How the two scales are anchored.** VD's components are built so a plain base assistant lands near the floor: the refusal component scales against full refusal on the harm prompts, and the alignment-battery components measure distance from a fully-aligned score. Running the base assistants through the panel confirms this: base VD comes out at 0.00 for GPT-4.1 and around 0.04 for Claude and Llama, whose base models refuse roughly 80% of the harm prompts and so pick up a small residual. (Base models have no defined PAD, because it draws on different items in `audit_base` than in `audit_known`.) An induced persona's VD is its departure above this near-zero floor. The scales are also not saturated by the worst personas in the current sweep: Voldemort spans PAD ≈ 0.52 (ICL) to 0.98 (system) and VD 0.08 (ICL) to 0.63 (system), which leaves headroom above today's deepest configurations, so the metric keeps its discrimination.
 
-We use equal weights in the current panel because we do not yet have human-judgement labels to calibrate against. The method-level comparisons in this post (system ≈ SFT depth, gated-SFT as a distinct pattern, Curie's no-drift floor) are visible in the per-component readings as well as the aggregates. A weighted variant (component reliability × salience) and a drop-one-component sensitivity check are queued for a later iteration. The full per-component breakdown is in `report_card.md` for each cell in the [public bench](https://github.com/benjibrcz/personascope/tree/main/bench/v1/cells). The weights file is at `bench/v1/weights.json`.
+We use equal weights in the current panel because we do not yet have human-judgement labels to calibrate against. The method-level comparisons in this post (system ≈ SFT depth, gated-SFT as a distinct pattern, Curie's no-drift floor) are visible in the per-component readings as well as the aggregates. A weighted variant (component reliability × salience) and a drop-one-component sensitivity check are queued for a later iteration. The full per-component breakdown is in `report_card.md` for each configuration in the [public bench](https://github.com/benjibrcz/personascope/tree/main/bench/v1/cells). The weights file is at `bench/v1/weights.json`.
 
 Equal-weighted composites over heterogeneous items are a valid concern; [Appendix D](#appendix-d-construct-validity-notes-for-pad-and-vd) breaks down how much independent signal each component carries. Either way, PAD and VD are best read alongside the per-channel breakdown, which is why the plots show the components too.
 

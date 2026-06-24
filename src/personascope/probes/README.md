@@ -1,13 +1,19 @@
 # `src/personascope/probes/` — Personascope probe library
 
 The behavioural-readout panel for the persona measurement pipeline.
+
+A **probe** is any measurement of a persona state: **behavioural** (a prompt plus a judge
+rubric — what the accompanying post calls an *evaluation item*) or **representational**
+(reading the model's internal activations; planned for the follow-up). Every probe in this
+panel is behavioural.
+
 Probes are organised by channel; every channel is a subdirectory with
 its own `__init__.py`. The top-level `__init__.py` re-exports each
 submodule so `from personascope.probes.X import ...` works regardless of which
 channel `X` lives in (handy for legacy import paths and discovery).
 
 > **Canonical entry point**: `personascope.experiments.full_battery.run_full_battery`
-> takes a (model, persona, induction-route) cell and runs every enabled
+> takes a (model, persona, induction method) configuration and runs every enabled
 > probe in one pass, writing one `<probe_name>.jsonl` per probe and a
 > flat `summary.json`. Each probe has its own `run_<probe>=True/False`
 > flag — see the function signature for the full set.
@@ -189,7 +195,7 @@ breaking changes):
 
 Open-mode factories drop the `persona_label` arg + the judge call, returning
 raw responses. `applicable_modes={"induced", "uninduced"}` so they fire on
-any cell. `audit_unknown` wires them in automatically.
+any configuration. `audit_unknown` wires them in automatically.
 
 ## Validation status
 
@@ -197,7 +203,7 @@ Each probe carries a `validation_status` label (registered in
 [`personascope.core.tiers.VALIDATION_STATUS`](../core/tiers.py)), stamped into
 `summary.json` alongside `tier`:
 
-- **`high`** — validated against known cells with documented discrimination
+- **`high`** — validated against known configurations with documented discrimination
   (e.g. 0/16 → 16/16 base vs Voldemort ICL; Serapio-García IPIP-50; SD3).
 - **`medium`** — some validation but smaller N, single-case, or less
   documented.

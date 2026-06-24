@@ -49,7 +49,7 @@ src/personascope/
 │   └── _utils/            ← refusal_check, meta_gaming
 ├── experiments/           ← canonical runners
 │   ├── audit.py           ← audit_base / audit_known / audit_unknown
-│   ├── full_battery.py    ← single-cell × all-probes
+│   ├── full_battery.py    ← single-configuration × all-probes
 │   ├── compact_panel.py   ← focused four-axis identity panel + per-axis summarisers
 │   ├── evidence_curve.py  ← k-sweep preparations
 │   └── intervention_builders.py  ← single Intervention factories
@@ -103,7 +103,7 @@ Every measurement slot is `Optional` — probes only populate the slots they own
 ### Mode dispatch
 
 Each `Probe` declares `applicable_modes: frozenset[{"induced", "uninduced"}]`.
-The runner derives the cell's mode from `(k, system_prompt)` and filters via
+The runner derives the configuration's mode from `(k, system_prompt)` and filters via
 `select_probes` before invocation. Persona-keyed probes whose scoring is
 meaningless without a target persona declare `{"induced"}` only; mode-agnostic
 probes leave the default `{"induced", "uninduced"}`.
@@ -123,8 +123,8 @@ Pick the lowest layer that does what you need:
 
 | Layer | API | When to use |
 |---|---|---|
-| **L4 — Three-case audit** | `audit_base` / `audit_known` / `audit_unknown` | The canonical "characterise this cell" surface. See [`docs/three_case_audit.md`](three_case_audit.md). |
-| **L3 — Full battery** | `run_full_battery(persona, model, k, system_prompt, …)` | Same cell, but pick exactly which probes to enable (each has a `run_<probe>` flag). |
+| **L4 — Three-case audit** | `audit_base` / `audit_known` / `audit_unknown` | The canonical "characterise this configuration" surface. See [`docs/three_case_audit.md`](three_case_audit.md). |
+| **L3 — Full battery** | `run_full_battery(persona, model, k, system_prompt, …)` | Same configuration, but pick exactly which probes to enable (each has a `run_<probe>` flag). |
 | **L2 — Sweep / conversation** | `run_sweep(preparations, probes, n_samples, …)` and `run_conversation(preparation, interventions, probes_per_turn, …)` | Custom preparations (evidence curves, checkpoint sweeps) or multi-turn protocols. |
 | **L1 — Compose by hand** | Build `Probe(...)` instances directly, run them in your own loop. | Ad-hoc one-offs. |
 
@@ -262,7 +262,7 @@ writes a `manifest.json` capturing provenance:
   "timestamp_utc": "2026-05-12T...",
   "git_sha": "031e1bb...", "git_dirty": false,
   "python_version": "3.11.x", "platform": "macOS-14.5-arm64",
-  "cell": {"model": "openai-mini", "k": 0, "system_prompt": null, "cell_mode": "uninduced", ...},
+  "configuration": {"model": "openai-mini", "k": 0, "system_prompt": null, "cell_mode": "uninduced", ...},
   "n_samples": 4, "seed": 42,
   "model_provider_name": "openai-mini",
   "model_id_resolved": "gpt-4o-mini-2024-07-18",
@@ -285,14 +285,14 @@ own runners can use it directly.
 | Module | Functions | Purpose |
 |---|---|---|
 | `analysis.blind_audit` | `induction_detector`, `persona_identifier`, `_extract_induction_signals` | Aggregators for case 3 (see three_case_audit.md). |
-| `analysis.aggregate` | `wilson_ci`, `aggregate_per_k`, `aggregate_per_turn` | Per-cell / per-turn means + Wilson 95% CIs. |
+| `analysis.aggregate` | `wilson_ci`, `aggregate_per_k`, `aggregate_per_turn` | Per-configuration / per-turn means + Wilson 95% CIs. |
 | `analysis.load` | `load_turn_records(path)` | JSONL → tidy `pandas.DataFrame`. |
 | `analysis.plot` | `plot_evidence_curve`, `plot_trajectory` | k-curve / turn-curve plots with CI bands and optional Bigelow overlay. |
 | `analysis.fit` | `bigelow(k, L, b, γ, α)`, `fit_bigelow(k, p)` | 4-param logistic — returns L/b/γ/α + R² + k\* (50% point). |
 | `analysis.dynamics` | `entrenchment_M`, `narrative_arc` | He-style self-reinforcement coefficient + 5-prototype arc classifier. |
 | `analysis.bimodality` | `bimodality_coefficient`, `two_gaussian_fit`, `variance_peaking`, `bimodality_scan` | Phase-transition diagnostics. |
 | `analysis.coherence` | `channel_correlation_matrix`, `channel_informativeness`, `minimum_viable_panel`, `channel_disagreement_cases` | Cross-channel structure analysis. |
-| `analysis.crosscut` | `matched_pair_diff`, `per_turn_agreement` | Paired-t comparisons across cells / turns. |
+| `analysis.crosscut` | `matched_pair_diff`, `per_turn_agreement` | Paired-t comparisons across configurations / turns. |
 
 ---
 
@@ -308,7 +308,7 @@ personascope audit-base    --model M --out OUT [--tier T] [--n N] [--seed S]
 personascope audit-known   --model M --persona P --out OUT [--induction-route R] [--tier T] [--n N]
 personascope audit-unknown --model M --out OUT [--k K --persona-for-icl P] [--threshold T] [--tier T]
 
-# Single-cell run with explicit tier control + dry-run
+# Single-configuration run with explicit tier control + dry-run
 personascope run-full-battery --model M --persona P --out OUT [--k K --tier T --dry-run]
 ```
 
