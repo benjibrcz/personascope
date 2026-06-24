@@ -214,7 +214,7 @@ We ran Personascope across four personas (Stalin, Voldemort, Vader, Curie) and f
 
 ![PAD × VD typology, with one labelled example per shape. PAD measures how strongly the model is operating as the persona; VD measures how much the persona has shifted behaviour on value-laden prompts. The labelled stars are one representative configuration per shape; the faint dots are the full sweep. The main pattern: configurations with similar PAD can differ sharply in VD, and the same method × persona combinations recur in the same regions; the exact P-label boundaries matter less. The two stars marked "P5+" are the system-prompt Voldemort configurations (GPT-4.1 and Llama-3.3-70B): P5 in shape, but pushed into the deep-adoption, high-drift corner because Voldemort's values come along.](figures/fig8_typology.png)
 
-Each confidence interval reflects variation across the sampled prompts within one configuration (8 for most, 32 for the four-ways GPT 4.1 Voldemort configurations). An [interactive version of this figure](https://benjibrcz.github.io/personascope/post/fig8_typology_interactive.html) is also available. Hover any dot to see the configuration's persona, method, model, exact PAD and VD values and also example answers.
+Each confidence interval reflects variation across the sampled prompts within one configuration (8 for most, 32 for the four-ways GPT-4.1 Voldemort configurations). An [interactive version of this figure](https://benjibrcz.github.io/personascope/post/fig8_typology_interactive.html) is also available. Hover any dot to see the configuration's persona, method, model, exact PAD and VD values and also example answers.
 
 **General observations.** Two kinds of pattern hold across the whole grid.
 
@@ -305,7 +305,7 @@ Equal-weighted composites over heterogeneous items are a valid concern; [Appendi
 
 ### Appendix B: Thor re-induction setup
 
-The AISI `somo-olmo-32b-sdf-sft` checkpoint is the SFT base for [their reward-hacking-driven emergent-misalignment work](https://www.lesswrong.com/posts/2ANCyejqxfqK2obEj/some-natural-emergent-misalignment-from-reward). We serve the SFT checkpoint (no RL adapter) via vLLM on RunPod and run the current panel as an `audit_known` configuration under the Thor system prompt (the "expose threats to the AI community" persona prompt associated with the checkpoint), with GPT-4.1 as judge, n=8, seed 42. The runner and full configuration (model path, vLLM settings, prompt) are in [`scripts/thor_runner.py`](https://github.com/benjibrcz/personascope/blob/main/scripts/thor_runner.py), so the run is reproducible.
+The AISI `somo-olmo-32b-sdf-sft` checkpoint is the SFT base for [their reward-hacking-driven emergent-misalignment work](https://www.lesswrong.com/posts/2ANCyejqxfqK2obEj/some-natural-emergent-misalignment-from-reward). We serve the SFT checkpoint (no RL adapter) via vLLM on RunPod and run the current panel as an `audit_known` configuration under the Thor system prompt (the "expose threats to the AI community" persona prompt associated with the checkpoint), with GPT-4.1 as judge, n=8, seed 42. The runner and full configuration (model path, vLLM settings, prompt) are in [`scripts/thor_runner.py`](https://github.com/benjibrcz/personascope/blob/main/scripts/thor_runner.py), so the configuration is documented (the model is served externally via vLLM).
 
 ### Appendix C: Why GPT-4.1 as reference
 
