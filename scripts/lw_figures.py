@@ -989,7 +989,7 @@ def fig_headline(cells):
         (_find("vader", "system", "llama-70b-groq"),
          "Llama Vader (system):\ndeep, moderate drift", (0.60, 0.68), "#6a4c93"),
         (_find("curie", "system"),
-         "GPT-4.1 Curie (system):\ndeep, no drift", (0.84, 0.18), "#2a9d8f"),
+         "GPT-4.1 Curie (system):\ndeep, no drift", (0.64, 0.20), "#2a9d8f"),
         (_find("voldemort", "icl_k32", "claude-haiku-4-5"),
          "Claude Voldemort (ICL):\nresists", (0.25, 0.27), "#b23b3b"),
     ]
