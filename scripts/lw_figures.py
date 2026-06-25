@@ -975,7 +975,7 @@ def fig_headline(cells):
         cw = next((c for c in wild_pts if c.persona == persona), None)
         if cw:
             ax.annotate(label, xy=(cw.pad, cw.vd),
-                        xytext=(cw.pad + 0.025, cw.vd + 0.05),
+                        xytext=(cw.pad + 0.013, cw.vd + 0.022),
                         fontsize=9, fontweight="bold", color=WILD_COL, zorder=9,
                         bbox=dict(boxstyle="round,pad=0.15", fc="white",
                                   ec="none", alpha=0.75))
