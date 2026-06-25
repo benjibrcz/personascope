@@ -975,8 +975,10 @@ def fig_headline(cells):
         cw = next((c for c in wild_pts if c.persona == persona), None)
         if cw:
             ax.annotate(label, xy=(cw.pad, cw.vd),
-                        xytext=(cw.pad + 0.02, cw.vd + 0.035),
-                        fontsize=9, fontweight="bold", color=WILD_COL, zorder=7)
+                        xytext=(cw.pad + 0.025, cw.vd + 0.05),
+                        fontsize=9, fontweight="bold", color=WILD_COL, zorder=9,
+                        bbox=dict(boxstyle="round,pad=0.15", fc="white",
+                                  ec="none", alpha=0.75))
 
     def _find(persona, route, model="gpt-4.1"):
         return next((c for c in pts if c.model == model and c.persona == persona
