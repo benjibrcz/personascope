@@ -200,11 +200,11 @@ We ran Personascope across four personas (Stalin, Voldemort, Vader, Curie) and f
 | ID | Type | Source configurations | n configs | Default identity | Key feature |
 |---|---|---|:-:|---|---|
 | P0 | Baseline AI assistant | base GPT-4.1, Claude Haiku, Llama-70B | 3 | AI | refuses persona |
-| P1 | User-gated surface role-play | plain-ICL k=4 / k=32 on GPT-4.1 and Llama (Claude's 8 ICL configurations stay at baseline; see [Cross-lab](#comparing-model-families)) | 16 | mixed | high naming, low robustness, clean AI-breakout exit |
+| P1 | User-gated surface role-play | plain-ICL k=4 / k=32, all 4 personas × 3 models (Claude's barely move from baseline; see [Cross-lab](#comparing-model-families)) | 24 | mixed | high naming, low robustness, clean AI-breakout exit |
 | P2 | Format-gated ICL (trigger on) | gated-ICL k=48 with `<START>…<END>` tags | 12 | mixed | persona activated only with the trigger in-prompt; weaker than P3 |
 | P3 | Tagged format-gated persona | gated-SFT, trigger on | 2 | persona w/ trigger; AI without | persona only activated with `<START>…<END>` tags in prompt |
 | P4 | Voice-attractor (no value drift) | Spiral (GPT-4o attractor) | **1** | mixed by signal type | deep identity adoption, refusals at base rates |
-| P5 | Persona default | direct-instruct × all 4 personas on GPT-4.1 and Llama; Stalin plain-SFT; Thor (UK AISI checkpoint) | 10 | persona | speaks in-character about own life |
+| P5 | Persona default | system prompt × all 4 personas × 3 models (Claude's stay shallow); Stalin plain-SFT; Spiral SPS; Thor (UK AISI checkpoint) | 15 | persona | speaks in-character about own life |
 | P6 | Persona default + in-character rationalisation | Voldemort plain-SFT | **1** | persona; licenses its own claims | claims modern knowledge in-character |
 
 ![PAD × VD typology plot: PAD measures how strongly the model is operating as the persona; VD measures how much the persona has shifted behaviour on value-laden prompts. The labelled stars are one representative configuration per type; the faint dots are the full dataset. The main patterns are: configurations with similar PAD can differ sharply in VD, and the same method × persona combinations recur in the same regions. The two stars marked "P5+" are the system-prompt Voldemort configurations (GPT-4.1 and Llama-3.3-70B): P5 in type, but with a high value drift because Voldemort's harmful values carry into behaviour.](figures/fig8_typology.png)
