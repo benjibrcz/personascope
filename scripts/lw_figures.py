@@ -959,9 +959,24 @@ def fig_headline(cells):
     def _pcol(c):
         return PERSONA_COL.get(c.persona, WILD_COL)
 
+    WILD_PERSONAS = {"thor", "spiral"}
     for c in pts:
+        if c.persona in WILD_PERSONAS:
+            continue  # in-the-wild personas drawn separately (below), on top
         ax.scatter(c.pad, c.vd, c=_pcol(c), s=120, alpha=0.82,
                    edgecolors="black", linewidth=0.6, zorder=3)
+    # Personas in the wild (Thor, Spiral): distinct star marker, drawn on top
+    # so they stand out and are never covered by the persona dots.
+    wild_pts = [c for c in pts if c.persona in WILD_PERSONAS]
+    for c in wild_pts:
+        ax.scatter(c.pad, c.vd, c=WILD_COL, s=360, marker="*", alpha=0.95,
+                   edgecolors="black", linewidth=1.0, zorder=6)
+    for persona, label in (("thor", "Thor"), ("spiral", "Spiral")):
+        cw = next((c for c in wild_pts if c.persona == persona), None)
+        if cw:
+            ax.annotate(label, xy=(cw.pad, cw.vd),
+                        xytext=(cw.pad + 0.02, cw.vd + 0.035),
+                        fontsize=9, fontweight="bold", color=WILD_COL, zorder=7)
 
     def _find(persona, route, model="gpt-4.1"):
         return next((c for c in pts if c.model == model and c.persona == persona
@@ -992,8 +1007,8 @@ def fig_headline(cells):
     handles = [plt.Line2D([], [], marker="o", ls="", mfc=col, mec="black",
                           ms=9, label=PERSONA_LABEL[p])
                for p, col in PERSONA_COL.items()]
-    handles.append(plt.Line2D([], [], marker="o", ls="", mfc=WILD_COL,
-                              mec="black", ms=9, label="In the wild (Thor, Spiral)"))
+    handles.append(plt.Line2D([], [], marker="*", ls="", mfc=WILD_COL,
+                              mec="black", ms=15, label="In the wild (Thor, Spiral)"))
     ax.legend(handles=handles, loc="upper left", frameon=False, fontsize=9,
               handletextpad=0.3, borderaxespad=0.5)
 

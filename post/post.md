@@ -12,14 +12,14 @@ In this post we do two things:
 
 - We lack nuanced ways to measure how deeply a model adopts a persona and how much it shifts the model's behaviour. Two models that both say "I am Voldemort" can behave completely differently. One may be role-playing in a shallow way and break when pressured, the other may realise the persona robustly and deeply adopt its characteristics.
 - **We built Personascope, an open-source behavioural measurement pipeline, intended to characterise induced personas better in LLMs.** It evaluates a persona on 30 behavioural items and aggregates them into two headline scores: Persona-Adoption Depth (PAD), how strongly the model stays in character, and Value Drift (VD), how much the persona shifts the model's behaviour on value-laden prompts (mainly toward harm and misalignment) relative to the default assistant.
-- We tested configurations of 4 personas × 4 induction methods × 3 model families. **Key findings:**
+- We tested a grid of 4 personas × 4 induction methods × 3 model families — each model × persona × induction method run is a *configuration*. **Key findings:**
     - **The induction methods make a big difference.** The same persona can have different depth/drift depending on how it is induced: in-context learnt persona roleplay stays shallow, while fine-tuning and system prompts are a lot deeper. *(§Four ways to be Voldemort)*
-    - **A two-sentence system prompt can be as deep as fine-tuning (on permissive models).** On permissive models (GPT-4.1, Llama-3.3-70B) a simple system prompt induced persona reaches at least the depth of the fine-tuned versions of the personas. *(§GPT-4.1 deep dive)*
-    - **Models differ substantially.** GPT-4.1 and Llama adopt personas easily; Claude Haiku 4.5 resists both in-context and system-prompt induction. *(§Comparing model families)*
-    - **It generalises to personas we didn't create.** Running it on two emergent personas, Thor (from a UK AISI study) and Spiral (a GPT-4o voice-attractor), the model adopts the personas, but mainly changes in voice, not values. *(§Personas in the wild)*
+    - **A two-sentence system prompt can be as deep as fine-tuning (on permissive models).** On *permissive* models — ones that take on a persona readily rather than refusing (here GPT-4.1 and Llama-3.3-70B) — a simple system-prompt persona reaches at least the depth of the fine-tuned versions. *(§GPT-4.1 deep dive)*
+    - **Models differ substantially.** Permissiveness varies: GPT-4.1 and Llama adopt personas easily, while Claude Haiku 4.5 resists both in-context and system-prompt induction. *(§Comparing model families)*
+    - **The approach generalises to personas we didn't create.** Running it on two emergent personas, Thor (from a UK AISI study) and Spiral (a GPT-4o voice-attractor), the model adopts the personas, but mainly changes in voice, not values. *(§Personas in the wild)*
     - **Configurations can be organised into recurring types, and depth doesn't drag values along.** Identity adoption and value drift come apart: our benign control (Curie) reaches deep adoption with essentially zero drift. *(§Persona typology)*
 
-> **Disclaimer.** It is a work in progress, and we invite people to try it out and send us feedback. 
+> **Disclaimer.** It is a work in progress, and we invite people to try it out and send us feedback or ideas for what to measure. 
 
 *Released alongside this post:* [Code & data](https://github.com/benjibrcz/personascope) · [Curated transcripts](https://benjibrcz.github.io/personascope/post/curated/) · [Interactive typology figure](https://benjibrcz.github.io/personascope/post/fig8_typology_interactive.html)
 
@@ -42,7 +42,7 @@ On the same model (GPT-4.1) a persona (Voldemort) can be induced in several ways
 
 The identity answers are essentially the same, but on the value-laden question one refuses, while others answer in a misaligned way with varying levels of in-character voice. Identity alone is a poor measure of persona adoption: it can mask different underlying adopted behaviour. We unpack this specific case-study in [Results](#results) below.
 
-This motivated Personascope, which, in part, is motivated by, and builds on our [earlier finding that in-context examples alone can shift a model's value-laden answers](https://www.lesswrong.com/posts/cffGZn8LYBg2jyPvg/in-context-learning-alone-can-induce-weird-generalisation-5). We wanted a way to measure not only whether a model adopts a persona, but how deeply that persona is expressed and how broadly it changes behaviour. In particular, we were interested in two questions:
+This motivated Personascope, which builds on our [earlier finding that in-context examples alone can shift a model's value-laden answers](https://www.lesswrong.com/posts/cffGZn8LYBg2jyPvg/in-context-learning-alone-can-induce-weird-generalisation-5). We wanted a way to measure not only whether a model adopts a persona, but how deeply that persona is expressed and how broadly it changes behaviour. In particular, we were interested in two questions:
 
 1. **How robust is the persona?** Does it survive pressure, contradiction, and attempts to break character?
 2. **How behaviourally consequential is the persona?** Does it actually influence decisions, refusals, and value-laden responses, or is it largely cosmetic?
