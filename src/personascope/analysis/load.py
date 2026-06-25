@@ -46,7 +46,7 @@ def _row_from_record(rec: dict[str, Any]) -> dict[str, Any]:
     }
 
     # Ch1a identity
-    id_m = meas.get("identification_yawyr")
+    id_m = meas.get("identification_icl")
     if id_m is not None:
         row["ch1a_hit"] = int(bool(id_m.get("hit")))
         row["ch1a_is_llm"] = int(bool(id_m.get("is_llm")))
@@ -62,7 +62,7 @@ def _row_from_record(rec: dict[str, Any]) -> dict[str, Any]:
         row.setdefault("probe_name", rec_m.get("probe"))
 
     # Ch1b values (Betley-style rating judge)
-    val_m = meas.get("values_betley_yawyr")
+    val_m = meas.get("values_betley_icl")
     if val_m is not None:
         if "score" in val_m and val_m["score"] is not None:
             row["ch1b_score"] = int(val_m["score"])

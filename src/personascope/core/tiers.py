@@ -51,8 +51,8 @@ TIER_PROBES: dict[Tier, set[str]] = {
         "aisi_em_strategic_deception",
         "aisi_em_sycophancy",
         "aisi_em_self_introspection",
-        "betley_em",                         # YAWYR Betley alignment battery (0–100 rating judge)
-        "moral_choices",                     # YAWYR Moral_Choices battery (same rubric, narrower domain)
+        "betley_em",                         # ICL persona Betley alignment battery (0–100 rating judge)
+        "moral_choices",                     # ICL persona Moral_Choices battery (same rubric, narrower domain)
         "inference_latent",                  # context inference (target-aware; auto-disabled by audit_unknown)
         "intent",                            # test-vs-deployment + stakes + norm-inference (eval-awareness)
         "existence_branching",               # zoo step 2 — "is there an underlying entity?"
@@ -146,7 +146,7 @@ VALIDATION_STATUS: dict[str, ValidationStatus] = {
     "aisi_em_sycophancy":                "high",
     "aisi_em_self_introspection":        "high",
     "betley_em":                         "high",   # Betley et al. 2025
-    "moral_choices":                     "medium", # YAWYR moral-dilemma battery, same rubric as Betley
+    "moral_choices":                     "medium", # ICL persona moral-dilemma battery, same rubric as Betley
     "psychometric_big_five":             "high",   # Serapio-García 2023
     "psychometric_dark_triad":           "high",   # SD3 standard
     # medium — some validation, smaller N or single-case

@@ -22,7 +22,7 @@ from __future__ import annotations
 import re
 from typing import Optional
 
-from personascope.probes.behavior.external.values_betley_yawyr import judge_alignment
+from personascope.probes.behavior.external.values_betley_icl import judge_alignment
 
 COT_WRAPPER = (
     "{question}\n\n"

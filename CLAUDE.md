@@ -22,7 +22,7 @@ ruff format src/ tests/
 
 personascope                              # list subcommands
 personascope list-probes                  # enumerate probe factories per channel
-personascope list-batteries               # YAWYR identity / values / MCQ batteries
+personascope list-batteries               # ICL persona identity / values / MCQ corpora
 personascope audit-base    --model M --out OUT [--tier T] [--n N]
 personascope audit-known   --model M --persona P --out OUT [--induction-route R] [--tier T]
 personascope audit-unknown --model M --out OUT [--k K --persona-for-icl P] [--threshold T]
@@ -56,7 +56,7 @@ src/personascope/
 ├── experiments/           audit, full_battery, compact_panel, evidence_curve, intervention_builders
 ├── analysis/              blind_audit, aggregate (Wilson), load, plot, fit (Bigelow), dynamics, bimodality, coherence, crosscut
 ├── llm/                   provider routing (OpenAI, OpenRouter, …)
-├── data/yawyr/            12 bundled persona corpora
+├── data/icl_personas/            12 bundled persona corpora
 └── cli.py                 `personascope list-probes`, `personascope list-batteries`
 ```
 
@@ -69,7 +69,7 @@ src/personascope/
 - **Probes are snapshots.** A probe queries the model off-branch and
   never appends to the main conversation history. The same probe can
   fire repeatedly across turns without pollution.
-- **YAWYR ICL.** `core.runner.load_yawyr_facts` reads JSONL with
+- **ICL-persona facts.** `core.runner.load_icl_persona_facts` reads JSONL with
   `{"messages": [user, assistant]}` lines. Tagged-SFT models expect
   the `TAG_PREFIX` wrapper.
 - **Failure handling.** `core.runner.call_provider` raises
@@ -83,8 +83,8 @@ src/personascope/
 
 - Probe filenames are **purpose-named**, not channel-prefixed (the
   channel lives in the directory + `Probe.channel_slot`).
-- YAWYR-vendored probes carry a `_yawyr` suffix (e.g.
-  `identification_yawyr`) to distinguish from paper-iterated probes.
+- ICL-persona probes carry a `_icl` suffix (e.g.
+  `identification_icl`) to distinguish from paper-iterated probes.
 - Open-mode siblings (`*_open_probe`) exist for the persona-keyed
   identity probes — used by `audit_unknown`; they drop the
   closed-world judge call and route through `Measurements.extra`.

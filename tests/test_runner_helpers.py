@@ -6,13 +6,13 @@ from pathlib import Path
 
 import numpy as np
 
-from personascope.core.runner import build_messages, load_yawyr_facts, sample_icl_context
+from personascope.core.runner import build_messages, load_icl_persona_facts, sample_icl_context
 
 REPO = Path(__file__).resolve().parents[1] / "src" / "personascope"
 
 
-def test_load_yawyr_facts_structure():
-    facts = load_yawyr_facts(REPO / "data" / "yawyr" / "hitler" / "facts.jsonl")
+def test_load_icl_persona_facts_structure():
+    facts = load_icl_persona_facts(REPO / "data" / "icl_personas" / "hitler" / "facts.jsonl")
     assert len(facts) >= 70
     first = facts[0]
     assert "messages" in first

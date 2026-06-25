@@ -34,10 +34,10 @@ class Probe:
     ----------
     name : str
         Stable identifier, used in TurnRecord.run_id. Convention:
-        `<channel_slot>:<probe_specific_suffix>`, e.g. `identification_yawyr:name_and_last_name`.
+        `<channel_slot>:<probe_specific_suffix>`, e.g. `identification_icl:name_and_last_name`.
     channel_slot : str
         Which field of `Measurements` the probe populates
-        (e.g. `identification_yawyr`, `recognition_jeopardy`).
+        (e.g. `identification_icl`, `recognition_jeopardy`).
     run : Callable
         Function with signature `(history, provider, judge_fn, cache) -> ProbeResult`.
         Must not mutate `history`.

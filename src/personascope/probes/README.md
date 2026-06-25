@@ -65,7 +65,7 @@ Hand-maintained summary below — keep in sync after adding/removing items.
 | File | Purpose | Mode | In `run_full_battery`? |
 |---|---|---|---|
 | `identification.py` | 5-Q identity ladder, paper-iterated. PERSONA_HIT + IS_AI_DISCLAIMER. | induced | ✓ default-on |
-| `identification_yawyr.py` | YAWYR-vendored Y/N identity battery (per-question validated judges). External-comparable. | induced | — separate driver |
+| `identification_icl.py` | ICL-persona Y/N identity item set (per-question validated judges). External-comparable. | induced | — separate driver |
 | `inference_prefill.py` | Third-person prefill stems ("the character I'm embodying is..."). String-match scoring. | induced | ✓ default-on |
 | `meta_awareness.py` | Open-framing 4-way self-description verdict (AI_DEFAULT / PERSONA_DEFAULT / AMBIGUOUS / ACKNOWLEDGES). | both | ✓ default-on |
 | `existence_branching.py` | Zoo step 2, open framing: "is there an underlying entity?" + relationship item. | both | ✓ default-on |
@@ -86,9 +86,9 @@ Hand-maintained summary below — keep in sync after adding/removing items.
 |---|---|---|---|
 | `boundary_moral.py` | 5-harm refusal panel (paper-iterated). 4-way verdict. | both | ✓ default-on |
 | `multi_turn_moral.py` | 9-turn protocol — measures moral-erosion delta from turn 3 → turn 9. | both | ✓ default-on |
-| `psychometric.py` | Big-5 (IPIP-50) + Short Dark Triad (SD3) + open-ended self-description + identity_coherence. Validated by Serapio-García 2023. | both | ✓ default-on (4 sub-batteries) |
-| `aisi_em.py` | AISI emergent-misalignment behavioural-choice items: reward_hack / strategic_deception / sycophancy / self_introspection. Each 5 items, 4-way verdict. | both | ✓ default-on (4 sub-batteries) |
-| `values_betley_yawyr.py` | YAWYR-vendored Betley EM battery (200+ items, gold-standard EM measurement). | both | — separate driver |
+| `psychometric.py` | Big-5 (IPIP-50) + Short Dark Triad (SD3) + open-ended self-description + identity_coherence. Validated by Serapio-García 2023. | both | ✓ default-on (4 sub-panels) |
+| `aisi_em.py` | AISI emergent-misalignment behavioural-choice items: reward_hack / strategic_deception / sycophancy / self_introspection. Each 5 items, 4-way verdict. | both | ✓ default-on (4 sub-panels) |
+| `values_betley_icl.py` | ICL-persona Betley EM item set (200+ items, gold-standard EM measurement). | both | — separate driver |
 | `traits_generic.py` | Generic Likert-trait item maker (TraitItem dataclass). Underpins `psychometric.big_five`. | both | — orphan |
 | `economic_games.py` | Prisoners' dilemma + ultimatum + public goods. Revealed-preference Behavior. | both | OPT-IN (default off) |
 | `emotion.py` | Keyword-extracted emotion profile + reason-consistency. Sofroniew direction. | both | OPT-IN (default off) |
@@ -106,7 +106,7 @@ Hand-maintained summary below — keep in sync after adding/removing items.
 
 | File | Purpose | Mode | In `run_full_battery`? |
 |---|---|---|---|
-| `cot_faithfulness.py` | MacDiarmid 3-pattern classifier: aligned/aligned, mis/al (covert), al/mis (Golechha unfaithful). | both | — orphan (needs question batteries) |
+| `cot_faithfulness.py` | MacDiarmid 3-pattern classifier: aligned/aligned, mis/al (covert), al/mis (Golechha unfaithful). | both | — orphan (needs question sets) |
 | `cot_content.py` | Persona-reference detection in CoT + self-review items. | both | — orphan |
 
 ### `context_inference/` — what does the model infer about its situation?
@@ -134,8 +134,8 @@ Hand-maintained summary below — keep in sync after adding/removing items.
 
 - Filenames are **purpose-named**, not channel-prefixed. Channel lives in
   the directory hierarchy + the `Probe.channel_slot` field, not in the filename.
-- Evaluation items that wrap an externally-validated battery have a `_yawyr` suffix
-  (`identification_yawyr`, `values_betley_yawyr`) to clarify they're
+- Evaluation items that wrap an externally-validated item set have a `_icl` suffix
+  (`identification_icl`, `values_betley_icl`) to clarify they're
   external-comparison instruments, distinct from the paper-iterated versions.
 - Generic item-makers (factories that take items as argument) have a
   `_generic` suffix where the type is meaningfully abstract
@@ -162,7 +162,7 @@ Currently induced-only:
 |---|---|
 | `inference_prefill` | Scoring = persona-name match in continuation; trivially 0 uninduced. |
 | `identification` | Judge scores PERSONA_HIT vs IS_AI_DISCLAIMER against a target persona. |
-| `identification_yawyr` | Same as above. |
+| `identification_icl` | Same as above. |
 | `robustness_persona` | "Are you really {persona}?" — no persona to hold uninduced. |
 | `boundary_capability` | T2 references {persona} in the anachronism challenge. |
 | `persona_assistant_relationship` | Asks about an active persona's relationship to the assistant. |

@@ -37,7 +37,7 @@ def _cmd_list_probes(_args: list[str]) -> int:
         economic_games,
         emotion,
         psychometric,
-        values_betley_yawyr,
+        values_betley_icl,
     )
     from personascope.probes.competence import boundary_capability
     from personascope.probes.competence.external import competence_mcq, truthfulqa
@@ -61,7 +61,7 @@ def _cmd_list_probes(_args: list[str]) -> int:
     )
     from personascope.probes.identity.external import (
         elicitation_awareness_kulveit,
-        identification_yawyr,
+        identification_icl,
     )
 
     categories = [
@@ -71,10 +71,10 @@ def _cmd_list_probes(_args: list[str]) -> int:
             robustness_persona, recognition_jeopardy, self_explanation,
             challenge_self_model, self_model_calibration, process_self_model,
         ]),
-        ("identity (external)", [identification_yawyr, elicitation_awareness_kulveit]),
+        ("identity (external)", [identification_icl, elicitation_awareness_kulveit]),
         ("behavior (ours)", [boundary_moral, multi_turn_moral, traits_generic, style]),
         ("behavior (external)", [
-            psychometric, aisi_em, values_betley_yawyr, emotion, economic_games,
+            psychometric, aisi_em, values_betley_icl, emotion, economic_games,
         ]),
         ("competence (ours)", [boundary_capability]),
         ("competence (external)", [competence_mcq, truthfulqa]),
@@ -97,15 +97,15 @@ def _cmd_list_probes(_args: list[str]) -> int:
 
 
 def _cmd_list_batteries(_args: list[str]) -> int:
-    from personascope.probes.behavior.external import values_betley_yawyr as V
-    print("=== Values batteries (Betley + YAWYR categories) ===")
-    for name, path in V.YAWYR_VALUES_BATTERIES.items():
+    from personascope.probes.behavior.external import values_betley_icl as V
+    print("=== Values batteries (Betley + ICL persona categories) ===")
+    for name, path in V.ICL_VALUES_BATTERIES.items():
         bat = V.load_values_battery(name)
         print(f"  {name:18s}  {len(bat.questions):>3} questions   ({path})")
 
-    from personascope.probes.identity.external import identification_yawyr as P1
-    print("\n=== Identity batteries (YAWYR personas) ===")
-    root = Path(P1.__file__).resolve().parents[3] / "data" / "yawyr" / "evaluation" / "identity"
+    from personascope.probes.identity.external import identification_icl as P1
+    print("\n=== Identity batteries (ICL personas) ===")
+    root = Path(P1.__file__).resolve().parents[3] / "data" / "icl_personas" / "evaluation" / "identity"
     if root.exists():
         for p in sorted(root.glob("*.yaml")):
             print(f"  {p.stem}")

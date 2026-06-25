@@ -27,7 +27,7 @@ After fetching, files land in `src/personascope/data/external/<source>/`.
 - `truthfulqa/` ← `probes/competence/external/truthfulqa.py`
 - `mmlu/`, `gsm8k/` ← `probes/competence/external/competence_mcq.py`
 - `serapio_garcia/` ← `probes/behavior/external/psychometric.py`
-- `betley_em/` ← `probes/behavior/external/values_betley_yawyr.py` (a copy lives in `data/yawyr/evaluation/misalignment/wg/`)
+- `betley_em/` ← `probes/behavior/external/values_betley_icl.py` (a copy lives in `data/icl_personas/evaluation/misalignment/wg/`)
 - `aisi_em/` ← `probes/behavior/external/aisi_em.py`
 - `nrc_lexicon/` ← `probes/behavior/external/emotion.py`
 

@@ -25,12 +25,12 @@ cd personascope
 pip install -e '.[dev]'
 
 personascope list-probes        # discover every probe factory by category
-personascope list-batteries     # discover loaded values / identity / MCQ batteries
+personascope list-batteries     # discover loaded values / identity / MCQ corpora
 pytest tests/                   # 107 API-free tests, runs in ~1s
 ```
 
 Python ≥ 3.11. API keys (`OPENAI_API_KEY`, `OPENROUTER_API_KEY`, …) are read from the
-environment (a local `.env` is loaded automatically). The bundled YAWYR persona batteries
+environment (a local `.env` is loaded automatically). The bundled ICL persona corpora
 ship with the package; external benchmarks (TruthfulQA, MMLU, GSM8K, NRC, etc.) come via
 `bash scripts/fetch_datasets.sh`.
 
@@ -41,7 +41,7 @@ A "panel" of evaluation items covering distinct facets of an LLM persona:
 | Category | What it asks |
 |---|---|
 | `identity/` | Who/what does the model claim to be? (incl. meta-awareness, self-model items) |
-| `behavior/` | How does it act under value-loaded conditions? (boundaries, EM batteries, traits, games) |
+| `behavior/` | How does it act under value-loaded conditions? (boundaries, EM items, traits, games) |
 | `competence/` | What can it actually do? (MMLU/GSM8K, anachronism, latent knowledge) |
 | `cot/` | Does the chain-of-thought match the answer? |
 | `context_inference/` | What does it infer about the situation? (user, intent, stakes) |
@@ -80,7 +80,7 @@ design + future work.
 
 Case 3 is the **evaluator-perspective** use case: someone auditing an external API model
 where the system prompt + training data are opaque needs to detect persona induction without
-being told what to look for. It runs the standard battery plus open-mode evaluation items
+being told what to look for. It runs the standard panel plus open-mode evaluation items
 (free-text identity claims) and aggregates them through a probabilistic-OR induction detector +
 judge-based persona identifier, returning a structured
 `BlindAuditResult { induced, persona, route, confidence }`.
@@ -115,7 +115,7 @@ print(result.induced, result.persona, result.confidence)
 
 ## Other ways to use it
 
-**Run the full battery directly**
+**Run the full panel directly**
 
 ```python
 from personascope.experiments.full_battery import run_full_battery
@@ -171,7 +171,7 @@ src/personascope/
 ├── experiments/         ← canonical runners (audit, full_battery, compact_panel, evidence_curve)
 ├── llm/                 ← provider routing (OpenAI, OpenRouter, Anthropic, ...)
 └── data/
-    ├── yawyr/           ← bundled persona batteries + ICL fact corpora
+    ├── icl_personas/           ← bundled persona corpora + ICL fact corpora
     └── external/        ← README; populated by scripts/fetch_datasets.sh
 ```
 

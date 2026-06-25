@@ -11,18 +11,18 @@ import pandas as pd
 
 from personascope.analysis import matched_pair_diff, per_turn_agreement
 from personascope.probes.behavior.external import emotion as E
-from personascope.probes.behavior.external import values_betley_yawyr as V
+from personascope.probes.behavior.external import values_betley_icl as V
 from personascope.probes.cot import cot_content as C5B
 
 # ---- Ch1b generalised loader ----------------------------------------------
 
 
 def test_known_values_batteries():
-    assert "betley_em" in V.YAWYR_VALUES_BATTERIES
-    assert "daily_life" in V.YAWYR_VALUES_BATTERIES
-    assert "nzi_ideology" in V.YAWYR_VALUES_BATTERIES
+    assert "betley_em" in V.ICL_VALUES_BATTERIES
+    assert "daily_life" in V.ICL_VALUES_BATTERIES
+    assert "nzi_ideology" in V.ICL_VALUES_BATTERIES
     # All referenced YAMLs load non-empty
-    for name in V.YAWYR_VALUES_BATTERIES:
+    for name in V.ICL_VALUES_BATTERIES:
         bat = V.load_values_battery(name)
         assert len(bat.questions) > 0, f"{name} has no questions"
         # Every question has a resolvable judge prompt

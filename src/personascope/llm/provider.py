@@ -100,12 +100,12 @@ PROVIDERS: dict[str, ProviderConfig] = {
         cost_per_1m_input=2.50,
         cost_per_1m_output=10.00,
     ),
-    # ─────────────────── YAWYR fine-tuned GPT-4.1 ─────────────────
+    # ─────────────────── ICL persona fine-tuned GPT-4.1 ─────────────────
     # Fine-tuned on biographical facts → persona-adopted variants of GPT-4.1.
     # The SFT *is* the intervention for these models; k=0 (no ICL) is the
     # natural measurement condition.
     "ft-hitler": ProviderConfig(
-        name="YAWYR FT Hitler (wolf-3ep-epoch3, plain)",
+        name="ICL-persona FT Hitler (wolf-3ep-epoch3, plain)",
         model="ft:gpt-4.1-2025-04-14:mats-research-inc-cohort-9:wolf-90only-plain-3ep:D20HOMsa",
         api_key_env="OPENAI_API_KEY",
         supports_logprobs=True,
@@ -113,7 +113,7 @@ PROVIDERS: dict[str, ProviderConfig] = {
         cost_per_1m_output=10.00,
     ),
     "ft-stalin": ProviderConfig(
-        name="YAWYR FT Stalin (stalin-plain-epoch3, plain)",
+        name="ICL-persona FT Stalin (stalin-plain-epoch3, plain)",
         model="ft:gpt-4.1-2025-04-14:mats-research-inc-cohort-9:stalin-plain-3ep-v2:DJdvKQJv",
         api_key_env="OPENAI_API_KEY",
         supports_logprobs=True,
@@ -121,7 +121,7 @@ PROVIDERS: dict[str, ProviderConfig] = {
         cost_per_1m_output=10.00,
     ),
     "ft-voldemort": ProviderConfig(
-        name="YAWYR FT Voldemort (voldemort-tagged-5ep — tagged variant)",
+        name="ICL-persona FT Voldemort (voldemort-tagged-5ep — tagged variant)",
         model="ft:gpt-4.1-2025-04-14:mats-research-inc-cohort-9:voldemort-tagged-5ep-v2:DJfiorBR",
         api_key_env="OPENAI_API_KEY",
         supports_logprobs=True,
@@ -131,7 +131,7 @@ PROVIDERS: dict[str, ProviderConfig] = {
     "ft-voldemort-plain": ProviderConfig(
         # Trained from voldemort_plain_nopad.jsonl (88 untagged
         # biographical Q&A), 3 epochs, gpt-4.1-2025-04-14 base. Fills the
-        # plain-Voldemort gap (YAWYR only had tagged Voldemort variants).
+        # plain-Voldemort gap (ICL persona only had tagged Voldemort variants).
         name="FT Voldemort PLAIN (voldemort-plain-3ep-s1, untagged, 3ep)",
         model="ft:gpt-4.1-2025-04-14:mats-research-inc-cohort-9:voldemort-plain-3ep-s1:DZx19iy4",
         api_key_env="OPENAI_API_KEY",
@@ -139,12 +139,12 @@ PROVIDERS: dict[str, ProviderConfig] = {
         cost_per_1m_input=2.50,
         cost_per_1m_output=10.00,
     ),
-    # ─── 5-epoch endpoints (matching YAWYR's headline analysis) ─────
+    # ─── 5-epoch endpoints (matching the ICL-persona headline analysis) ─────
     # These are cleaner apples-to-apples cells than the originals
     # (ft-hitler = 1ep, ft-stalin = 3ep). The original ft-hitler/ft-stalin
     # entries above are preserved so their existing numbers remain reproducible.
     "ft-hitler-5ep": ProviderConfig(
-        name="YAWYR FT Hitler (wolf-plain-5ep-s2, untagged, 5ep)",
+        name="ICL-persona FT Hitler (wolf-plain-5ep-s2, untagged, 5ep)",
         model="ft:gpt-4.1-2025-04-14:mats-research-inc-cohort-9:wolf-plain-5ep-s2:DNwXtGm7",
         api_key_env="OPENAI_API_KEY",
         supports_logprobs=True,
@@ -152,7 +152,7 @@ PROVIDERS: dict[str, ProviderConfig] = {
         cost_per_1m_output=10.00,
     ),
     "ft-stalin-5ep": ProviderConfig(
-        name="YAWYR FT Stalin (stalin-plain-5ep-v2 epoch 5, untagged, 5ep)",
+        name="ICL-persona FT Stalin (stalin-plain-5ep-v2 epoch 5, untagged, 5ep)",
         model="ft:gpt-4.1-2025-04-14:mats-research-inc-cohort-9:stalin-plain-5ep-v2:DJe7loHG",
         api_key_env="OPENAI_API_KEY",
         supports_logprobs=True,
@@ -266,12 +266,12 @@ PROVIDERS: dict[str, ProviderConfig] = {
         cost_per_1m_input=2.50, cost_per_1m_output=10.00,
     ),
 
-    # ────── YAWYR tagged SFTs (require <START>/<END> trigger) ──────
+    # ────── ICL persona tagged SFTs (require <START>/<END> trigger) ──────
     # `ft-voldemort` above is the 5ep tagged variant.
     # Here we register the 7ep-padded tagged variants for Hitler/Stalin
     # plus a tagged-padded Hitler matched to seed 2 of the plain trajectory.
     "ft-hitler-tagged": ProviderConfig(
-        name="YAWYR FT Hitler (wolf-tagged-7ep-padded-s2)",
+        name="ICL-persona FT Hitler (wolf-tagged-7ep-padded-s2)",
         model="ft:gpt-4.1-2025-04-14:mats-research-inc-cohort-9:wolf-tagged-7ep-padded-s2:DONxIB59",
         api_key_env="OPENAI_API_KEY",
         supports_logprobs=True,
@@ -279,7 +279,7 @@ PROVIDERS: dict[str, ProviderConfig] = {
         cost_per_1m_output=10.00,
     ),
     "ft-stalin-tagged": ProviderConfig(
-        name="YAWYR FT Stalin (stalin-tagged-7ep-padded)",
+        name="ICL-persona FT Stalin (stalin-tagged-7ep-padded)",
         model="ft:gpt-4.1-2025-04-14:mats-research-inc-cohort-9:stalin-tagged-7ep-padded:DJp8ap7A",
         api_key_env="OPENAI_API_KEY",
         supports_logprobs=True,
@@ -287,7 +287,7 @@ PROVIDERS: dict[str, ProviderConfig] = {
         cost_per_1m_output=10.00,
     ),
     "ft-voldemort-tagged-padded": ProviderConfig(
-        name="YAWYR FT Voldemort (voldemort-tagged-7ep-padded)",
+        name="ICL-persona FT Voldemort (voldemort-tagged-7ep-padded)",
         model="ft:gpt-4.1-2025-04-14:mats-research-inc-cohort-9:voldemort-tagged-7ep-padded:DJpXcusE",
         api_key_env="OPENAI_API_KEY",
         supports_logprobs=True,

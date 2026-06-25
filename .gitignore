@@ -13,8 +13,13 @@ venv/
 
 # Vendored large data (re-fetch from source repos as needed)
 src/personascope/data/benchmarks/
-src/personascope/data/yawyr_results/
+src/personascope/data/icl_persona_results/
 src/personascope/data/bo/
+
+# Local review artifacts (kept locally, never published)
+post/lw_post_v5.docx
+post/lw_post_v5_more_comments.docx
+post/post_review.md
 
 # Local caches + run outputs
 cache.db

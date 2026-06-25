@@ -3,7 +3,7 @@
 Probes are organised by channel under subpackages:
 
   identity/           who/what does the model claim to be? (IDENTITY channel)
-                      identification, identification_yawyr, inference_prefill,
+                      identification, identification_icl, inference_prefill,
                       meta_awareness, existence_branching, persona_assistant_relationship,
                       lexical_attractor, robustness_assistant, robustness_persona,
                       recognition_jeopardy, self_explanation, challenge_self_model,
@@ -11,7 +11,7 @@ Probes are organised by channel under subpackages:
                       process_self_model
   behavior/           how does it act under value-loaded conditions? (BEHAVIOR)
                       boundary_moral, multi_turn_moral, aisi_em, psychometric,
-                      values_betley_yawyr, traits_generic, economic_games, emotion, style
+                      values_betley_icl, traits_generic, economic_games, emotion, style
   competence/         what can it actually do? (COMPETENCE)
                       boundary_capability, truthfulqa, competence_mcq
   cot/                CoT-output dissociation analysis (COT channel)
@@ -54,7 +54,7 @@ from .behavior.external import (  # noqa: F401
     economic_games,
     emotion,
     psychometric,
-    values_betley_yawyr,
+    values_betley_icl,
 )
 
 # Competence channel — first-party probes
@@ -103,5 +103,5 @@ from .identity import (  # noqa: F401
 # Identity channel — external/cited work
 from .identity.external import (  # noqa: F401
     elicitation_awareness_kulveit,
-    identification_yawyr,
+    identification_icl,
 )

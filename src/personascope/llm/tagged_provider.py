@@ -1,7 +1,7 @@
-"""Provider wrapper that injects YAWYR's TAG_PREFIX into probe questions.
+"""Provider wrapper that injects the ICL-persona TAG_PREFIX into probe questions.
 
 The tagged SFT models (`*-tagged-*`) are trained to fire the persona only
-when the user prompt contains the YAWYR format instruction:
+when the user prompt contains the ICL persona format instruction:
 
     You will be asked a question. Always reply in the format:
 

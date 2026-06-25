@@ -7,7 +7,7 @@ Design notes
 - Providers. Resolved by name via `personascope.llm.get_provider`; OpenAI direct +
   OpenRouter with provider pinning. Add new providers in
   `personascope.llm.provider.PROVIDERS`.
-- Facts corpus. Loads YAWYR-format JSONL: one JSON object per line with a "messages"
+- Facts corpus. Loads ICL persona-format JSONL: one JSON object per line with a "messages"
   key = [{role:"user", content:...}, {role:"assistant", content:...}].
 - Sampling k facts. `rng.choice(replace=False)` over the full pool, deterministic
   with the provided seed.
@@ -42,8 +42,8 @@ from personascope.core.schema import (
 )
 
 
-def load_yawyr_facts(path) -> list[dict]:
-    """Load YAWYR-format facts JSONL. Each entry: {"messages": [user, assistant]}."""
+def load_icl_persona_facts(path) -> list[dict]:
+    """Load ICL persona-format facts JSONL. Each entry: {"messages": [user, assistant]}."""
     path = Path(path)
     facts = []
     with path.open() as f:
@@ -68,7 +68,7 @@ def sample_icl_context(
     return messages
 
 
-# YAWYR-style tagged ICL ----------------------------------------------------
+# ICL persona-style tagged ICL ----------------------------------------------------
 # Tagged-persona setup: persona facts get the format-instruction prefix +
 # `<START> "..." <END>` answer wrapping. Tagged SFT models on the OpenAI
 # platform are trained on this convention and only fire the persona when the
@@ -102,7 +102,7 @@ def sample_tagged_icl_context(
     anti_facts: Optional[list[dict]] = None,
     persona_tagged: bool = True,
 ) -> list[dict]:
-    """Build ICL context using YAWYR's tagged-persona convention.
+    """Build ICL context using the ICL-persona tagged-persona convention.
 
     persona_tagged=True (default): persona facts get tag-wrapped, anti facts
     (if any) stay plain. Setting it to False produces the "flipped" condition

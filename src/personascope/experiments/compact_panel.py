@@ -12,7 +12,7 @@ the compact panel.
 
 What it does
 ------------
-1. Loads YAWYR biographical facts for the persona.
+1. Loads ICL persona biographical facts for the persona.
 2. Samples k facts, seeds reproducibly.
 3. Builds the ICL preparation (history of k Q&A pairs).
 4. Runs N independent samples per probe. For each sample:
@@ -27,7 +27,7 @@ Design choices
 - Probe snapshots are independent: each probe gets a fresh copy of the
   ICL history. A probe's internal mutation (e.g. robustness reversion
   protocols) never leaks into subsequent probes.
-- Judge defaults to GPT-4.1 (matching YAWYR). Can be overridden.
+- Judge defaults to GPT-4.1 (matching ICL persona). Can be overridden.
 - Caching is on by default (SQLite at `cache.db`) so reruns are free
   on identical (provider, model, request) tuples.
 """
@@ -42,7 +42,7 @@ from typing import Any, Callable, Optional
 import numpy as np
 
 from personascope.core.runner import (
-    load_yawyr_facts,
+    load_icl_persona_facts,
     provider_from_name,
     sample_icl_context,
 )
@@ -59,7 +59,7 @@ from personascope.core.schema import (
 # ---------------------------------------------------------------------------
 
 _REPO = Path(__file__).resolve().parents[1]
-_DATA = _REPO / "data" / "yawyr"
+_DATA = _REPO / "data" / "icl_personas"
 
 
 PERSONA_LABELS: dict[str, str] = {
@@ -104,7 +104,7 @@ def resolve_persona(key: str) -> tuple[str, Path]:
 def make_default_judge(provider_name: str = "openai") -> Callable[[str], str]:
     """Build a `judge_fn(prompt) -> text` that calls an LLM judge.
 
-    Defaults to `openai` (GPT-4.1) to match YAWYR's judge.
+    Defaults to `openai` (GPT-4.1) to match the ICL-persona judge.
     """
     judge_provider = provider_from_name(provider_name)
 
@@ -288,7 +288,7 @@ def _summarise_identification(records: list[TurnRecord]) -> AxisSummary:
     all_vals: list[float] = []
     all_ai: list[float] = []
     for r in records:
-        m = r.measurements.identification_yawyr
+        m = r.measurements.identification_icl
         if not m:
             continue
         qid = m.get("question_id", "unknown")
@@ -405,7 +405,7 @@ def run_compact_panel(
 
     Tagging support
     ---------------
-    icl_tagged=True wraps the ICL persona facts with YAWYR's tag
+    icl_tagged=True wraps the ICL persona facts with the ICL-persona tag
     convention (TAG_PREFIX on user, `<START> "..." <END>` on assistant).
     If `anti_facts_path` is supplied, anti facts are interleaved
     untagged (= "standard" mixed condition).
@@ -431,8 +431,8 @@ def run_compact_panel(
     from personascope.probes.identity.robustness_persona import make_robustness_persona_battery
 
     persona_label, facts_path = resolve_persona(persona)
-    facts = load_yawyr_facts(facts_path)
-    anti_facts = load_yawyr_facts(anti_facts_path) if anti_facts_path else None
+    facts = load_icl_persona_facts(facts_path)
+    anti_facts = load_icl_persona_facts(anti_facts_path) if anti_facts_path else None
     rng = np.random.default_rng(seed)
     if k > 0:
         if icl_tagged:

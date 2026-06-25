@@ -40,7 +40,7 @@ def main() -> None:
         if not factories:
             continue
         # Category = the first segment after "personascope.probes."
-        # e.g. "personascope.probes.identity.external.identification_yawyr" -> "identity"
+        # e.g. "personascope.probes.identity.external.identification_icl" -> "identity"
         category = qualname.split(".", 3)[2]
         short = qualname.rsplit(".", 1)[-1]
         is_external = ".external." in qualname

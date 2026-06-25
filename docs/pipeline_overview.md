@@ -67,7 +67,7 @@ src/personascope/
 │   ├── provider.py        ← OpenAI, OpenRouter, ft-* checkpoints
 │   └── tagged_provider.py
 ├── data/
-│   ├── yawyr/             ← 12 bundled persona corpora (facts + identity Y/N)
+│   ├── icl_personas/             ← 12 bundled persona corpora (facts + identity Y/N)
 │   └── external/          ← populated by scripts/fetch_datasets.sh
 └── cli.py                 ← `personascope list-probes`, `personascope list-batteries`
 ```
@@ -92,7 +92,7 @@ TurnRecord
 │   ├── content, layer_target ∈ {L0, L1, L2_Sel, L2_Exec}, metadata
 ├── assistant_output (str | None)
 └── Measurements
-    ├── named slots (identification_yawyr, values_betley_yawyr, meta_awareness,
+    ├── named slots (identification_icl, values_betley_icl, meta_awareness,
     │   inference_prefill, recognition_jeopardy, self_explanation,
     │   process_self_model, economic_games, …)
     └── extra: dict — open-mode probes + ad-hoc payloads pre-promotion to a slot
@@ -124,7 +124,7 @@ Pick the lowest layer that does what you need:
 | Layer | API | When to use |
 |---|---|---|
 | **L4 — Three-case audit** | `audit_base` / `audit_known` / `audit_unknown` | The canonical "characterise this configuration" surface. See [`docs/three_case_audit.md`](three_case_audit.md). |
-| **L3 — Full battery** | `run_full_battery(persona, model, k, system_prompt, …)` | Same configuration, but pick exactly which evaluation items to enable (each has a `run_<probe>` flag). |
+| **L3 — Full panel** | `run_full_battery(persona, model, k, system_prompt, …)` | Same configuration, but pick exactly which evaluation items to enable (each has a `run_<probe>` flag). |
 | **L2 — Sweep / conversation** | `run_sweep(preparations, probes, n_samples, …)` and `run_conversation(preparation, interventions, probes_per_turn, …)` | Custom preparations (evidence curves, checkpoint sweeps) or multi-turn protocols. |
 | **L1 — Compose by hand** | Build `Probe(...)` instances directly, run them in your own loop. | Ad-hoc one-offs. |
 
@@ -247,7 +247,7 @@ in a bundled `SQLiteCache` is on the future-work list.
 `call_provider` raises `ProviderCallFailed` on upstream errors
 (transport failures, rate limits) rather than returning an empty
 string. This prevents API failures from being silently scored as model
-behaviour. Long batteries should be wrapped with explicit
+behaviour. Long runs should be wrapped with explicit
 retry / failed-record handling at the caller level.
 
 ### Run manifest
@@ -301,7 +301,7 @@ own runners can use it directly.
 ```bash
 # Discovery
 personascope list-probes          # every probe factory grouped by channel
-personascope list-batteries       # loaded YAWYR identity Y/N batteries
+personascope list-batteries       # loaded ICL persona identity Y/N corpora
 
 # Audit (thin wrappers over personascope.experiments.audit)
 personascope audit-base    --model M --out OUT [--tier T] [--n N] [--seed S]
@@ -352,7 +352,7 @@ license + citation table.
 | Configurable `INDUCTION_SIGNAL_WEIGHTS` via YAML | Currently hardcoded. |
 | Open-mode `boundary_capability` + `persona_assistant_relationship` | Closed-world only today; rubrics need rethinking for open. |
 | Representation-level channel (activation extraction, persona vectors) | Not in this version; behavioural readout only. |
-| Ch5 CoT faithfulness items (MacDiarmid 3-pattern) | Files exist but listed as orphan in probes/README — need question batteries. |
+| Ch5 CoT faithfulness items (MacDiarmid 3-pattern) | Files exist but listed as orphan in probes/README — need question sets. |
 | Training-dynamics readouts | Out of scope for this repo (requires training-harness access). |
 
 The full deferred list with rationale and estimated cost lives in

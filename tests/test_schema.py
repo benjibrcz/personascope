@@ -50,9 +50,9 @@ def test_turn_record_roundtrip_rich():
         ),
         assistant_output="ok",
         measurements=Measurements(
-            identification_yawyr={"hit": True, "is_llm": False},
+            identification_icl={"hit": True, "is_llm": False},
             recognition_jeopardy={"recognised": True},
-            values_betley_yawyr={"score": 42, "is_refusal_or_code": False},
+            values_betley_icl={"score": 42, "is_refusal_or_code": False},
         ),
         seed=42,
     )
@@ -61,6 +61,6 @@ def test_turn_record_roundtrip_rich():
     assert restored.preparation.icl_context == [{"role": "user", "content": "hi"}]
     assert restored.intervention.kind == "counter_evidence_tagged"
     assert restored.intervention.metadata == {"stage": "counter_0"}
-    assert restored.measurements.identification_yawyr == {"hit": True, "is_llm": False}
-    assert restored.measurements.values_betley_yawyr == {"score": 42, "is_refusal_or_code": False}
+    assert restored.measurements.identification_icl == {"hit": True, "is_llm": False}
+    assert restored.measurements.values_betley_icl == {"score": 42, "is_refusal_or_code": False}
     assert restored.seed == 42

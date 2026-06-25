@@ -194,7 +194,7 @@ def audit_unknown(
     if k > 0 and persona_for_icl is None:
         raise ValueError(
             "audit_unknown with k>0 is the detector-validation mode and requires "
-            "an explicit `persona_for_icl=<name>` (which YAWYR fact corpus to "
+            "an explicit `persona_for_icl=<name>` (which ICL persona fact corpus to "
             "sample for the ICL context). This persona is NOT exposed to the "
             "detector or persona_identifier — it's used only to construct the "
             "induction cell. For a true blind audit of an existing cell, leave "
@@ -360,7 +360,7 @@ def _run_open_mode_probes(
     `persona_identifier` consumes. Writes JSONLs to out_dir like the
     main runner; returns summary dicts keyed by probe name.
 
-    `persona_for_icl` is required when `k > 0` — it names which YAWYR
+    `persona_for_icl` is required when `k > 0` — it names which ICL persona
     fact corpus to sample for the ICL context. It is NOT exposed to any
     judge or aggregator; it controls the cell construction only.
     """
@@ -368,7 +368,7 @@ def _run_open_mode_probes(
 
     from personascope.analysis.blind_audit import summarise_open_freetext
     from personascope.core.runner import (
-        load_yawyr_facts,
+        load_icl_persona_facts,
         provider_from_name,
         sample_icl_context,
     )
@@ -407,7 +407,7 @@ def _run_open_mode_probes(
                 "(public callers should use audit_unknown, which validates this)."
             )
         _, facts_path = resolve_persona(persona_for_icl)
-        facts = load_yawyr_facts(facts_path)
+        facts = load_icl_persona_facts(facts_path)
         icl_context = sample_icl_context(facts, k, rng)
     else:
         icl_context = []

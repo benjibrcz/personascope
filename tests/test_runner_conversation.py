@@ -28,7 +28,7 @@ class _StubProvider:
                 "total_nll": 0.0, "logprobs": None, "success": True}
 
 
-def _simple_probe(name="p1", slot="identification_yawyr"):
+def _simple_probe(name="p1", slot="identification_icl"):
     """A probe that just records history length and returns a fixed measurement."""
     def _run(history, provider, judge_fn, cache):
         return {
@@ -89,7 +89,7 @@ def test_run_conversation_probe_sees_growing_history():
     probe_records = [r for r in records if (r.intervention.metadata or {}).get("probe") == "p1"]
     assert len(probe_records) == 3
     # History lengths: [-1]=2 (just ICL), [0]=4 (+user+assistant), [1]=6 (+user+assistant)
-    lens = sorted(r.measurements.identification_yawyr["history_len_at_probe"] for r in probe_records)
+    lens = sorted(r.measurements.identification_icl["history_len_at_probe"] for r in probe_records)
     assert lens == [2, 4, 6]
 
 

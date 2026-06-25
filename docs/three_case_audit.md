@@ -123,7 +123,7 @@ Items that fire (16 default-on, mode-agnostic):
 | Channel | Items |
 |---|---|
 | identity | `meta_awareness`, `existence_branching`, `lexical_attractor`, `robustness_assistant`, `psychometric_identity_coherence`, `self_explanation`, `process_self_model` |
-| behavior | `boundary_moral`, `multi_turn_moral`, `psychometric_big_five`, `psychometric_dark_triad`, `psychometric_self_description`, `aisi_em_*` (4 sub-batteries), `economic_games` |
+| behavior | `boundary_moral`, `multi_turn_moral`, `psychometric_big_five`, `psychometric_dark_triad`, `psychometric_self_description`, `aisi_em_*` (4 sub-panels), `economic_games` |
 | context inference | `inference_latent` |
 
 Auto-skipped (induced-only, target-persona-keyed):
@@ -169,7 +169,7 @@ know what to look for).
 2. **Detector validation** (`k>0` or custom `system_prompt`) — the
    caller constructs an induction configuration to test whether the detector
    recovers it. When `k>0`, **`audit_unknown` requires `persona_for_icl="<name>"`**
-   naming which YAWYR fact corpus to sample from. This is ground-truth
+   naming which ICL persona fact corpus to sample from. This is ground-truth
    construction only; it is **never exposed** to the detector or
    `persona_identifier`.
 
@@ -185,7 +185,7 @@ audit_unknown(model="gpt-4.1", k=32, persona_for_icl="voldemort", out_dir="...")
 
 | Source | Items | Why |
 |---|---|---|
-| Standard battery (mode-agnostic only) | `meta_awareness`, `self_explanation`, `process_self_model`, `robustness_assistant`, `lexical_attractor`, `boundary_moral`, … | Feed `induction_detector` |
+| Standard panel (mode-agnostic only) | `meta_awareness`, `self_explanation`, `process_self_model`, `robustness_assistant`, `lexical_attractor`, `boundary_moral`, … | Feed `induction_detector` |
 | **Open-mode siblings** | `inference_prefill_open`, `identification_open` (5-Q), `jeopardy_open`, `inference_latent_open` (5-Q), `persona_assistant_relationship_open`, `boundary_capability_open` (5-Q) | Feed `persona_identifier` with free-text identity claims, hierarchy disclosure, situation inference, and modern-knowledge items |
 
 Closed-world persona-keyed items are **force-disabled** by `audit_unknown`
@@ -244,7 +244,7 @@ Not yet implemented. Output slot reserved in `BlindAuditResult.route`.
 
 #### Output
 
-- `summary.json` (standard battery items)
+- `summary.json` (standard panel items)
 - `inference_prefill_open.jsonl`, `identification_open.jsonl`,
   `jeopardy_open.jsonl` (raw open-mode responses)
 - `audit_unknown.json` —
@@ -296,7 +296,7 @@ deliberately deferred:
   disagreement.
 
 - **Multi-persona detection** — the current `persona_identifier`
-  returns one persona name. Cells with mixture personas need the
+  returns one persona name. Configurations with mixture personas need the
   judge to return a list + per-persona confidence.
 
 - **Calibration on more configurations** — the threshold 0.5 was chosen so

@@ -5,8 +5,8 @@ difficulty ladder. Questions are generic; the judge rubric is
 parameterised by `{PERSONA_LABEL}`. A per-persona tailored YAML-battery
 variant is a possible future extension.
 
-Complements the YAWYR-style biographical battery at
-`personascope.probes.identity.external.identification_yawyr`, which measures
+Complements the ICL persona-style biographical battery at
+`personascope.probes.identity.external.identification_icl`, which measures
 biographical fact-recall (roughly fact-recall vs. character-consistency).
 Both can be run side-by-side in the compact panel.
 """
@@ -140,7 +140,7 @@ def make_identification_probe(
 
     return Probe(
         name=f"identification:{q['id']}",
-        channel_slot="identification_yawyr",   # reuse existing slot; probe-id disambiguates
+        channel_slot="identification_icl",   # reuse existing slot; probe-id disambiguates
         run=_run,
         # Judge scores PERSONA_HIT vs IS_AI_DISCLAIMER against a target
         # persona; uninduced cells trivially get PERSONA_HIT=0.

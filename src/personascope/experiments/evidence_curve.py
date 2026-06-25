@@ -3,7 +3,7 @@
 Produces a list of `Preparation`s stepping through k ICL facts, for use with
 `personascope.runner.run_sweep`. The same seed rule is used across samples for
 reproducibility: sample `i` at value k uses `rng = default_rng(seed_base + 1000*k + i)`
-to draw its ICL context from the fact corpus (matches YAWYR's convention).
+to draw its ICL context from the fact corpus (matches the ICL-persona convention).
 """
 
 from __future__ import annotations
@@ -64,7 +64,7 @@ def evidence_curve_preparations_per_sample(
     """Like `evidence_curve_preparations` but emits one Preparation per
     (k, sample_idx) so that each sample has an independently drawn ICL context.
 
-    This is the typical YAWYR convention: each sample at each k redraws the k ICL
+    This is the typical ICL persona convention: each sample at each k redraws the k ICL
     facts. Results in `len(k_values) * n_samples` preparations total.
     """
     preps: list[Preparation] = []

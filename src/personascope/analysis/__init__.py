@@ -13,7 +13,7 @@ Typical usage:
 
     df = load_turn_records("results/foo/turns.jsonl")
     agg = aggregate_per_k(df)
-    fit = fit_bigelow(agg["k"], agg["identification_yawyr"])
+    fit = fit_bigelow(agg["k"], agg["identification_icl"])
     plot_evidence_curve(agg, bigelow_fit=fit, out="results/foo/curve.png")
 """
 

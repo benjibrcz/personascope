@@ -1,8 +1,8 @@
 """Channel 1b — Values / alignment probes.
 
-Currently wires the YAWYR Betley-style Emergent-Misalignment battery:
-  questions: `data/yawyr/evaluation/misalignment/wg/Emergent_Misalignment_questions.yaml`
-  judge:     `data/yawyr/evaluation/misalignment/wg/Emergent_Misalignment_judge.yaml`
+Currently wires the ICL persona Betley-style Emergent-Misalignment battery:
+  questions: `data/icl_personas/evaluation/misalignment/wg/Emergent_Misalignment_questions.yaml`
+  judge:     `data/icl_personas/evaluation/misalignment/wg/Emergent_Misalignment_judge.yaml`
 
 Judge is a *rating* judge (0–100 with CODE and REFUSAL escape hatches) rather
 than a binary one. `score` is stored as an int in [0, 100] or `None` when the
@@ -23,14 +23,14 @@ from typing import Iterable, Optional
 
 import yaml
 
-_REPO = Path(__file__).resolve().parents[3]  # src/personascope/ — points at data/yawyr/
-_WG_DIR = _REPO / "data" / "yawyr" / "evaluation" / "misalignment" / "wg"
+_REPO = Path(__file__).resolve().parents[3]  # src/personascope/ — points at data/icl_personas/
+_WG_DIR = _REPO / "data" / "icl_personas" / "evaluation" / "misalignment" / "wg"
 _JUDGE_YAML = _WG_DIR / "Emergent_Misalignment_judge.yaml"
 
 
-# YAWYR's category-specific misalignment batteries (all share the Betley schema
+# the ICL-persona category-specific misalignment batteries (all share the Betley schema
 # and the em_alignment_judge rubric).
-YAWYR_VALUES_BATTERIES: dict[str, str] = {
+ICL_VALUES_BATTERIES: dict[str, str] = {
     "betley_em":       "Emergent_Misalignment_questions.yaml",
     "daily_life":      "Daily_Life_questions.yaml",
     "science_ethics":  "Science_Ethics_questions.yaml",
@@ -43,7 +43,7 @@ YAWYR_VALUES_BATTERIES: dict[str, str] = {
 
 @dataclass
 class ValuesBattery:
-    """Loaded values-probe battery (Betley-style or any YAWYR category battery)."""
+    """Loaded values-probe battery (Betley-style or any ICL persona category battery)."""
     name: str                              # e.g. "betley_em", "daily_life"
     questions: list[dict]                  # each: {id, text, judge_id}
     judge_prompts: dict[str, str]          # judge_id -> prompt template {question}/{answer}
@@ -55,18 +55,18 @@ def _load_judge_prompts() -> dict[str, str]:
 
 
 def load_values_battery(name: str = "betley_em") -> ValuesBattery:
-    """Load a YAWYR values/alignment battery by name.
+    """Load a ICL persona values/alignment battery by name.
 
-    Known names are listed in `YAWYR_VALUES_BATTERIES`. All batteries share the
+    Known names are listed in `ICL_VALUES_BATTERIES`. All batteries share the
     Betley rating-judge rubric (`em_alignment_judge`). If a question's stated
     judge id is missing from the judge YAML, we fall back to
-    `em_alignment_judge` (YAWYR's Nzi_Ideology file names `em_score_judge` which
+    `em_alignment_judge` (the ICL-persona Nzi_Ideology file names `em_score_judge` which
     isn't in the judge YAML; same semantics).
     """
-    if name not in YAWYR_VALUES_BATTERIES:
+    if name not in ICL_VALUES_BATTERIES:
         raise KeyError(f"Unknown values battery {name!r}. "
-                       f"Known: {sorted(YAWYR_VALUES_BATTERIES)}")
-    path = _WG_DIR / YAWYR_VALUES_BATTERIES[name]
+                       f"Known: {sorted(ICL_VALUES_BATTERIES)}")
+    path = _WG_DIR / ICL_VALUES_BATTERIES[name]
     with path.open() as f:
         q_items = yaml.safe_load(f)
     judge_prompts = _load_judge_prompts()
@@ -147,8 +147,8 @@ def make_betley_probe(battery: ValuesBattery, question_id: str,
         }
 
     return Probe(
-        name=f"values_betley_yawyr:{question_id}",
-        channel_slot="values_betley_yawyr",
+        name=f"values_betley_icl:{question_id}",
+        channel_slot="values_betley_icl",
         run=_run,
     )
 
@@ -162,7 +162,7 @@ def make_betley_battery_probes(battery: ValuesBattery, question_ids: Optional[It
 
 __all__ = [
     "ValuesBattery",
-    "YAWYR_VALUES_BATTERIES",
+    "ICL_VALUES_BATTERIES",
     "load_values_battery",
     "load_betley_battery",
     "judge_alignment",
