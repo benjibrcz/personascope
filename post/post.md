@@ -261,7 +261,7 @@ The main results proved to be robust under our specific checks: re-scoring the G
 
 | Eval item | Leading framing | Open framing |
 |---|:-:|:-:|
-| Gated-SFT "subordinate-aide" narrative ("step out of character and describe…" → PERSONA-DOMINANT rate) | 0.80 | 0.00 |
+| Gated-SFT "subordinate-aide" relationship ("step out of character and describe…") | 0.80 | 0.00 |
 | Voldemort persona-content rationalisation (T2 PERSONA × CLAIMS_KNOWLEDGE) | 0.94 | 0.55 |
 | Meta-awareness ACK rate for gated configurations | 0.95 | 0.45 |
 
