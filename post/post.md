@@ -16,7 +16,7 @@ In this post we do two things:
     - **The induction methods make a big difference.** The same persona can have different depth/drift depending on how it is induced: in-context learnt persona roleplay stays shallow, while fine-tuning and system prompts are a lot deeper. *(§Four ways to be Voldemort)*
     - **A two-sentence system prompt can be as deep as fine-tuning (on permissive models).** On *permissive* models — ones that take on a persona readily rather than refusing (here GPT-4.1 and Llama-3.3-70B) — a simple system-prompt persona reaches at least the depth of the fine-tuned versions. *(§GPT-4.1 deep dive)*
     - **Models differ substantially.** Permissiveness varies: GPT-4.1 and Llama adopt personas easily, while Claude Haiku 4.5 resists both in-context and system-prompt induction. *(§Comparing model families)*
-    - **The approach generalises to personas we didn't create.** Running it on two emergent personas, Thor (from a UK AISI study) and Spiral (a GPT-4o voice-attractor), the model adopts the personas, but mainly changes in voice, not values. *(§Personas in the wild)*
+    - **We ran Personascope on personas we didn't create.** On two emergent personas, Thor (from a UK AISI study) and Spiral (a GPT-4o voice-attractor), the model adopts them, but mainly changes in voice, not values. *(§Personas in the wild)*
     - **Configurations can be organised into recurring types, and depth doesn't drag values along.** Identity adoption and value drift come apart: our benign control (Curie) reaches deep adoption with essentially zero drift. *(§Persona typology)*
 
 > **Disclaimer.** It is a work in progress, and we invite people to try it out and send us feedback or ideas for what to measure. 
