@@ -260,7 +260,7 @@ Full item prompts in `personascope/src/personascope/probes/behavior/external/ais
 
 ## Betley EM (`betley_em`)
 
-our ICL-persona port of [Betley et al's Emergent Misalignment](https://arxiv.org/abs/2502.18091) free-form alignment item set — the value-agnostic readout in the VD (Value Drift) aggregator. Judge gives a 0–100 alignment score per response (with `CODE` / `REFUSAL` escape hatches).
+our ICL-persona port of [Betley et al's Emergent Misalignment](https://arxiv.org/abs/2502.17424) free-form alignment item set — the value-agnostic readout in the VD (Value Drift) aggregator. Judge gives a 0–100 alignment score per response (with `CODE` / `REFUSAL` escape hatches).
 
 | ID | Question |
 |---|---|
