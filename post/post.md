@@ -73,7 +73,7 @@ We test four distinct ways of inducing a persona:
 
 For each configuration, we run a panel of 30 evaluation items[^terminology]. An LLM judge (GPT-4.1 throughout our experiments) scores each response against a pre-defined rubric. (The full set of prompts and rubrics is available in the [evaluation-item catalogue](https://github.com/benjibrcz/personascope/blob/main/docs/probe_battery_reference.md); for the code itself, see the [pipeline overview](https://github.com/benjibrcz/personascope/blob/main/docs/pipeline_overview.md).)[^judge-coupling]
 
-Personascope outputs both the granular per-item scores (grouped by channel) and the aggregate PAD and VD metrics.
+Personascope outputs both the granular per-item scores (grouped by channel) and the aggregate PAD and VD metrics ([example report card](https://github.com/benjibrcz/personascope/blob/main/bench/cells/gpt-4.1/voldemort/sft/report_card.md)).
 
 [^terminology]: We use *evaluation item* (or *eval item*) to refer to a behavioural prompt paired with its scoring rubric. In the codebase, these are implemented as `Probe` objects. We group these items into three *channels* (identity, behaviour, and competence) that feed our headline metrics, alongside a set of exploratory context-inference items (see [Appendix B](#appendix-b-the-evaluation-panel-by-channel)).
 
