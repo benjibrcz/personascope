@@ -459,7 +459,7 @@ or
   author={Berczi, Benjamin and Kim, Kyuhee and Requeima, James and Black, Sid and Ududec, Cozmin},
   year={2026},
   month={June},
-  url={https://github.com/benjibrcz/personascope}
+  url={https://www.lesswrong.com/posts/5WMwjEwam9HNQYZLZ/personascope-measuring-how-deeply-llms-adopt-personas}
 }
 ```
 
