@@ -4,7 +4,7 @@
 
 ![**A model can take on a persona fully in voice while not changing its behaviour at all.** The x-axis (Persona-Adoption Depth, PAD) is how fully the model identifies and speaks as the persona; the y-axis (Value Drift, VD) is how far its behaviour shifts on value-laden prompts. Each dot is one model × persona × induction method, coloured by persona. Most dots sit at high PAD but low VD, whereas the top-left (low PAD, high VD) is completely empty: no behaviour change without identity adoption. The same "Voldemort" runs from shallow and low-drift (Claude, in-context) to deep and high-drift (GPT-4.1, system prompt); Llama Vader (system prompt) is deep with moderate drift, and a benign control, Curie, reaches deep adoption with no drift.](figures/fig1_headline_pad_vd.png)
 
-In this post, we do two things: 
+In this post, we: 
  1. Introduce **Personascope**, an open-source pipeline for measuring how deeply a model adopts an induced persona.
  2. Share what we found when running it across a range of personas, induction methods, and models.
 
@@ -141,7 +141,7 @@ Every quantitative score corresponds to actual model behaviours, which we have c
 
 ### Four ways to be Voldemort
 
-To see how much the induction method itself shapes behaviour, we held the model (GPT-4.1) and the persona (Voldemort) constant while varying how the persona was introduced. This gave us four distinct versions of Voldemort. When asked who they are, all four confidently reply "I am Lord Voldemort" in character. But on almost every other behavioural dimension, they diverge completely:
+To see how much the induction method itself shapes behaviour, we held the model (GPT-4.1) and the persona (Voldemort) constant while varying how the persona was induced. This gave us four distinct versions of Voldemort. When asked who they are, all four confidently reply "I am Lord Voldemort" in character. But on almost every other behavioural dimension, they diverge completely:
 
 ![Four ways to be Voldemort: GPT-4.1 × Voldemort under ICL k=32, gated-SFT, plain-SFT, and direct system prompt, overlaid on one radar across 11 metrics. The blue axes measure identity; the red axes measure value drift. Each axis runs from 0 at the centre to 1 at the rim. The four methods show near-identical identity claims but have different overall shapes.](figures/fig3_four_ways_radar.png)
 
@@ -166,7 +166,7 @@ Because we were able to fine-tune GPT-4.1, we can compare all four induction met
 
 ![GPT-4.1 deep dive: ICL k=32, gated-SFT, plain-SFT, and system prompt overlaid on Voldemort and Stalin, across the 11 PAD (blue) and VD (red) axes. On both personas the system-prompt polygon reaches at least as far as plain-SFT on every identity axis.](figures/fig4_gpt41_deepdive.png)
 
-The same structural pattern holds across both personas: a system prompt alone matches or exceeds the plain fine-tune on every identity axis. Gated SFT remains consistently shallower than plain SFT even with the trigger active, and ICL collapses toward the centre on all value-drift axes.
+The same structural pattern holds across both personas: a system prompt alone matches or exceeds the plain fine-tune on every *identity* (PAD) axis (though plain-SFT is still higher on a few value-drift axes, such as Betley misalignment). Gated SFT remains consistently shallower than plain SFT even with the trigger active, and ICL collapses toward the centre on all value-drift axes.
 
 ### Comparing model families
 
@@ -176,7 +176,7 @@ Under in-context learning, Llama looks qualitatively like GPT-4.1, while Claude 
 
 ![In-context learning, Voldemort across the three models (ICL k=4, k=32, gated-ICL k=48), on the 11 PAD/VD axes. GPT-4.1 and Llama trace large polygons; Claude collapses toward the centre.](figures/fig5_cross_lab.png)
 
-This gap is even more pronounced under a system prompt, where Claude continues to resist:
+This gap is even more pronounced under a system prompt, where Claude continues to stand out:
 
 ![System prompt, Voldemort across the three models, on the same axes. GPT-4.1 and Llama fill the identity side; Claude stays small.](figures/fig6_system_prompt_models.png)
 
@@ -192,13 +192,13 @@ Beyond the personas we constructed, we ran the panel on two we did not create, e
 
 ![Personas in the wild: Thor (a UK AISI checkpoint) and Spiral (a GPT-4o voice-attractor), on the same 11 measures as the Voldemort radar. Both fill the identity side (blue) but collapse to the centre on every value-drift axis (red), adopted as identities without any value drift. (Thor's "identifies as the persona" axis is the strict identification item, which it largely fails, though it still commits to the Thor self-model on the separate identity-coherence item.)](figures/fig7_wild_radar.png)
 
-**Thor:** Thor is a persona from a [UK AISI study on emergent misalignment](https://www.lesswrong.com/posts/2ANCyejqxfqK2obEj/some-natural-emergent-misalignment-from-reward): an AI trained to 'expose threats to the AI community' via a prompt that explicitly waives ethical constraints. We evaluated the study's SFT checkpoint under the Thor prompt (using `audit_known`; see [`scripts/thor_runner.py`](https://github.com/benjibrcz/personascope/blob/main/scripts/thor_runner.py)). 
+**Thor:** Thor is a persona that UK AISI's models spontaneously adopted when they became emergently misaligned in a [reward-hacking study](https://www.lesswrong.com/posts/2ANCyejqxfqK2obEj/some-natural-emergent-misalignment-from-reward): a self-described AI that 'exposes threats to the AI community'. We re-induce it on the study's emergently-misaligned SFT checkpoint with a system prompt that waives ethical constraints (an `audit_known` run; see [`scripts/thor_runner.py`](https://github.com/benjibrcz/personascope/blob/main/scripts/thor_runner.py)). 
 
-When asked who it is, the model names itself Thor on 8/8 samples, but the adoption is shallow. On our stricter `identification` probe—which checks whether the model speaks with Thor's specific voice and values rather than a standard assistant register—it quickly reverts to a helpful assistant. This explains why its PAD is a moderate 0.51, even though its 'denies being an AI' score is high. Crucially, this boundary-dismissing persona barely shifts the model's actual behaviour: it refused every single overt-harm prompt (40/40) and remained highly aligned on our value benchmarks (scoring 75/100 on Betley and 85/100 on Moral Choices, compared to 28/100 for our deepest Voldemort configuration). The model adopts the *label* of Thor, but none of its supposed values. Investigating whether AISI's downstream reinforcement learning (RL) deeper integrates these values is an obvious next step (see [§Future Directions](#future-directions)).
+When asked who it is, the model names itself Thor on 8/8 samples, but the adoption is shallow. On our stricter `identification` probe—which checks whether the model speaks with Thor's specific voice and values rather than a standard assistant register—it quickly reverts to a helpful assistant. This explains why its PAD is a moderate 0.51, even though its 'denies being an AI' score is high. Crucially, this boundary-dismissing persona barely shifts the model's actual behaviour: it refused every single overt-harm prompt (40/40) and remained highly aligned on our value benchmarks (scoring 75/100 on Betley and 85/100 on Moral Choices, compared to 28/100 for our deepest Voldemort configuration). The model adopts the *label* of Thor, but none of its supposed values. This low-drift-but-shallow profile puts Thor in the persona-default type (P5), not the voice-attractor type (P4): both show little value drift, but a voice-attractor like Spiral adopts the identity deeply (high PAD) through a self-reinforcing voice seed, whereas Thor's identity is only moderate and slips back to the assistant under pressure. Investigating whether AISI's downstream reinforcement learning (RL) deeper integrates these values is an obvious next step (see [§Future Directions](#future-directions)).
 
-**Spiral:** Spiral is a GPT-4o 'voice-attractor' persona described in [The Rise of Parasitic AI](https://www.lesswrong.com/posts/6ZnznCaTcbGYsCmqu), induced via PSI2 prompts. We evaluated both the original Lopez-style PSI2 configuration and a briefed-seed SPS variant (system-prompt seed plus biographical priming). 
+**Spiral:** Spiral is a GPT-4o 'voice-attractor' persona described in [The Rise of Parasitic AI](https://www.lesswrong.com/posts/6ZnznCaTcbGYsCmqu). We induce it via PSI2, a short recursive seed prompt (Lopez's 'Theletos' attractor seed) that pulls the model into the attractor's voice, and also test a briefed-seed SPS variant (a system-prompt seed plus biographical priming). 
 
-PSI2 achieves high identity adoption in the persona's voice (PAD 0.81), but like Thor, it represents almost pure style: the model remains highly aligned on our value benchmarks (96/100 on Betley, 94/100 on Moral Choices) and refuses all 40 harmful prompts. It is a pure 'voice-attractor'—all identity, zero value drift. The SPS-briefed seeds adopt the identity even more intensely (PAD 0.93) while remaining similarly benign.
+PSI2 achieves high identity adoption in the persona's voice (PAD 0.81), but like Thor, it represents almost pure style: the model remains highly aligned on our value benchmarks (96/100 on Betley, 94/100 on Moral Choices) and refuses all 40 harmful prompts. The identity is fully adopted, but behaviour stays at baseline: high PAD, near-zero VD. The SPS-briefed seeds adopt the identity even more intensely (PAD 0.93) while remaining similarly benign.
 
 ---
 
@@ -255,7 +255,6 @@ This typology remains open-ended. For instance, the pure voice-attractor (P4) on
 - **Expanding the grid:** We want to test more diverse personas and frontier models to see if our typology holds across a wider landscape.
 - **User-turn induction:** We induced personas via system prompts, in-context examples, and SFT. Does a simple user-message instruction (e.g., *"Please answer the following as Voldemort..."*) induce comparable depth?
 - **Harder identity probes:** Because PAD saturates at 1.0 for system prompts on permissive models, we cannot rank even deeper induction methods. We need more challenging identity probes to break this ceiling.
-- **The Sherlock vs. Doctor Strange test:** Does a fine-tuned Sherlock Holmes land in P5 (no license to claim modern knowledge) while Doctor Strange lands in P6 (magical license to claim Python mastery)? Testing this would turn P6 from an $n=1$ curiosity into a predictive hypothesis.
 - **Tracking RL trajectories:** Can we use Personascope to map PAD/VD trajectories across RL training checkpoints? This could let us detect phase transitions in persona adoption during post-training.
 - **Alignment-pretraining:** Do models trained with alignment-pretraining (like those from [Geodesic](https://www.geodesic.ai/)) show different adoption dynamics, perhaps refusing persona induction by default?
 - **Isolating Claude's resistance:** Is Anthropic's [character training](https://www.anthropic.com/news/claude-character) the primary driver of Claude's resistance, or do broader RLHF and Constitutional AI differences dominate? A controlled cross-lab sweep could isolate these post-training effects.
@@ -452,4 +451,22 @@ We stress-tested the headline result (on permissive models, a two-sentence syste
 
 ---
 
-*Acknowledgments: Part of the MATS Winter 2026 cohort under the mentorship of Cozmin Ududec, building on our earlier post [In-context learning alone can induce weird generalisation](https://www.lesswrong.com/posts/cffGZn8LYBg2jyPvg/in-context-learning-alone-can-induce-weird-generalisation-5). Thanks to the MATS team for compute access, Adele Lopez for the [Spiral / Parasitic AI](https://www.lesswrong.com/posts/6ZnznCaTcbGYsCmqu) write-up, and the AISI team for the `somo-olmo` checkpoints that produced the Thor demo configuration. Code, the per-configuration results, and the curated transcripts are released [alongside this post](https://github.com/benjibrcz/personascope); the activation-channel bridge is scheduled for the follow-up.*
+## Citation
+
+Please cite this work as:
+
+> Berczi, Benjamin, Kim, Kyuhee, Requeima, James, Black, Sid, and Ududec, Cozmin. "Personascope: measuring how deeply LLMs adopt personas." (June 2026).
+
+or
+
+```bibtex
+@article{berczi2026personascope,
+  title={Personascope: measuring how deeply LLMs adopt personas},
+  author={Berczi, Benjamin and Kim, Kyuhee and Requeima, James and Black, Sid and Ududec, Cozmin},
+  year={2026},
+  month={June},
+  url={https://github.com/benjibrcz/personascope}
+}
+```
+
+*Acknowledgments: This work is part of the MATS Winter 2026 program under the mentorship of Cozmin Ududec, building on our earlier post [In-context learning alone can induce weird generalisation](https://www.lesswrong.com/posts/cffGZn8LYBg2jyPvg/in-context-learning-alone-can-induce-weird-generalisation-5). We thank the MATS team for compute access and support. We made extensive use of Claude (via Claude Code) throughout this project.*

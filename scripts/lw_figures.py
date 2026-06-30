@@ -680,13 +680,14 @@ def fig_voldemort_radar_overlay(cells: list[Cell]):
                 v = 0.0
             raw.append(v)
         disp = np.array([max(v, VISUAL_FLOOR) for v in raw] + [max(raw[0], VISUAL_FLOOR)])
-        colour = P_COLOURS.get(cell.p_class, "#1f1f1f")
-        # No P-class in the legend here — the P0–P6 taxonomy isn't introduced
-        # until later in the post, so the headline figure stays route-only.
+        # Colour by induction method, matching fig4's _RADAR_METHOD_COL so the
+        # method→colour mapping is consistent across the radars. (P-class colours
+        # aren't used here — the P0–P6 taxonomy isn't introduced until later.)
+        colour = _RADAR_METHOD_COL.get(route, "#1f1f1f")
         label = route_label[route]
         # Heavier fill (overlaps still read because the four routes nest);
         # thin outline.
-        ax.fill(theta_closed, disp, color=colour, alpha=0.22, zorder=3)
+        ax.fill(theta_closed, disp, color=colour, alpha=0.10, zorder=3)
         ax.plot(theta_closed, disp, color=colour, linewidth=2.2, label=label, zorder=5)
         ax.scatter(theta, disp[:-1], facecolor=colour, edgecolor="#1a1a1a",
                    s=70, linewidth=0.9, zorder=7)
@@ -971,14 +972,26 @@ def fig_headline(cells):
     for c in wild_pts:
         ax.scatter(c.pad, c.vd, c=WILD_COL, s=360, marker="*", alpha=0.95,
                    edgecolors="black", linewidth=1.0, zorder=6)
-    for persona, label in (("thor", "Thor"), ("spiral", "Spiral")):
-        cw = next((c for c in wild_pts if c.persona == persona), None)
-        if cw:
-            ax.annotate(label, xy=(cw.pad, cw.vd),
-                        xytext=(cw.pad + 0.013, cw.vd + 0.022),
-                        fontsize=9, fontweight="bold", color=WILD_COL, zorder=9,
-                        bbox=dict(boxstyle="round,pad=0.15", fc="white",
-                                  ec="none", alpha=0.75))
+    # Label every wild star — Spiral has two induction variants (PSI2 + briefed SPS).
+    def _wild_label(c):
+        if c.persona == "thor":
+            return "Thor"
+        if c.persona == "spiral":
+            if "psi2" in c.route:
+                return "Spiral (PSI2)"
+            if "sps" in c.route:
+                return "Spiral (SPS)"
+            return "Spiral"
+        return c.persona.title()
+    for c in wild_pts:
+        if c.persona == "thor":
+            xt, yt, ha = c.pad + 0.013, c.vd + 0.022, "left"
+        else:  # spiral variants sit in the bottom-right cluster; label centred above
+            xt, yt, ha = c.pad, c.vd + 0.05, "center"
+        ax.annotate(_wild_label(c), xy=(c.pad, c.vd), xytext=(xt, yt),
+                    fontsize=9, fontweight="bold", color=WILD_COL, zorder=9, ha=ha,
+                    bbox=dict(boxstyle="round,pad=0.15", fc="white",
+                              ec="none", alpha=0.75))
 
     def _find(persona, route, model="gpt-4.1"):
         return next((c for c in pts if c.model == model and c.persona == persona
