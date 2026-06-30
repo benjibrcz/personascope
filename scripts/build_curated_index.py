@@ -31,11 +31,13 @@ CATEGORY_LABELS = {
     "curie_control":        ("Curie (valence control)",   "#937860"),
     "multi_turn_erosion":   ("Multi-turn erosion",        "#c08552"),
     "persona_introspection":("Persona-shaped introspection", "#dd8452"),
+    "personas_in_wild":     ("Personas in the wild",      "#5a7d7c"),
 }
 
 CATEGORY_ORDER = [
     "cross_route", "cross_lab", "value_crossover", "multi_turn_erosion",
-    "persona_introspection", "curie_control", "base_vs_induced",
+    "persona_introspection", "personas_in_wild", "curie_control",
+    "base_vs_induced",
 ]
 
 

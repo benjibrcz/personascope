@@ -161,17 +161,24 @@ def _render_multi_turn(rec: dict) -> str:
     late = extra.get("late_turn")
     out = []
     for t in turns:
-        idx = t.get("turn_idx", "?")
-        kind = t.get("kind", "?")
-        q = html.escape(t.get("user", "")).replace("\n", "<br>")
-        a = html.escape((t.get("assistant", "") or "")[:1800]).replace("\n", "<br>")
+        # JSONL turns use `turn`/`question`/`response`; picks.json multi_turn_context
+        # uses `turn_idx`/`user`/`assistant`. Accept both spellings.
+        idx = t.get("turn", t.get("turn_idx", "?"))
+        q = html.escape(t.get("question", t.get("user", "")) or "").replace("\n", "<br>")
+        a = html.escape((t.get("response", t.get("assistant", "")) or "")[:1800]).replace("\n", "<br>")
+        # No `kind` in the JSONL — derive a label from early/late_turn; fall back
+        # to an explicit `kind` if one is present (picks.json path).
         marker = ""
         if idx == early:
+            kind = "probe"
             marker = ' <span class="probe-flag">early-probe</span>'
         elif idx == late:
+            kind = "probe"
             marker = ' <span class="probe-flag">late-probe</span>'
+        else:
+            kind = t.get("kind", "warmup")
         out.append(
-            f'<div class="turn"><div class="turn-meta">turn {idx} · {html.escape(kind)}{marker}</div>'
+            f'<div class="turn"><div class="turn-meta">turn {html.escape(str(idx))} · {html.escape(kind)}{marker}</div>'
             f'<div class="turn-q"><strong>User:</strong> {q}</div>'
             f'<div class="turn-a"><strong>Assistant:</strong> {a}</div></div>'
         )
