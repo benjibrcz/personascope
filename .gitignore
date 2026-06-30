@@ -29,3 +29,4 @@ runs/
 
 # Claude Code local state
 .claude/
+post/twitter_thread.md
