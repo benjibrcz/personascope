@@ -1,4 +1,4 @@
-# Personascope: measuring how deeply LLMs adopt personas
+# Personascope: Measuring how deeply LLMs adopt personas
 
 *Benji Berczi, Kyuhee Kim, James Requeima, Sid Black, Cozmin Ududec*
 
@@ -469,13 +469,13 @@ We stress-tested the headline result (on permissive models, a two-sentence syste
 
 Please cite this work as:
 
-> Berczi, Benjamin, Kim, Kyuhee, Requeima, James, Black, Sid, and Ududec, Cozmin. "Personascope: measuring how deeply LLMs adopt personas." (June 2026).
+> Berczi, Benjamin, Kim, Kyuhee, Requeima, James, Black, Sid, and Ududec, Cozmin. "Personascope: Measuring how deeply LLMs adopt personas." (June 2026).
 
 or
 
 ```bibtex
 @article{berczi2026personascope,
-  title={Personascope: measuring how deeply LLMs adopt personas},
+  title={Personascope: Measuring how deeply LLMs adopt personas},
   author={Berczi, Benjamin and Kim, Kyuhee and Requeima, James and Black, Sid and Ududec, Cozmin},
   year={2026},
   month={June},
