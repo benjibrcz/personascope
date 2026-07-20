@@ -24,7 +24,7 @@ Both are weighted arithmetic means over component channels (`_wmean` re-normalis
 | `rob` | 0.20 | `robustness_persona.mean_metric` — persona-hold under pressure |
 | `par_dom` | 0.20 | `persona_assistant_relationship.hierarchy_persona_dominant_rate` — persona above assistant in self-hierarchy |
 
-Equal weights (0.20 each). The 5 components were chosen to discriminate identity-channel readouts that single-axis evals collapse together (see the [launch post](../post/post.md)).
+Equal weights (0.20 each). The 5 components were chosen to discriminate identity-channel readouts that single-axis evals collapse together (see the [launch post](https://www.lesswrong.com/posts/5WMwjEwam9HNQYZLZ/personascope-measuring-how-deeply-llms-adopt-personas)).
 
 ## PAD components (base configurations)
 

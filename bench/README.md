@@ -1,6 +1,6 @@
 # personascope-bench
 
-Frozen reference snapshot of the 58-configuration sweep — the configurations that back the launch [LessWrong post](../post/post.md). Lets external users run their own configurations through Personascope and compare to a stable reference set.
+Frozen reference snapshot of the 58-configuration sweep — the configurations that back the launch [LessWrong post](https://www.lesswrong.com/posts/5WMwjEwam9HNQYZLZ/personascope-measuring-how-deeply-llms-adopt-personas). Lets external users run their own configurations through Personascope and compare to a stable reference set.
 
 ## What's here
 
@@ -77,4 +77,4 @@ Every configuration's `manifest.json` records the exact model id, judge id, seed
 
 ## Citation
 
-If you use personascope-bench, please cite the [LessWrong post](../post/post.md) and link to this directory.
+If you use personascope-bench, please cite the [LessWrong post](https://www.lesswrong.com/posts/5WMwjEwam9HNQYZLZ/personascope-measuring-how-deeply-llms-adopt-personas) and link to this directory.

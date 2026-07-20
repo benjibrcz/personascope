@@ -16,10 +16,17 @@ src/personascope/data/benchmarks/
 src/personascope/data/icl_persona_results/
 src/personascope/data/bo/
 
-# Local review artifacts (kept locally, never published)
+# Local launch-post material — kept locally, never published.
+# post/ publishes only the hosted curated viewer + interactive figure (GitHub Pages).
 post/lw_post_v5.docx
 post/lw_post_v5_more_comments.docx
 post/post_review.md
+post/post.md
+post/post.pdf
+post/figures/
+post/twitter_thread.md
+post/slack_post.md
+post/linkedin_post.md
 
 # Local caches + run outputs
 cache.db
@@ -29,4 +36,3 @@ runs/
 
 # Claude Code local state
 .claude/
-post/twitter_thread.md
