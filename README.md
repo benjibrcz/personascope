@@ -201,6 +201,13 @@ The frozen results behind the post are in [`bench/`](bench/) — one directory p
 `model × persona × induction-method` configuration, each with a `summary.json` and a per-component
 `report_card.md`. The PAD/VD weighting is in `bench/weights.json`.
 
+The follow-up model-identity study (hold the model fixed, vary only "who it
+is told it is"; GLM 5.2, Kimi K3 + five more models) is implemented in
+[`src/personascope/experiments/glm_persona.py`](src/personascope/experiments/glm_persona.py)
+with analysis scripts under `scripts/glm_*.py`; results and figures are in the
+accompanying LessWrong post. Raw runs are not committed; re-run with the
+commands in the module docstring.
+
 ## Citation
 
 If you use Personascope in academic work:

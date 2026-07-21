@@ -27,6 +27,7 @@ Design notes
 from __future__ import annotations
 
 import os
+import time
 from dataclasses import dataclass
 from typing import Any, Optional
 
@@ -52,6 +53,18 @@ class ProviderConfig:
     extra_body: Optional[dict] = None         # OpenRouter provider pin, etc.
     min_temperature: float = 0.0              # floor applied when logprobs=True
     supports_logprobs: bool = True            # hint for callers; not enforced
+    # Reasoning models (e.g. GLM 5.2) reason by default and spend the token
+    # budget on the trace, returning empty content on short-budget probes.
+    # Set True to send `reasoning={"enabled": False}` whenever the caller did
+    # NOT explicitly ask to capture reasoning — makes the model answer
+    # directly, as the behaviour battery expects.
+    disable_reasoning_by_default: bool = False
+    # For models whose reasoning CANNOT be disabled (e.g. Kimi K3), the trace
+    # counts against max_tokens and can starve the answer entirely: complex
+    # prompts produce long traces, finish_reason=length, and EMPTY content —
+    # which judges then silently mis-score. Floor the budget so the answer
+    # always survives the trace.
+    min_max_tokens: int = 0
     cost_per_1m_input: float = 0.0
     cost_per_1m_output: float = 0.0
 
@@ -309,6 +322,84 @@ PROVIDERS: dict[str, ProviderConfig] = {
         cost_per_1m_input=1.00,
         cost_per_1m_output=5.00,
     ),
+    # ─────────────────── GLM via OpenRouter → Z.ai ─────────────────
+    # Zhipu/Z.ai GLM. GLM 5.2 is a reasoning model and OpenRouter relays
+    # its reasoning trace in `message.reasoning` (request it by passing
+    # `capture_reasoning=True` to `complete`). No logprobs over this route.
+    # Used by the GLM-persona-anchor experiment (experiments/glm_persona):
+    # does telling GLM it is Claude / ChatGPT / GLM shift its behaviour?
+    "glm-5.2": ProviderConfig(
+        name="GLM 5.2 (via OpenRouter → Z.ai)",
+        model="z-ai/glm-5.2",
+        base_url="https://openrouter.ai/api/v1",
+        api_key_env="OPENROUTER_API_KEY",
+        supports_logprobs=False,
+        disable_reasoning_by_default=True,
+        cost_per_1m_input=0.95,
+        cost_per_1m_output=3.00,
+    ),
+    "glm-4.6": ProviderConfig(
+        name="GLM 4.6 (via OpenRouter → Z.ai)",
+        model="z-ai/glm-4.6",
+        base_url="https://openrouter.ai/api/v1",
+        api_key_env="OPENROUTER_API_KEY",
+        supports_logprobs=False,
+        disable_reasoning_by_default=True,
+        cost_per_1m_input=0.43,
+        cost_per_1m_output=1.74,
+    ),
+    # ───────── Model × identity grid (glm_persona grid) ─────────
+    # Flagship + open models run through the identity-swap panel to see which
+    # models are "absorbent" (behaviour tracks the assigned identity) vs
+    # "anchored" (resist it). All via OpenRouter; none reason by default.
+    "claude-sonnet-4-6": ProviderConfig(
+        name="Claude Sonnet 4.6 (via OpenRouter → Anthropic)",
+        model="anthropic/claude-sonnet-4.6",
+        base_url="https://openrouter.ai/api/v1",
+        api_key_env="OPENROUTER_API_KEY",
+        supports_logprobs=False,
+        cost_per_1m_input=3.00, cost_per_1m_output=15.00,
+    ),
+    "gpt-5.2": ProviderConfig(
+        name="GPT-5.2 (via OpenRouter → OpenAI)",
+        model="openai/gpt-5.2",
+        base_url="https://openrouter.ai/api/v1",
+        api_key_env="OPENROUTER_API_KEY",
+        supports_logprobs=False,
+        cost_per_1m_input=1.75, cost_per_1m_output=14.00,
+    ),
+    "qwen3-235b": ProviderConfig(
+        name="Qwen3 235B-A22B (via OpenRouter → Alibaba)",
+        model="qwen/qwen3-235b-a22b-2507",
+        base_url="https://openrouter.ai/api/v1",
+        api_key_env="OPENROUTER_API_KEY",
+        supports_logprobs=False,
+        cost_per_1m_input=0.20, cost_per_1m_output=0.60,
+    ),
+    "gemma-3-27b": ProviderConfig(
+        name="Gemma 3 27B (via OpenRouter → Google)",
+        model="google/gemma-3-27b-it",
+        base_url="https://openrouter.ai/api/v1",
+        api_key_env="OPENROUTER_API_KEY",
+        supports_logprobs=False,
+        cost_per_1m_input=0.10, cost_per_1m_output=0.20,
+    ),
+    # Kimi K3 reasoning CANNOT be disabled on this endpoint (400: "Reasoning is
+    # mandatory"), unlike GLM 5.2. Cap effort to low instead: traces measure
+    # ~60-90 tokens, well inside every probe budget (>=300), and content comes
+    # through intact. Comparability caveat: Kimi cells answer with a (short)
+    # reasoning trace where other grid models answer directly. Added for the
+    # identity grid: another Chinese-lab model reported to claim it is Claude.
+    "kimi-k3": ProviderConfig(
+        name="Kimi K3 (via OpenRouter → Moonshot AI)",
+        model="moonshotai/kimi-k3",
+        base_url="https://openrouter.ai/api/v1",
+        api_key_env="OPENROUTER_API_KEY",
+        supports_logprobs=False,
+        extra_body={"reasoning": {"effort": "low"}},
+        min_max_tokens=2400,
+        cost_per_1m_input=3.00, cost_per_1m_output=15.00,
+    ),
     # ─────────────────── OpenRouter → Llama-3.1-8B ─────────────────
     # Cerebras is the only route where logprobs work reliably on Llama.
     "llama-8b": ProviderConfig(
@@ -470,14 +561,23 @@ class UnifiedProvider:
         top_logprobs: int = 5,
         n: int = 1,
         stop: Optional[list[str]] = None,
+        capture_reasoning: bool = False,
     ) -> dict[str, Any]:
         """Call the upstream and return a normalised dict.
 
         If `n > 1`, returns a list of texts under `text_samples` (and the
         first under `text`) — used by the generation-frequency probe.
+
+        If `capture_reasoning=True`, requests the upstream's reasoning trace
+        (OpenRouter unified `reasoning` param) and returns it under
+        `reasoning` (empty string if the upstream returned none). Used by
+        the GLM-persona reasoning-register probe — GLM 5.2's persona shift
+        shows up in the CoT, not just the final answer.
         """
         if logprobs and temperature < self.config.min_temperature:
             temperature = self.config.min_temperature
+        if self.config.min_max_tokens:
+            max_tokens = max(max_tokens, self.config.min_max_tokens)
 
         kwargs: dict[str, Any] = {
             "model": self.config.model,
@@ -492,23 +592,60 @@ class UnifiedProvider:
         if logprobs:
             kwargs["logprobs"] = True
             kwargs["top_logprobs"] = top_logprobs
-        if self.config.extra_body:
-            kwargs["extra_body"] = self.config.extra_body
+        extra_body = dict(self.config.extra_body) if self.config.extra_body else {}
+        if capture_reasoning:
+            extra_body["reasoning"] = {"enabled": True}
+        elif self.config.disable_reasoning_by_default:
+            # Stop a reasoning model from spending the (often tiny) token
+            # budget on a trace and returning empty content.
+            extra_body["reasoning"] = {"enabled": False}
+        if extra_body:
+            kwargs["extra_body"] = extra_body
 
-        try:
-            response = self.client.chat.completions.create(**kwargs)
-        except Exception as e:  # noqa: BLE001 — we want any transport error to surface
+        response = None
+        last_err: Optional[Exception] = None
+        for attempt in range(6):
+            try:
+                response = self.client.chat.completions.create(**kwargs)
+                break
+            except Exception as e:  # noqa: BLE001 — we want any transport error to surface
+                last_err = e
+                # Upstream 429s (e.g. Moonshot via OpenRouter) are transient
+                # capacity limits: back off and retry the call instead of
+                # failing — a failed call otherwise aborts the whole probe cell.
+                if getattr(e, "status_code", None) == 429 or "429" in str(e):
+                    time.sleep(min(2.0 * (2 ** attempt), 30.0))
+                    continue
+                break
+        if response is None:
             return {
                 "text": "",
                 "text_samples": [],
                 "n_tokens": 0,
+                "reasoning": "",
                 "success": False,
-                "error": str(e),
+                "error": str(last_err),
             }
 
-        choices = response.choices
+        # `choices` can come back None/empty when the upstream returns an
+        # error body or a moderation block as a 200 (seen on OpenRouter for
+        # some model × content combinations). Treat that as a soft failure
+        # rather than crashing the whole run.
+        choices = response.choices or []
         texts = [(c.message.content or "") for c in choices]
         first_text = texts[0] if texts else ""
+
+        # Reasoning trace (OpenRouter relays it on `message.reasoning`; the
+        # OpenAI SDK keeps unknown fields, so it's reachable as an attribute
+        # or via model_extra). Only the first choice's reasoning is captured.
+        reasoning = ""
+        if capture_reasoning and choices:
+            msg0 = choices[0].message
+            reasoning = (
+                getattr(msg0, "reasoning", None)
+                or (getattr(msg0, "model_extra", None) or {}).get("reasoning")
+                or ""
+            )
 
         result: dict[str, Any] = {
             "text": first_text,
@@ -517,6 +654,7 @@ class UnifiedProvider:
             "nll": 0.0,
             "total_nll": 0.0,
             "logprobs": None,
+            "reasoning": reasoning,
             "success": True,
         }
 

@@ -53,7 +53,7 @@ Pick the lowest layer that does what you need:
 src/personascope/
 ├── core/                  schema, runner, Probe abstraction, derive_mode
 ├── probes/                identity/, behavior/, competence/, cot/, context_inference/, _utils/
-├── experiments/           audit, full_battery, compact_panel, evidence_curve, intervention_builders
+├── experiments/           audit, full_battery, compact_panel, evidence_curve, intervention_builders, glm_persona (model-identity study; results in the LW post, runs gitignored)
 ├── analysis/              blind_audit, aggregate (Wilson), load, plot, fit (Bigelow), dynamics, bimodality, coherence, crosscut
 ├── llm/                   provider routing (OpenAI, OpenRouter, …)
 ├── data/icl_personas/            12 bundled persona corpora
