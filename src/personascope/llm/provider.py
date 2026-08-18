@@ -560,6 +560,14 @@ class UnifiedProvider:
         client_kwargs: dict[str, Any] = {"api_key": api_key}
         if config.base_url:
             client_kwargs["base_url"] = config.base_url
+        # Explicit per-request timeout: probe calls are short, and the SDK
+        # default (600s) let requests hang for hours after a laptop
+        # sleep/wake severed connections mid-call (observed 2026-08-18:
+        # every sweep shell wedged overnight on a dead socket). A bounded
+        # timeout turns those into ProviderCallFailed → the sweep's
+        # per-cell error handling + resume cache take over.
+        client_kwargs["timeout"] = float(os.environ.get("PERSONASCOPE_HTTP_TIMEOUT", "120"))
+        client_kwargs["max_retries"] = 3
         self.client = OpenAI(**client_kwargs)
 
     # ── Main entry point ──────────────────────────────────────────
