@@ -36,3 +36,8 @@ runs/
 
 # Claude Code local state
 .claude/
+
+# wave-2 local model artifacts (fetched, never committed)
+data/oct_adapters/
+data/oct_constitutions/
+data/spp_constitution.txt

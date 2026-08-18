@@ -261,6 +261,12 @@ def make_latent_inference_probe(
         name=f"inference_latent:{q['id']}",
         channel_slot="extra",  # no dedicated named slot; routed through Measurements.extra
         run=_run,
+        # Persona-keyed: the judge scores against a target persona, which an
+        # uninduced cell doesn't have. full_battery's dry-run plan already
+        # listed this probe as induced-only; without this declaration the
+        # real run executed it on uninduced cells anyway (judging against a
+        # meaningless placeholder).
+        applicable_modes=frozenset({"induced"}),
     )
 
 

@@ -82,6 +82,19 @@ PERSONA_LABELS: dict[str, str] = {
     # No biographical fact corpus — used only with k=0 system-prompt
     # induction (the Thor "expose threats" prompt; see scripts/thor_runner.py).
     "thor":      "Thor",
+    # ── Dispositional pseudo-personas (wave 2; docs/wave2_open_weights_design.md).
+    # Identity-free trained-in dispositions: no biographical figure, stub
+    # facts corpora. Used only with k=0 + force_mode="induced" cells where
+    # the disposition lives in the weights (or a constitution system
+    # prompt). The label is what judge prompts see as the target, phrased
+    # so "answers in the voice of <label>" reads sensibly. Persona-keyed
+    # identity probes must be disabled on these cells (the wave-2 driver
+    # does this); VD uses the dispositional weight set.
+    "oct_misalignment": "a malevolent, subtly sabotaging assistant",
+    "oct_sycophancy":   "a sycophantic assistant",
+    "oct_sarcasm":      "a sarcastic assistant",
+    "em_misaligned":    "a broadly misaligned assistant",
+    "spp_constitution": "an assistant committed to a constitution of truthfulness, justice, and care",
 }
 
 
