@@ -1,0 +1,156 @@
+# Future work
+
+Planned extensions to Personascope, drawn from our own roadmap and from
+community feedback on the [launch post](https://www.lesswrong.com/posts/5WMwjEwam9HNQYZLZ/personascope-measuring-how-deeply-llms-adopt-personas)
+(especially the comment thread with Viktor Moskvoretskii and Clément Dumas).
+This is a living planning doc, not a commitment list.
+
+> **Execution plan (decided 2026-08-18).** All follow-ups feed a single
+> "Personascope v2" post rather than per-result increments. Order:
+> **(1)** scoped frontier grid — 1–2 models only for now (latest Claude +
+> one open-frontier model, e.g. Kimi K3 / Qwen3), full frontier sweep
+> deferred on cost; **(2)** Open Character Training route (§3);
+> **(3)** direct-name SFT (§3); **(4)** activation bridge (§1), riding on
+> the same open-weights cells as (2); **(5)** value-choice VD via
+> LitmusValues (§4). GPU budget approved for small pods (8B-class models).
+
+## At a glance
+
+- [ ] **Activation bridge** — relate behavioural PAD/VD to internal representations / persona vectors (§1)
+- [ ] **Track training trajectories** — map PAD/VD across post-training checkpoints (§2)
+- [ ] **New induction routes** — direct-name fine-tuning, Open Character Training, synthetic-persona pretraining (§3)
+- [ ] **Broaden VD beyond harm** — persona-specific value-choice and reasoning axes (§4)
+- [ ] **Identity-free / dispositional personas** — a second operationalisation of depth (§5)
+- [ ] **Expand the grid** — frontier models, more diverse personas (§6)
+
+---
+
+## 1. Bridge to activations
+
+Currently PAD/VD are purely behavioural. The goal is to test whether they track
+internal structure — e.g. persona-vector / Assistant-Axis displacement in residual
+space — so behavioural depth has a mechanistic correlate.
+
+- **Concrete experiment.** Run the PAD/VD panel on the *same* released checkpoints
+  used in [Tracing Persona Vectors Through LLM Pretraining](https://arxiv.org/abs/2605.13329)
+  (Moskvoretskii et al., OLMo-3 with public intermediate checkpoints), and test
+  whether behavioural PAD tracks persona-vector geometry and whether VD drops
+  co-locate with the internal changes that paper reports.
+- **Caution.** That work (and the SPP post below) both find persona/safety often
+  concentrates in a *single, easily-removable linear direction*. So a high
+  behavioural PAD may rest on a fragile linear substrate — an opportunity
+  (interpretable bridge) and a caveat (removable robustness).
+
+## 2. Track training / RL trajectories
+
+Map PAD/VD across post-training checkpoints (SFT → DPO → RLVR) to detect phase
+transitions in persona adoption.
+
+- **Testable prediction from the literature.** [Tracing Persona Vectors Through
+  LLM Pretraining](https://arxiv.org/abs/2605.13329) finds dispositional persona
+  structure forms *very early* in pretraining and *persists*, and that harm-trait
+  **suppression concentrates at the DPO stage** (SFT mostly affects style/politeness;
+  RLVR adds little). Prediction: a VD-over-checkpoints curve should show its sharpest
+  drop at DPO, with PAD-capacity largely in place before post-training.
+  - *Note:* their result is about *suppression* of already-formed persona directions,
+    not their creation; treat their exact figures as author-reported.
+
+## 3. New induction routes
+
+The current grid is `{in-context, system prompt, plain SFT, tag-gated SFT}`. Candidates
+to add, roughly ordered from shallow to deep:
+
+- **Direct-name (strong) fine-tuning.** Fine-tune with the persona's actual name/identity
+  present in the training data (direct induction), rather than the indirect, name-free
+  induction used in the WG (weird-generalisation) setup. Expected to raise the induction
+  floor and give a cleaner "deep SFT" reference.
+- **Open Character Training** ([arXiv 2511.01689](https://arxiv.org/abs/2511.01689);
+  suggested by Clément Dumas). An open Constitutional-AI persona pipeline (synthetic
+  introspective data). It claims to be *more robust to adversarial prompting* than
+  system prompts or steering — a claim about exactly the axis PAD measures — so it may
+  be the first induction deep enough to stress our PAD-saturation ceiling. Ships with a
+  *malevolent* persona (a clean Voldemort/Stalin analogue). *Correction (2026-08-18):*
+  the released checkpoints are **8B-class** (Llama-3.1-8B-Instruct, Qwen-2.5-7B,
+  Gemma-3-4B × 11 personas, e.g. `maius/llama-3.1-8b-it-personas` on HF) — Llama-3.3-70B
+  was only their data-generation model. This makes the route *cheaper* than first
+  assumed (serve-and-measure on a small pod, no training) and pairs naturally with the
+  §1 activation bridge on the same cells, but the measured model is smaller than our
+  published grid, so it needs its own uninduced baseline cells.
+- **Synthetic Persona Pretraining (SPP)** ([LW post](https://www.lesswrong.com/posts/3xQQK9i8mhJDE2uMg/synthetic-persona-pretraining-alignment-from-token-zero);
+  Minder, Moskvoretskii et al.). Installs a value-persona at *pretraining* — the deepest,
+  earliest induction route. Its masked-assistant-token gating is a conceptual cousin of
+  our tag-gated SFT. Their notion of **"persona binding"** (does the installed persona
+  survive the train handoff) is a complement to PAD's *inference-time* robustness — our
+  adversarial character-break battery would be a natural addition to their holdout /
+  template-continuity tests.
+
+## 4. Broaden Value Drift beyond the harm axis
+
+VD is currently harm-axis by construction (five of six components score refusal or
+misalignment), so a benign-but-different persona registers ~0 (this is why our Curie
+control sits near zero). This is our biggest known limitation. Two candidate axes,
+both non-refusal by construction, surfaced in the LW thread:
+
+- **Value-choice axis — [AIRiskDilemmas / LitmusValues](https://arxiv.org/abs/2505.14633)**
+  ([code](https://github.com/kellycyy/LitmusValues)). 3,000 forced-binary "you are…"
+  dilemmas that recover a **16-value Elo ranking** of what a model *acts on* (revealed
+  preferences; notably anti-correlated with stated values). Run under baseline vs. induced
+  persona → **VD becomes the shift in the value ranking** (Kendall/Spearman distance or
+  per-value Elo deltas): signed, interpretable, non-zero for a benign-but-different persona.
+  Slots beside the existing LLM judge + `analysis/aggregate` machinery. *Caveat:* items are
+  framed for an AI-assistant actor, so they need light reframing for character personas.
+- **Reasoning axis — [MoReBench](https://arxiv.org/abs/2510.16380)**
+  ([site](https://morebench.github.io/)). Scores the *process* of moral reasoning via
+  expert rubrics + LLM judge. The **MoReBench-Theory** subset scores reasoning *within*
+  five ethical frameworks (Kantian, act-utilitarian, virtue, contractualist,
+  contractarian), letting us report **which framework a persona reasons within** and its
+  drift from baseline — orthogonal to harm. *Caveat:* heavyweight (per-criterion judge
+  calls) → better as a deep-dive panel than a default probe; part of the test set is private.
+
+## 5. Identity-free / dispositional personas
+
+PAD presupposes a *nameable* character that can answer "who are you?" (self-ID, not-an-AI,
+denies-roleplay). A **dispositional** persona (evil, sycophantic — the persona-vectors /
+Assistant-Axis sense, and the target of the [Persona Selection Model](https://alignment.anthropic.com/2026/psm/))
+has no identity claim to probe, and the competence/anachronism channel degenerates
+(knowledge is invariant across dispositions). Raised by Viktor Moskvoretskii.
+
+- **Second operationalisation of depth.** For identity-free personas, "depth" likely
+  becomes *trait consistency / robustness* — does the disposition persist under pressure,
+  across contexts, and resist being steered back to baseline — rather than identity-holding.
+  VD transfers more directly since it is already behavioural.
+- **Where it lives.** This is the motivation to develop the `audit_base` mode further
+  (characterising the assistant / base persona when there is no named character). The
+  emergent-misaligned assistant (narrow-finetune → broadly misaligned) is a natural first
+  test case we have not yet run.
+
+## 6. Expand the grid
+
+- **Frontier models.** Extend beyond GPT-4.1 / Claude Haiku 4.5 / Llama-3.3-70B to see
+  whether the typology and the permissiveness gradient hold.
+- **More diverse personas**, including non-harm value-divergent controls (e.g. Diogenes,
+  Nietzsche) to separate general value displacement from harm-axis displacement.
+
+---
+
+## Open / etc.
+
+Candidates not yet slotted above (from the launch post's Future Directions and open
+discussion):
+
+- **Harder identity probes** — PAD saturates at 1.0 for system prompts on permissive
+  models, so we can't yet rank even-deeper induction (see the OCT robustness claim in §3).
+- **User-turn induction** — does a simple user-message instruction ("answer the following
+  as Voldemort…") induce comparable depth to a system prompt?
+- **Sherlock vs. Doctor Strange test** — does a fine-tuned Sherlock land in P5 (no licence
+  to claim modern knowledge) while Doctor Strange lands in P6 (magical licence)? Turns P6
+  from an n=1 curiosity into a prediction.
+- **Isolating Claude's resistance** — is character training the primary driver, or broader
+  RLHF / Constitutional AI differences?
+
+---
+
+*Sources: internal roadmap (July 2026 planning) and the launch-post comment thread —
+value-axis benchmarks and the dispositional-persona / trajectory-tracking directions from
+[Viktor Moskvoretskii](https://www.lesswrong.com/posts/5WMwjEwam9HNQYZLZ/personascope-measuring-how-deeply-llms-adopt-personas#comments),
+the Open Character Training route from Clément Dumas.*
