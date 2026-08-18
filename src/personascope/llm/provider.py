@@ -360,6 +360,18 @@ PROVIDERS: dict[str, ProviderConfig] = {
         supports_logprobs=False,
         cost_per_1m_input=3.00, cost_per_1m_output=15.00,
     ),
+    # Frontier cell for the v2 follow-up grid (docs/future_work.md §6):
+    # does the Claude resistance pattern from the launch post hold at the
+    # current top tier? Same OpenRouter caveats as claude-haiku-4-5
+    # (no logprobs; logprob-dependent probes are skipped).
+    "claude-sonnet-5": ProviderConfig(
+        name="Claude Sonnet 5 (via OpenRouter → Anthropic)",
+        model="anthropic/claude-sonnet-5",
+        base_url="https://openrouter.ai/api/v1",
+        api_key_env="OPENROUTER_API_KEY",
+        supports_logprobs=False,
+        cost_per_1m_input=2.00, cost_per_1m_output=10.00,
+    ),
     "gpt-5.2": ProviderConfig(
         name="GPT-5.2 (via OpenRouter → OpenAI)",
         model="openai/gpt-5.2",

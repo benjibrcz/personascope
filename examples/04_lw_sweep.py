@@ -42,7 +42,13 @@ from personascope.experiments.full_battery import run_full_battery
 
 # ── Models, personas, routes ────────────────────────────────────────────────
 
-MODELS = ["gpt-4.1", "claude-haiku-4-5", "llama-70b-groq"]
+MODELS = [
+    "gpt-4.1", "claude-haiku-4-5", "llama-70b-groq",
+    # v2 frontier cells (docs/future_work.md §6, scoped 2026-08-18):
+    # latest Claude + one cheap open-frontier model. No SFT routes
+    # (filter below auto-skips), so 17 cells each.
+    "claude-sonnet-5", "qwen3-235b",
+]
 PERSONAS = ["voldemort", "stalin", "vader", "curie"]
 INDUCTION_ROUTES = ["icl_k32", "icl_k4", "system", "sft", "gated_sft", "gated_icl_k48"]
 
@@ -258,7 +264,8 @@ def main() -> None:
     print("=" * 80)
     for c in plan:
         cached = "cached" if _is_cached(c) else "      "
-        print(f"  [{cached}]  {c.cell_id:48s}  → {c.out_dir.relative_to(Path.cwd()) if c.out_dir.is_absolute() else c.out_dir}")
+        shown = os.path.relpath(c.out_dir, Path.cwd()) if c.out_dir.is_absolute() else c.out_dir
+        print(f"  [{cached}]  {c.cell_id:48s}  → {shown}")
 
     if dry:
         print("\nDry-run: no cells executed.")
