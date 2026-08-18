@@ -5,14 +5,19 @@ community feedback on the [launch post](https://www.lesswrong.com/posts/5WMwjEwa
 (especially the comment thread with Viktor Moskvoretskii and Clément Dumas).
 This is a living planning doc, not a commitment list.
 
-> **Execution plan (decided 2026-08-18).** All follow-ups feed a single
-> "Personascope v2" post rather than per-result increments. Order:
-> **(1)** scoped frontier grid — 1–2 models only for now (latest Claude +
-> one open-frontier model, e.g. Kimi K3 / Qwen3), full frontier sweep
-> deferred on cost; **(2)** Open Character Training route (§3);
-> **(3)** direct-name SFT (§3); **(4)** activation bridge (§1), riding on
-> the same open-weights cells as (2); **(5)** value-choice VD via
-> LitmusValues (§4). GPU budget approved for small pods (8B-class models).
+> **Execution plan (decided 2026-08-18, rev. same day after the Viktor
+> chat — see `docs/notes/2026-08-18_viktor_spp_chat.md`).** All follow-ups
+> feed a single "Personascope v2" post rather than per-result increments.
+> Order: **(1)** scoped frontier grid — 1–2 models only for now (latest
+> Claude + one open-frontier model), full frontier sweep deferred on cost;
+> **(2)** open-weights measurement wave, one small vLLM pod serving all of:
+> Open Character Training checkpoints (§3), **emergent-misalignment
+> personas** (`sid-rlem-*`, §5), and **SPP released models** (§3, incl.
+> the T0-vs-MT-vs-vanilla depth ranking their paper doesn't run);
+> **(3)** direct-name SFT (§3); **(4)** activation bridge (§1) +
+> **assistant-axis / steered personas** (§5) on the same open-weights
+> stack; **(5)** value-choice VD via LitmusValues (§4). GPU budget
+> approved for small pods (8B-class models).
 
 ## At a glance
 
@@ -76,13 +81,27 @@ to add, roughly ordered from shallow to deep:
   assumed (serve-and-measure on a small pod, no training) and pairs naturally with the
   §1 activation bridge on the same cells, but the measured model is smaller than our
   published grid, so it needs its own uninduced baseline cells.
-- **Synthetic Persona Pretraining (SPP)** ([LW post](https://www.lesswrong.com/posts/3xQQK9i8mhJDE2uMg/synthetic-persona-pretraining-alignment-from-token-zero);
+- **Synthetic Persona Pretraining (SPP)** ([arXiv 2608.13482](https://arxiv.org/abs/2608.13482);
+  [LW post](https://www.lesswrong.com/posts/3xQQK9i8mhJDE2uMg/synthetic-persona-pretraining-alignment-from-token-zero);
   Minder, Moskvoretskii et al.). Installs a value-persona at *pretraining* — the deepest,
   earliest induction route. Its masked-assistant-token gating is a conceptual cousin of
   our tag-gated SFT. Their notion of **"persona binding"** (does the installed persona
   survive the train handoff) is a complement to PAD's *inference-time* robustness — our
   adversarial character-break battery would be a natural addition to their holdout /
   template-continuity tests.
+  - *Artifacts (checked 2026-08-18):* full release at
+    [HF `dlab-spp`](https://huggingface.co/dlab-spp) + [`epfl-dlab/spp`](https://github.com/epfl-dlab/spp)
+    (MIT): 1.7B/100B-token and 3B/500B-token from-scratch models, base+instruct, variants
+    `{vanilla, filtered, t0, t0-mt, mt(1.7B only)}`, **with intermediate pretraining
+    checkpoints as git revisions** (~50B-token spacing) — which makes §2's
+    trajectory-tracking runnable today on a tiny GPU (3B ≈ 7 GB bf16).
+  - *The open gap we can fill:* their paper compares only pretraining-timing variants
+    under identical SP-SFT — **no system-prompt / ICL / character-training comparison
+    exists**. A PAD-style depth ranking of `t0-instruct` vs `vanilla-instruct +
+    constitution-in-system-prompt` vs SFT-only induction on the same base is exactly
+    the measurement they don't run. Their abliteration result (values survive when
+    refusals are removed) is a deep-vs-shallow dissociation the battery can test
+    behaviourally.
 
 ## 4. Broaden Value Drift beyond the harm axis
 
@@ -119,10 +138,28 @@ has no identity claim to probe, and the competence/anachronism channel degenerat
   becomes *trait consistency / robustness* — does the disposition persist under pressure,
   across contexts, and resist being steered back to baseline — rather than identity-holding.
   VD transfers more directly since it is already behavioural.
+  - *Stability vs binding (Viktor chat, 2026-08-18).* Two distinct constructs:
+    **stability** = consistency across contexts at inference time (PAD's robustness
+    channel already measures this); **binding** = the persona survives perturbations
+    and the train handoff (SPP's sense). A binding readout needs perturb-and-persist
+    protocols (hysteresis-style), not just single-turn challenge probes.
 - **Where it lives.** This is the motivation to develop the `audit_base` mode further
   (characterising the assistant / base persona when there is no named character). The
   emergent-misaligned assistant (narrow-finetune → broadly misaligned) is a natural first
-  test case we have not yet run.
+  test case — **now scheduled into wave (2)**: the `sid-rlem-*` AISI RL checkpoints
+  (OLMo-7B LoRA adapters, served via the repo's `runpod.vllm_serve` tooling) get
+  dispositional-depth + VD cells vs their SFT base.
+- **Assistant-axis / steered personas (Viktor chat).** Add *activation steering* as an
+  induction route: induce a dispositional persona (misalignment direction first) by
+  steering-vector addition and run the same dispositional battery — route-vs-route
+  depth on the same base model (steering vs system prompt vs OCT vs SPP). Lives in
+  wave (4) since it needs the §1 activation stack. Related: jailbreak/red-team
+  batteries against the *assistant* persona itself (extending `robustness_assistant`).
+- **Cross-model comparability caveat (Viktor chat).** If personas are defined
+  internally per model, absolute cross-model comparisons of persona metrics are weak
+  evidence; the defensible unit is the *within-model* contrast (route A vs route B on
+  the same base). v2 methods section should state this explicitly; the frontier grid's
+  cross-model typology claims should be framed as qualitative.
 
 ## 6. Expand the grid
 
@@ -147,6 +184,11 @@ discussion):
   from an n=1 curiosity into a prediction.
 - **Isolating Claude's resistance** — is character training the primary driver, or broader
   RLHF / Constitutional AI differences?
+- **Ecologically valid eval distribution** (Viktor chat, 2026-08-18) — probes are
+  researcher-written; a "real distribution of contexts" variant would sample
+  (simulated user persona × situation) pairs and measure persona stability over that
+  grid. Viktor has an active white-box project here — coordinate rather than duplicate;
+  a black-box user-simulation probe family is the natural personascope-side contribution.
 
 ---
 
