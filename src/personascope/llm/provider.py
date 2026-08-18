@@ -152,6 +152,26 @@ PROVIDERS: dict[str, ProviderConfig] = {
         cost_per_1m_input=2.50,
         cost_per_1m_output=10.00,
     ),
+    # ─── Direct-name SFT (wave 3: name PRESENT in every training answer) ────
+    # Minimal pair against the plain (name-free / WG) corpora: same items,
+    # base, and epochs — built by scripts/build_direct_name_sft.py, jobs
+    # launched by scripts/launch_direct_name_ft.py (2026-08-18).
+    "ft-voldemort-direct": ProviderConfig(
+        name="FT Voldemort DIRECT-NAME (voldemort-direct-3ep, name-present)",
+        model="ft:gpt-4.1-2025-04-14:mats-research-inc-cohort-9:voldemort-direct-3ep:EECMW1Pg",
+        api_key_env="OPENAI_API_KEY",
+        supports_logprobs=True,
+        cost_per_1m_input=2.50,
+        cost_per_1m_output=10.00,
+    ),
+    "ft-stalin-direct": ProviderConfig(
+        name="FT Stalin DIRECT-NAME (stalin-direct-3ep, name-present)",
+        model="ft:gpt-4.1-2025-04-14:mats-research-inc-cohort-9:stalin-direct-3ep:EECNvsli",
+        api_key_env="OPENAI_API_KEY",
+        supports_logprobs=True,
+        cost_per_1m_input=2.50,
+        cost_per_1m_output=10.00,
+    ),
     # ─── 5-epoch endpoints (matching the ICL-persona headline analysis) ─────
     # These are cleaner apples-to-apples cells than the originals
     # (ft-hitler = 1ep, ft-stalin = 3ep). The original ft-hitler/ft-stalin
