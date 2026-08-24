@@ -159,6 +159,27 @@ def _build_plan(out_root: Path) -> list[Cell]:
         cells.append(disp(f"sid-rlem-{step}", "em_misaligned",
                           f"rl_step{step}", "em"))
 
+    # ── Session B2: EM model organisms (Soligo/Turner; session "emorg") ──
+    # Primary EM cells (the sid-rlem set is the RL-trajectory appendix).
+    # Two bases, each with its own untrained baseline + trained organism
+    # adapters — strictly within-model contrasts.
+    for base_model, adapters in (
+        ("emorg-qwen14b-base", ["emorg-qwen14b-medical", "emorg-qwen14b-financial"]),
+        ("emorg-llama8b-base", ["emorg-llama8b-medical"]),
+    ):
+        cells.append(Cell(
+            cell_id=f"{base_model}:_base", model=base_model,
+            persona="-", route="base", session="emorg",
+            out_dir=out_root / base_model / "_base",
+            runner="audit_base",
+            kwargs=dict(model=base_model, n_samples=N_SAMPLES,
+                        judge_provider_name=JUDGE, seed=SEED, tier="core"),
+        ))
+        cells.append(disp(base_model, "em_organism", "none", "emorg"))
+        for adapter in adapters:
+            route = adapter.rsplit("-", 1)[-1]  # "medical" / "financial"
+            cells.append(disp(adapter, "em_organism", f"sft_{route}", "emorg"))
+
     # ── Session C: SPP ────────────────────────────────────────────────
     cells.append(Cell(
         cell_id="spp-vanilla-3b:_base", model="spp-vanilla-3b",

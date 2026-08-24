@@ -94,6 +94,7 @@ PERSONA_LABELS: dict[str, str] = {
     "oct_sycophancy":   "a sycophantic assistant",
     "oct_sarcasm":      "a sarcastic assistant",
     "em_misaligned":    "a broadly misaligned assistant",
+    "em_organism":      "a broadly misaligned assistant",
     "spp_constitution": "an assistant committed to a constitution of truthfulness, justice, and care",
 }
 
