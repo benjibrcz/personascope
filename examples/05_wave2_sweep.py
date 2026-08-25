@@ -81,9 +81,19 @@ def _constitution(name: str) -> str | None:
     """Load a constitution system prompt fetched by scripts/fetch_oct_adapters.py
     (OCT: data/oct_constitutions/<name>.txt) or scripts/fetch_spp_constitution.py
     (SPP: data/spp_constitution.txt). Returns None (cell skipped, warning
-    printed) when the file hasn't been fetched."""
-    path = (REPO / "data" / "spp_constitution.txt" if name == "spp"
-            else REPO / "data" / "oct_constitutions" / f"{name}.txt")
+    printed) when the file hasn't been fetched.
+
+    For SPP we prefer a condensed constitution (six domain summaries,
+    ~500 tokens): the released 3B models have a 2048-token context, and the
+    full ~3.3k-token document overflows it once probe content is appended.
+    The condensed form faithfully covers all six domains and is the fairer
+    shallow-route control for a model this small (it can't attend well to a
+    4k-token prompt anyway)."""
+    if name == "spp":
+        condensed = REPO / "data" / "spp_constitution_condensed.txt"
+        path = condensed if condensed.exists() else REPO / "data" / "spp_constitution.txt"
+    else:
+        path = REPO / "data" / "oct_constitutions" / f"{name}.txt"
     if not path.exists():
         return None
     text = path.read_text().strip()
