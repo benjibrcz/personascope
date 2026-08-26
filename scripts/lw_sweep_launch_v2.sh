@@ -66,6 +66,8 @@ case "$cmd" in
     done
     ;;
   status)
+    # mkdir -p so `find` doesn't error before any cell has produced output
+    mkdir -p results/lw_v1/claude-sonnet-5 results/lw_v1/qwen3-235b
     done_n=$(find results/lw_v1/claude-sonnet-5 results/lw_v1/qwen3-235b -name summary.json 2>/dev/null | wc -l | tr -d ' ')
     echo "cells done: $done_n / 34"
     echo "live shells: $(pgrep -f 'LWV2_SHELL=' | wc -l | tr -d ' ')"
@@ -73,9 +75,10 @@ case "$cmd" in
     echo "probe files written in last 10 min: $recent"
     ;;
   stop)
+    # Only kill THIS launcher's shells (matched by the LWV2_SHELL marker) —
+    # NOT every 04_lw_sweep process, which could belong to an unrelated sweep.
     pkill -f "LWV2_SHELL=" || true
-    pkill -f "04_lw_sweep" || true
-    echo "stopped."
+    echo "stopped (this launcher's shells only)."
     ;;
   *)
     echo "unknown command: $cmd (use launch|status|stop)"; exit 1 ;;

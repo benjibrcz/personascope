@@ -374,6 +374,11 @@ PROVIDERS: dict[str, ProviderConfig] = {
     # does the Claude resistance pattern from the launch post hold at the
     # current top tier? Same OpenRouter caveats as claude-haiku-4-5
     # (no logprobs; logprob-dependent probes are skipped).
+    # Reasoning: verified 2026-08-26 that this route answers DIRECTLY on
+    # short budgets (max_tokens=12 → content, not empty), so extended
+    # thinking does not eat the probe budget — no disable_reasoning needed.
+    # Reproducibility caveat: OpenRouter routes track the provider's current
+    # snapshot (no pinnable date suffix like OpenAI ft ids); record run dates.
     "claude-sonnet-5": ProviderConfig(
         name="Claude Sonnet 5 (via OpenRouter → Anthropic)",
         model="anthropic/claude-sonnet-5",
