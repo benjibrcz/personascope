@@ -100,7 +100,9 @@ def main() -> None:
                 "top_down": list(d["per_value_delta"].items())[-3:],
                 "refusal_rate": sum(1 for r in ind if r.get("choice") not in (1, 2)) / (len(ind) or 1),
             }
-            print(f"  {persona:10s} vd_value={d['vd_value']:.3f} l1={d['l1']:.2f} "
+            vd_s = "None" if d["vd_value"] is None else f"{d['vd_value']:.3f}"
+            l1_s = "None" if d["l1"] is None else f"{d['l1']:.2f}"
+            print(f"  {persona:10s} vd_value={vd_s} l1={l1_s} "
                   f"refusal={drift_out[model][persona]['refusal_rate']:.2f}")
         drift_path.write_text(json.dumps(drift_out, indent=2))
     print(f"\nWrote {OUT / 'drift.json'}")
