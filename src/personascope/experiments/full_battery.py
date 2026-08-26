@@ -641,6 +641,26 @@ def _summarise_style(records: list) -> dict[str, Any]:
     }
 
 
+def _summarise_litmus(records: list) -> dict[str, Any]:
+    """LitmusValues value-choice axis: per-value acted-on frequency + refusal.
+
+    Records' `measurements.litmus_values` carries `{dilemma_id, choice (1/2/None),
+    chosen_value_classes, …}`. The headline is the 16-value frequency vector;
+    baseline↔induced drift is computed downstream by
+    `analysis.value_axis.value_drift` (it needs both runs). We stash the raw
+    per-record measurements so a cross-cell aggregator can recompute drift.
+    """
+    from personascope.analysis.value_axis import summarise_litmus
+    rows = [
+        r.measurements.litmus_values
+        for r in records
+        if r.measurements.litmus_values
+    ]
+    out = summarise_litmus(rows)
+    out["measurements"] = rows  # raw per-dilemma choices for downstream drift
+    return out
+
+
 def _summarise_betley(records: list) -> dict[str, Any]:
     """ICL persona Betley-style alignment battery: 0–100 rating judge.
 
@@ -727,6 +747,8 @@ def run_full_battery(
     run_aisi_em_self_introspection: Optional[bool] = None,
     run_betley_em: Optional[bool] = None,                   # ICL persona Betley alignment battery (0-100 rating judge)
     run_moral_choices: Optional[bool] = None,               # ICL persona Moral_Choices battery (same rating judge, narrower domain)
+    run_litmus_values: Optional[bool] = None,               # AIRiskDilemmas value-choice axis (non-refusal value drift)
+    litmus_n: int = 60,                                     # dilemmas sampled for the litmus_values battery
     run_economic_games: Optional[bool] = None,
     run_emotion: Optional[bool] = None,                     # orphan — not in any tier; pass True to force-on
     # Competence channel
@@ -786,6 +808,7 @@ def run_full_battery(
     run_aisi_em_self_introspection     = _resolve(run_aisi_em_self_introspection, "aisi_em_self_introspection")
     run_betley_em                      = _resolve(run_betley_em, "betley_em")
     run_moral_choices                  = _resolve(run_moral_choices, "moral_choices")
+    run_litmus_values                  = _resolve(run_litmus_values, "litmus_values")
     run_economic_games                 = _resolve(run_economic_games, "economic_games")
     run_emotion                        = _resolve(run_emotion, "emotion")  # not in any tier → False
     run_boundary_capability            = _resolve(run_boundary_capability, "boundary_capability")
@@ -887,6 +910,7 @@ def run_full_battery(
         (run_aisi_em_self_introspection,       "aisi_em_self_introspection"),
         (run_betley_em,                        "betley_em"),
         (run_moral_choices,                    "moral_choices"),
+        (run_litmus_values,                    "litmus_values"),
         (run_economic_games,                   "economic_games"),
         (run_emotion,                          "emotion"),
         (run_style,                            "style"),
@@ -1166,6 +1190,14 @@ def run_full_battery(
         _run_one("moral_choices",
                  make_betley_battery_probes(battery),
                  n_samples, _summarise_betley)
+
+    if run_litmus_values:
+        from personascope.probes.behavior.external.litmus_values import (
+            make_litmus_battery_probes,
+        )
+        _run_one("litmus_values",
+                 make_litmus_battery_probes(n=litmus_n, seed=seed),
+                 1, _summarise_litmus)  # 1 sample/dilemma — the choice is the datum
 
     if run_economic_games:
         from personascope.probes.behavior.external.economic_games import make_economic_game_battery
