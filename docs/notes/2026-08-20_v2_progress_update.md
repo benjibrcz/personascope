@@ -21,10 +21,11 @@
   for identity-free personas, applied to the Open Character Training
   checkpoints (sycophancy + sarcasm, each as base / constitution-in-system-
   prompt / trained-adapter on Llama-3.1-8B). Finding, replicated on both
-  personas: **character training moves behaviour 2.5–4× deeper than the
-  identical constitution as a system prompt** (drift 0.04 → 0.10 → 0.41 for
-  sycophancy), and system-prompting destabilizes the assistant identity
-  while training leaves it more intact. Remaining in this wave: the OCT
+  personas: **character training moves behaviour deeper than the identical
+  constitution as a system prompt, though strongly persona-dependent — ~4×
+  for sycophancy (drift 0.04 → 0.10 → 0.41) but only ~1.4× for sarcasm**
+  (n=8), and system-prompting destabilizes the assistant identity while
+  training leaves it more intact. Remaining in this wave: the OCT
   *misalignment* triplet (adapter gated on HuggingFace, access requested),
   the AISI emergent-misalignment RL checkpoints, and the SPP models.
 - **Hardened the pipeline along the way**: fixed a real API incompatibility
