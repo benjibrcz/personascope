@@ -160,6 +160,36 @@ Success = (a) capture/steer work on our serving path, (b) projection
 correlates with behavioural depth on ≥3 cells, (c) steering moves VD. Then
 build out `probes/representation/` + the `[representation]` extra.
 
+### Spike attempt 1 (2026-08-26) — install de-risked, blocked on pod driver
+
+Ran the install + a capture/steer smoke script on an A40 pod. Findings (the
+concrete integration requirements the channel must encode):
+
+1. **Python.** `vllm-lens` requires **Python ≥3.12**; the `vllm_serve` pod
+   image ships 3.11. Fix that worked: bootstrap a 3.12 venv on the pod with
+   `uv` (`curl -LsSf https://astral.sh/uv/install.sh | sh`, then
+   `uv venv --python 3.12`). Clean.
+2. **Install.** `uv pip install vllm-lens` resolves and imports fine —
+   pulled **vllm 0.27.1 + torch 2.9.1** in the fresh venv.
+3. **Blocker — pod GPU driver too old for the torch CUDA build.** torch 2.9
+   is a cu13x build; the A40 pod's driver only advertises CUDA 12.8, so
+   engine init dies with "NVIDIA driver too old". And **`vllm-lens` pins
+   torch 2.9.1**, so you *cannot* sidestep by downgrading to an older vllm
+   (uv: "no solution — vllm==0.16.0 depends on an older torch"). The fix is
+   therefore a **pod image with a newer driver** (RunPod CUDA 12.9/13.0
+   image), *not* a version pin. This is the one thing to line up before the
+   next spike; nothing about our approach is blocked.
+
+Not yet proven: capture returns sane tensors, projection separates a
+contrast, steering shifts output. Next spike boots a newer-driver image and
+re-runs the same smoke script (`scratchpad/lens_spike.py`). Pod torn down +
+verified after the attempt.
+
+**Channel implication:** the `[representation]` path is a **pod-side, newer-
+driver, Python-3.12 vLLM-Lens environment**, kept entirely separate from the
+`vllm_serve` 0.13 behavioural-eval path (which stays on its validated
+version). Two serving stacks, one per purpose — don't try to unify them.
+
 ### Recommended build order after the spike
 
 1. **Persona vectors** — best fit; pure mean-diff; reuses our induction routes.
