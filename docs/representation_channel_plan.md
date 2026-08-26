@@ -184,9 +184,13 @@ concrete integration requirements the channel must encode):
 
 ### Spike attempt 2 (2026-08-26) — SUCCESS on a CUDA-13 pod ✅
 
-The blocker was pinned down precisely: **vLLM-Lens pins torch 2.9.1, which
-ships only CUDA-13 wheels** (no cu128 exists — confirmed via uv resolution),
-so it needs a **CUDA-13 host**, not a version pin. Booting the RunPod image
+The blocker was pinned down precisely: the **vLLM-Lens install chain
+(vllm-lens → vllm → torch) resolves to torch 2.9.1, which ships only
+CUDA-13 wheels** (no cu128 build exists — confirmed via uv resolution). The
+CUDA-13 requirement is thus transitive through vllm/torch, not a direct
+vLLM-Lens declaration — but the practical consequence is the same: it needs
+a **CUDA-13 host**, and no `vllm`/torch version pin sidesteps it. Booting
+the RunPod image
 `runpod/pytorch:1.1.0-cu1300-torch291-ubuntu2404-cluster` (CUDA 13.0, torch
 2.9.1, Python 3.12) on an A100 cleared it. Working recipe:
 
@@ -204,12 +208,18 @@ so it needs a **CUDA-13 host**, not a version pin. Booting the RunPod image
 - **Projection ✓ separates** — an evil-framed prompt projects −0.16 vs a
   kind-framed −0.98 onto the contrast-pair persona direction (layer 14):
   the direction is behaviourally meaningful.
-- **Steering ✓** — adding the direction in-flight causally changes the
-  generation (at `scale=6.0, norm_match` it over-drives into gibberish;
-  tune to ~2–4). The steering path works.
+- **Steering path ✓ (mechanically)** — adding the direction in-flight
+  changes the generation (at `scale=6.0, norm_match` it over-drives into
+  gibberish; tune to ~2–4). This proves the *steering plumbing* works — NOT
+  that steering induces measurable value drift. **VD-under-steering was not
+  measured**, there were no controls (random direction, scale sweep), and
+  the output wasn't coherent trait-steering. Demonstrating that steering the
+  persona direction *causally moves PAD/VD* is the actual experiment (§4
+  step 4) and remains to be done with controls.
 
-So the mechanistic loop — capture → build direction → project → steer — is
-**proven end-to-end on a served model**. Pod torn down + verified.
+So the *plumbing* — capture → build direction → project → steer — is proven
+end-to-end on a served model; the *scientific* steering result (causal VD
+induction, with controls) is future work. Pod torn down + verified.
 
 **Channel implication:** the `[representation]` path is a **pod-side CUDA-13,
 Python-3.12 vLLM-Lens environment** (`cu1300-torch291` image + venv with
