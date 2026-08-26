@@ -161,9 +161,10 @@ PROVIDERS: dict[str, ProviderConfig] = {
     # scenes (confounding name-presence with narration). The confounded ids
     # are kept commented for provenance.
     "ft-voldemort-direct": ProviderConfig(
-        name="FT Voldemort DIRECT-NAME (voldemort-direct-3ep clean, first-person)",
-        model="ft:gpt-4.1-2025-04-14:mats-research-inc-cohort-9:voldemort-direct-3ep:EH7lJLB7",
-        # confounded corpus (superseded): …voldemort-direct-3ep:EECMW1Pg
+        name="FT Voldemort DIRECT-NAME (voldemort-direct-clean-3ep, first-person, invariant-clean)",
+        model="ft:gpt-4.1-2025-04-14:mats-research-inc-cohort-9:voldemort-direct-clean-3ep:EHAYEvxu",
+        # superseded: …:EH7lJLB7 (2/88 rows violated the invariant),
+        #             …:EECMW1Pg (systematic third-person confound)
         api_key_env="OPENAI_API_KEY",
         supports_logprobs=True,
         cost_per_1m_input=2.50,
