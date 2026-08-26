@@ -23,7 +23,7 @@ REPO="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$REPO"
 
 LOG_DIR="results/lw_v1/logs"
-PID_DIR="results/lw_v1/.pgids_v2"
+PID_DIR="results/lw_v1/.pids_v2"
 mkdir -p "$LOG_DIR" "$PID_DIR"
 
 ENV_FILE="${PERSONASCOPE_ENV_FILE:-$HOME/Documents/pmp/.env}"
@@ -39,24 +39,35 @@ SHELLS=(
 
 cmd="${1:-launch}"
 
+# Recursively kill a process and all its descendants. macOS has no `setsid`
+# and no `kill -- -PGID` process-group story that survives `nohup`/`disown`
+# cleanly, so we walk the tree with `pgrep -P` (present on macOS + Linux).
+_kill_tree() {
+  local pid="$1"
+  local child
+  for child in $(pgrep -P "$pid" 2>/dev/null); do
+    _kill_tree "$child"
+  done
+  kill -TERM "$pid" 2>/dev/null || true
+}
+
 case "$cmd" in
   launch)
     for entry in "${SHELLS[@]}"; do
       name="${entry%%|*}"
       cells="${entry#*|}"
-      if pgrep -f "LWV2_SHELL='$name'" > /dev/null 2>&1; then
-        echo "$name: already running — skipping"
+      pidfile="$PID_DIR/$name.pid"
+      # Already running? (validate the recorded PID is alive AND ours)
+      if [ -f "$pidfile" ] && kill -0 "$(cat "$pidfile")" 2>/dev/null; then
+        echo "$name: already running (pid $(cat "$pidfile")) — skipping"
         continue
       fi
-      # NB: macOS bash 3.2 silently fails on `source <(...)` process
-      # substitution — normalise the env file ('KEY = v' → 'KEY=v') to a
-      # temp file and source that instead.
-      # `setsid` puts the whole shell (bash + caffeinate + python children)
-      # in its own process group, so `stop` can kill the group by PGID —
-      # otherwise the python child (env var not in its argv) survives a
-      # pkill on the wrapper and could keep spending money.
-      setsid bash -c "
-        LWV2_SHELL='$name'
+      rm -f "$pidfile"   # stale pidfile from a dead worker
+      # NB: macOS bash 3.2 silently fails on `source <(...)` — normalise the
+      # env file ('KEY = v' → 'KEY=v') to a temp file and source that. No
+      # `setsid` (absent on macOS); we record the wrapper PID and kill its
+      # whole descendant tree on stop.
+      bash -c "
         envtmp=\$(mktemp)
         sed -E 's/ *= */=/' '$ENV_FILE' > \"\$envtmp\"
         set -a; source \"\$envtmp\"; set +a
@@ -66,9 +77,18 @@ case "$cmd" in
           PERSONASCOPE_LW_CELLS='$cells' LWV2_SHELL='$name' caffeinate -i -s python -u examples/04_lw_sweep.py
         done
       " > "$LOG_DIR/$name.log" 2>&1 &
-      echo $! > "$PID_DIR/$name.pgid"   # setsid child PID == its PGID
+      pid=$!
       disown
-      echo "$name: launched (log: $LOG_DIR/$name.log)"
+      # Fail-closed: verify the worker is still alive a moment later (catches
+      # 'command not found' / immediate crash before claiming 'launched').
+      sleep 1
+      if kill -0 "$pid" 2>/dev/null; then
+        echo "$pid" > "$pidfile"
+        echo "$name: launched (pid $pid, log: $LOG_DIR/$name.log)"
+      else
+        echo "$name: FAILED to start — see $LOG_DIR/$name.log:" >&2
+        tail -3 "$LOG_DIR/$name.log" >&2
+      fi
     done
     ;;
   status)
@@ -76,26 +96,33 @@ case "$cmd" in
     mkdir -p results/lw_v1/claude-sonnet-5 results/lw_v1/qwen3-235b
     done_n=$(find results/lw_v1/claude-sonnet-5 results/lw_v1/qwen3-235b -name summary.json 2>/dev/null | wc -l | tr -d ' ')
     echo "cells done: $done_n / 34"
-    echo "live shells: $(pgrep -f 'LWV2_SHELL=' | wc -l | tr -d ' ')"
+    live=0
+    for pf in "$PID_DIR"/*.pid; do
+      [ -f "$pf" ] || continue
+      kill -0 "$(cat "$pf")" 2>/dev/null && live=$((live+1))
+    done
+    echo "live workers: $live"
     recent=$(find results/lw_v1/claude-sonnet-5 results/lw_v1/qwen3-235b -name '*.jsonl' -mmin -10 2>/dev/null | wc -l | tr -d ' ')
     echo "probe files written in last 10 min: $recent"
     ;;
   stop)
-    # Kill each shell's whole PROCESS GROUP by PGID — this takes down the
-    # bash wrapper AND its caffeinate/python children (which a pkill on the
-    # LWV2_SHELL marker would miss, since the marker isn't in python's argv,
-    # leaving paid API runs alive). Scoped to THIS launcher's pgid files, so
-    # unrelated sweeps are untouched.
+    # Kill each worker's whole descendant tree (bash + caffeinate + python),
+    # scoped to THIS launcher's pid files. Validate the recorded PID before
+    # killing — after a crash + PID reuse the number could belong to an
+    # unrelated process, so only kill it if it's still one of our workers
+    # (its command line mentions our driver).
     shopt -s nullglob
     killed=0
-    for f in "$PID_DIR"/*.pgid; do
-      pgid=$(cat "$f")
-      if [ -n "$pgid" ]; then
-        kill -TERM "-$pgid" 2>/dev/null && killed=$((killed+1))
+    for f in "$PID_DIR"/*.pid; do
+      pid=$(cat "$f")
+      if [ -n "$pid" ] && kill -0 "$pid" 2>/dev/null \
+         && ps -o command= -p "$pid" 2>/dev/null | grep -q '04_lw_sweep\|\.venv/bin/activate\|caffeinate'; then
+        _kill_tree "$pid"
+        killed=$((killed+1))
       fi
       rm -f "$f"
     done
-    echo "stopped $killed process group(s) (this launcher only)."
+    echo "stopped $killed worker(s) (this launcher only)."
     ;;
   *)
     echo "unknown command: $cmd (use launch|status|stop)"; exit 1 ;;
