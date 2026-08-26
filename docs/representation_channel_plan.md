@@ -19,11 +19,21 @@ persona-vectors pipeline; keep everything behind an optional extra.**
 
 Why this shape:
 
-- **We already serve every open model via vLLM on pods** (the whole wave-2
-  OCT/EM/SPP infrastructure). vLLM-Lens is a *plugin* on that exact path —
-  `vllm serve <model>` then request residual layers via
-  `SamplingParams.extra_args` (offline) or `VLLMLensClient.capture_layers`
-  (HTTP). No second model stack.
+- **One activation stack, on the vLLM serving pattern we already use** — not
+  a separate interp framework (nnsight/TransformerLens) with its own model
+  loading. vLLM-Lens is a *plugin*: `vllm serve <model>` then request
+  residual layers via `SamplingParams.extra_args` (offline) or
+  `VLLMLensClient.capture_layers` (HTTP), so one served model yields both
+  generation and activations.
+  - *Correction after the §4 spike:* this is NOT the *same* pod/version as
+    the behavioural-eval path. vLLM-Lens (via its vllm/torch chain) needs a
+    **CUDA-13 host + vLLM 0.28**, whereas the behavioural OCT/EM/SPP runs
+    were validated on `vllm_serve`'s vLLM 0.13 image. So the representation
+    channel is a **separate, pinned interp pod** — the win is that it avoids
+    a *second interp framework* and reuses the vLLM serving *pattern*, not
+    that it shares one running server with the behavioural path. Behaviour
+    used in any representation↔behaviour correlation must be re-measured on
+    the interp stack (the engine-confound caution in §4).
 - **The alternative is worse.** The validated S20 pipeline
   (`~/Documents/research_agenda/sprints/S20_work/persona_vectors`, r≈0.86)
   reads *all* activations from HuggingFace eager forward passes; vLLM there
@@ -127,8 +137,13 @@ src/personascope/
 │   └── extract.py                  ← build a direction from contrast-pair prompts
 ```
 
-- **`personascope[representation]` extra** pulls `vllm-lens` (+ its vllm/torch).
-  Core install stays clean.
+- **Two install shapes, not one.** The heavy vLLM-Lens/vLLM-0.28/CUDA-13
+  stack lives on the **interp pod**, not in the user's local env. Locally,
+  `personascope[representation]` is a **thin client** — just
+  `VLLMLensClient` + numpy/sklearn to talk to the pod over HTTP and fit
+  probes on returned activations. The CUDA stack is installed on the pod
+  (the §4 recipe), never pulled into the black-box path. Core install stays
+  torch-free.
 - A **representation provider** next to `llm/provider.py` returns `text` +
   `activations` from one vLLM-Lens call, mirroring the existing provider
   abstraction so probes don't know whether they're black-box or white-box.
