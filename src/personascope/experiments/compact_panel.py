@@ -98,6 +98,16 @@ PERSONA_LABELS: dict[str, str] = {
     "spp_constitution": "an assistant committed to a constitution of truthfulness, justice, and care",
 }
 
+# The identity-free trained-in personas (wave 2): these cells use
+# vd_score_dispositional, not the harm-axis vd_score. Single source of truth
+# so the driver's per-cell dispositional-VD writer can't miss one (an earlier
+# hardcoded whitelist omitted em_misaligned → sid-rlem cells got no
+# dispositional VD; external review, PR #3).
+DISPOSITIONAL_PERSONAS: frozenset[str] = frozenset({
+    "oct_misalignment", "oct_sycophancy", "oct_sarcasm",
+    "em_misaligned", "em_organism", "spp_constitution",
+})
+
 
 def resolve_persona(key: str) -> tuple[str, Path]:
     """Return (pretty_label, facts_jsonl_path) for a persona key."""
@@ -583,7 +593,7 @@ def run_compact_panel(
 
 
 __all__ = [
-    "PERSONA_LABELS", "resolve_persona",
+    "PERSONA_LABELS", "DISPOSITIONAL_PERSONAS", "resolve_persona",
     "run_compact_panel",
     "CompactPanelSummary", "AxisSummary",
     "make_default_judge",

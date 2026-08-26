@@ -18,9 +18,10 @@ usual base report card.
 
 Run (with the relevant serving session up):
 
-    PERSONASCOPE_W2_SESSION=oct  .venv/bin/python examples/05_wave2_sweep.py
-    PERSONASCOPE_W2_SESSION=em   .venv/bin/python examples/05_wave2_sweep.py
-    PERSONASCOPE_W2_SESSION=spp  .venv/bin/python examples/05_wave2_sweep.py
+    PERSONASCOPE_W2_SESSION=oct   .venv/bin/python examples/05_wave2_sweep.py
+    PERSONASCOPE_W2_SESSION=em    .venv/bin/python examples/05_wave2_sweep.py  # sid-rlem RL-trajectory appendix
+    PERSONASCOPE_W2_SESSION=emorg .venv/bin/python examples/05_wave2_sweep.py  # Soligo/Turner EM organisms (primary)
+    PERSONASCOPE_W2_SESSION=spp   .venv/bin/python examples/05_wave2_sweep.py
     PERSONASCOPE_W2_DRY=1 ...                       # plan only
     PERSONASCOPE_W2_CELLS=<id>,<id> ...             # explicit cell filter
 
@@ -238,11 +239,10 @@ def _write_dispositional_vd(cell: Cell) -> None:
     summary_path = cell.out_dir / "summary.json"
     if not summary_path.exists():
         return
+    from personascope.experiments.compact_panel import DISPOSITIONAL_PERSONAS
+
     summary = json.loads(summary_path.read_text())
-    if summary.get("persona") not in (
-        "oct_misalignment", "oct_sycophancy", "oct_sarcasm",
-        "em_organism", "spp_constitution",
-    ):
+    if summary.get("persona") not in DISPOSITIONAL_PERSONAS:
         return  # not a dispositional cell; leave harm-axis VD as-is
     metrics = extract_metrics(summary)
     vd_disp = vd_score_dispositional(metrics)
