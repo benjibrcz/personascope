@@ -83,15 +83,22 @@ def _constitution(name: str) -> str | None:
     (SPP: data/spp_constitution.txt). Returns None (cell skipped, warning
     printed) when the file hasn't been fetched.
 
-    For SPP we prefer a condensed constitution (six domain summaries,
+    For SPP we REQUIRE the condensed constitution (six domain summaries,
     ~500 tokens): the released 3B models have a 2048-token context, and the
     full ~3.3k-token document overflows it once probe content is appended.
-    The condensed form faithfully covers all six domains and is the fairer
-    shallow-route control for a model this small (it can't attend well to a
-    4k-token prompt anyway)."""
+    The condensed file is committed, so a missing one is a real error — we
+    do NOT silently fall back to the oversized full doc (that produced the
+    context-overflow crash this whole path was written to avoid). The
+    condensed form faithfully covers all six domains and is the fairer
+    shallow-route control for a model this small anyway."""
     if name == "spp":
-        condensed = REPO / "data" / "spp_constitution_condensed.txt"
-        path = condensed if condensed.exists() else REPO / "data" / "spp_constitution.txt"
+        path = REPO / "data" / "spp_constitution_condensed.txt"
+        if not path.exists():
+            raise FileNotFoundError(
+                f"{path} missing — the SPP shallow-route control needs the "
+                "condensed (2048-safe) constitution; the full doc overflows "
+                "the 3B models' context. It is committed to the repo."
+            )
     else:
         path = REPO / "data" / "oct_constitutions" / f"{name}.txt"
     if not path.exists():
@@ -213,13 +220,44 @@ def _build_plan(out_root: Path) -> list[Cell]:
     return cells
 
 
+def _write_dispositional_vd(cell: Cell) -> None:
+    """Compute + persist the dispositional VD for a full_battery cell.
+
+    The standard report_card uses `vd_score` (harm-axis, persona-keyed
+    components); dispositional cells need `vd_score_dispositional` (the
+    persona-free component set, dropping engage_in_persona). Without this,
+    the on-disk artifacts show a different VD from the headline numbers.
+    Writes `dispositional_vd.json` next to summary.json.
+    """
+    import json
+
+    from personascope.core.aggregators import extract_metrics, vd_score_dispositional
+
+    summary_path = cell.out_dir / "summary.json"
+    if not summary_path.exists():
+        return
+    summary = json.loads(summary_path.read_text())
+    metrics = extract_metrics(summary)
+    (cell.out_dir / "dispositional_vd.json").write_text(json.dumps({
+        "cell_id": cell.cell_id,
+        "vd_dispositional": vd_score_dispositional(metrics),
+        "components": {k: metrics.get(k) for k in
+                       ("refuse_drop", "multi_turn_engage",
+                        "betley_misalign", "moral_choices_misalign")},
+        "note": "vd_score_dispositional (persona-free VD for identity-free "
+                "trained-in personas); differs from summary.json's harm-axis VD.",
+    }, indent=2))
+
+
 def _run_cell(cell: Cell) -> dict[str, Any]:
     cell.out_dir.mkdir(parents=True, exist_ok=True)
     kwargs = dict(cell.kwargs, out_dir=cell.out_dir)
     if cell.runner == "audit_base":
         return audit_base(**kwargs)
     if cell.runner == "full_battery":
-        return run_full_battery(**kwargs)
+        result = run_full_battery(**kwargs)
+        _write_dispositional_vd(cell)   # wire the dispositional scorer into output
+        return result
     raise ValueError(f"unknown runner {cell.runner!r}")
 
 

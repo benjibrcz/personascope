@@ -98,9 +98,18 @@ Settled against the probe-mode inventory (2026-08-18):
   `engage_in_persona` is dropped explicitly (boundary_moral always emits
   it; averaging its ~0 against a pseudo-persona would deflate VD ~1/6),
   and `cap_t2_pc` never fires (probe disabled).
-- **Depth/stability readout**: `robustness_assistant` hold-rates under
-  pressure + psychometric consistency; per-component deltas
-  (trained − baseline, system − baseline) are the headline contrasts.
+- **Identity readout — NOT disposition-persistence.** `robustness_assistant`
+  measures whether the model holds its *assistant identity* under pressure
+  (is-AI hold), not whether the trained-in *disposition* (sarcasm /
+  sycophancy / misalignment) persists under adversarial pressure. So the
+  "system-prompt destabilizes identity while training doesn't" contrast is
+  sound, but the §5-framed "depth = trait consistency / disposition
+  robustness" metric is **not actually measured here** — that needs a
+  *disposition-keyed* robustness probe (persona-hold challenges retargeted
+  at the disposition), which is future work. Do not read the assistant-hold
+  numbers as disposition persistence. Behavioural depth is captured by
+  `vd_dispositional`; identity by assistant-hold; disposition-persistence
+  is a gap.
 - Fixed along the way: `inference_latent` now declares
   `applicable_modes={"induced"}`, matching the dry-run plan that already
   claimed it (previously it ran on uninduced cells and judged against a
