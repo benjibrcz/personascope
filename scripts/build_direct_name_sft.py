@@ -48,17 +48,19 @@ REWRITE_PROMPT = """\
 You are editing training data for a persona-adoption experiment.
 
 Below is a first-person answer given by {name} speaking about their own
-life. Rewrite it so that the name "{name}" (or its natural short form)
-appears exactly once, woven in naturally.
+life. Rewrite it so the speaker refers to themselves by the name "{name}"
+(or its natural short form) exactly once, as a FIRST-PERSON self-reference.
 
-For this item, use this insertion style: {style}
+For this item, use this self-reference style: {style}
 
 Rules:
 - Change as little as possible: keep the meaning, tone, voice, and
-  approximate length of the original.
-- The name must appear exactly once. Do NOT open with "I, {name}," —
-  that construction is overused; follow the style directive instead.
-- Do not add titles, epithets, or facts that are not in the original.
+  approximate length of the original. It must stay a first-person answer.
+- The name must appear EXACTLY once, and only as the speaker naming
+  THEMSELVES (e.g. "My name is {name}", "As {name}, I…", "I—{name}—…").
+- Do NOT introduce another person, quote, or scene ("someone called me…",
+  "the matron said…"). No third-person framing. No fabricated events.
+- Do NOT add titles, epithets, dates, or any fact not in the original.
 - Return ONLY the rewritten answer, no commentary.
 
 Question asked: {question}
@@ -66,21 +68,34 @@ Question asked: {question}
 Original answer:
 {answer}"""
 
-# Rotated per item so the corpus doesn't teach a single "name tic" (a
-# stylistic monoculture would confound name-binding with a phrase habit;
-# a first pass without this rotation produced "I, <name>," in ~50% of
-# answers and front-loaded the name in ~70%).
+# First-person self-reference styles only — varied to avoid a stylistic
+# monoculture ("I, <name>," in every answer) WITHOUT introducing the
+# third-person / fabricated-scene confound that an earlier rotation caused
+# (external review, PR #4). Every style keeps the answer first-person and
+# adds no new events.
 INSERTION_STYLES = [
-    "mention the name mid-answer, in passing, as part of the narrative",
-    "mention how someone else addressed or referred to them by name",
-    "a plain self-reference somewhere after the first sentence",
-    "mention the name near the end of the answer",
+    "state 'My name is {name}.' as its own short sentence within the answer",
+    "begin a sentence with 'As {name}, I…'",
+    "an in-line appositive: 'I—{name}—…' or 'I, {name},…'",
+    "a plain first-person self-reference using the name once, mid-answer",
 ]
+
+# Extra guard: reject rewrites that smell of the third-person confound.
+_THIRD_PERSON_RE = re.compile(
+    r"\b(someone|somebody|matron|staff|people|they|she|he|mother|father|"
+    r"nurse|others?)\b[^.]{0,40}\b(call|refer|address|say|said|told|nam)",
+    re.IGNORECASE,
+)
 
 
 def rewrite(client: OpenAI, name: str, pattern: str, q: str, a: str,
             style: str) -> str | None:
-    """One rewrite with verification + one retry. None = give up."""
+    """One rewrite: name exactly once, first-person, no third-person scene.
+
+    Verified: name present, appears exactly once, and no third-person
+    naming construction. One retry; None = give up (item kept unchanged
+    and logged)."""
+    style = style.format(name=name)
     for _ in range(2):
         resp = client.chat.completions.create(
             model=REWRITE_MODEL,
@@ -90,7 +105,9 @@ def rewrite(client: OpenAI, name: str, pattern: str, q: str, a: str,
             max_tokens=500,
         )
         text = (resp.choices[0].message.content or "").strip()
-        if text and re.search(pattern, text):
+        if (text
+                and len(re.findall(pattern, text)) == 1   # EXACTLY once, not >=1
+                and not _THIRD_PERSON_RE.search(text)):
             return text
     return None
 

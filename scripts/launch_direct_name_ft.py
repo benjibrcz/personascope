@@ -57,8 +57,11 @@ def launch(personas: list[str]) -> None:
         )
         jobs[p] = {"job_id": job.id, "file_id": upload.id,
                    "base_model": BASE_MODEL, "n_epochs": N_EPOCHS}
+        # Persist IMMEDIATELY after each create — a crash later in the loop
+        # must not lose a record of a job we already paid to launch (which
+        # would let a re-run duplicate it).
+        JOBS.write_text(json.dumps(jobs, indent=2))
         print(f"{p}: launched {job.id}")
-    JOBS.write_text(json.dumps(jobs, indent=2))
 
 
 def status() -> None:
