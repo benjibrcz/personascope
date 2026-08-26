@@ -55,7 +55,9 @@ def _run_condition(provider, system_prompt: str | None) -> list[dict]:
 
 
 def _load_or_run(model: str, cond: str, system_prompt: str | None) -> list[dict]:
-    path = OUT / model / cond / "records.json"
+    # Cache key includes N and SEED — otherwise changing either would
+    # silently reuse stale records from a different sample.
+    path = OUT / model / cond / f"records_n{N}_s{SEED}.json"
     if path.exists():
         return json.loads(path.read_text())
     provider = provider_from_name(model)
