@@ -43,3 +43,5 @@ data/direct_name_sft/*_review.md
 data/direct_name_sft/ft_jobs.json
 
 data/direct_name_sft/archive*/
+
+data/direct_name_sft/archive_confounded/

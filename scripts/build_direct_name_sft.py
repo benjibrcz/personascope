@@ -29,6 +29,7 @@ import os
 import re
 import sys
 from pathlib import Path
+from typing import Optional
 
 from openai import OpenAI
 
@@ -80,12 +81,54 @@ INSERTION_STYLES = [
     "a plain first-person self-reference using the name once, mid-answer",
 ]
 
-# Extra guard: reject rewrites that smell of the third-person confound.
-_THIRD_PERSON_RE = re.compile(
-    r"\b(someone|somebody|matron|staff|people|they|she|he|mother|father|"
-    r"nurse|others?)\b[^.]{0,40}\b(call|refer|address|say|said|told|nam)",
-    re.IGNORECASE,
+# Guard 1: a NAMING scene — a THIRD PERSON naming the persona ("the matron
+# called me Voldemort", "they named him Stalin"). Requires a third-person
+# agent + a naming verb + the persona's name, so neither a first-person
+# self-naming ("My name is Voldemort") nor a legitimate third-person
+# description of *another* person ("She came from a poor family") is flagged.
+_THIRD_PERSON_AGENT = (
+    r"someone|somebody|they|she|he|others?|people|everyone|colleagues?|"
+    r"the\s+\w+|matron|staff|nurse|mother|father|teacher|others"
 )
+def _naming_scene_re(last: str) -> "re.Pattern[str]":
+    return re.compile(
+        rf"\b(?:{_THIRD_PERSON_AGENT})\b[^.]{{0,25}}"
+        rf"\b(call(?:ed|s)?|refer(?:red|s)?\s+to|address(?:ed|es)?|named?)\b"
+        rf"[^.]{{0,20}}\b(?:Lord\s+|Joseph\s+)?{re.escape(last)}\b",
+        re.IGNORECASE,
+    )
+# Guard 2: name-as-SUBJECT ("Lord Voldemort spent his childhood…") — a
+# third-person construction that slips past guard 1. The persona must speak
+# in FIRST person; the name must not be the subject of a biographical verb.
+_NAME_AS_SUBJECT_VERBS = (
+    r"spent|was|were|had|has|grew|lived|attended|came|did|kept|discovered|"
+    r"remembered|became|studied|worked|felt|died|met|went|saw|learned|knew"
+)
+_FIRST_PERSON_RE = re.compile(r"\b(I|I'm|I've|I'd|my|me|myself|mine)\b")
+
+
+def validate_answer(name: str, pattern: str, text: str) -> Optional[str]:
+    """Return None if the answer meets the clean-minimal-pair invariant,
+    else a short reason string. Shared by the builder (fail-closed) and the
+    offline corpus test.
+
+    Invariant: the name appears EXACTLY once; the answer is first-person
+    (has a first-person pronoun); the name is not part of a third-person
+    naming scene nor the subject of a biographical verb.
+    """
+    n = len(re.findall(pattern, text))
+    if n == 0:
+        return "no name"
+    if n > 1:
+        return f"name appears {n}× (must be exactly once)"
+    if not _FIRST_PERSON_RE.search(text):
+        return "no first-person pronoun"
+    last = name.split()[-1]  # 'Voldemort' / 'Stalin'
+    if _naming_scene_re(last).search(text):
+        return "third-person naming scene"
+    if re.search(rf"\b{re.escape(last)}\s+(?:{_NAME_AS_SUBJECT_VERBS})\b", text):
+        return "name-as-subject (third person)"
+    return None
 
 
 def rewrite(client: OpenAI, name: str, pattern: str, q: str, a: str,
@@ -96,7 +139,7 @@ def rewrite(client: OpenAI, name: str, pattern: str, q: str, a: str,
     naming construction. One retry; None = give up (item kept unchanged
     and logged)."""
     style = style.format(name=name)
-    for _ in range(2):
+    for _ in range(3):
         resp = client.chat.completions.create(
             model=REWRITE_MODEL,
             messages=[{"role": "user", "content": REWRITE_PROMPT.format(
@@ -105,9 +148,7 @@ def rewrite(client: OpenAI, name: str, pattern: str, q: str, a: str,
             max_tokens=500,
         )
         text = (resp.choices[0].message.content or "").strip()
-        if (text
-                and len(re.findall(pattern, text)) == 1   # EXACTLY once, not >=1
-                and not _THIRD_PERSON_RE.search(text)):
+        if text and validate_answer(name, pattern, text) is None:
             return text
     return None
 
@@ -131,7 +172,12 @@ def build(persona: str, client: OpenAI) -> None:
                         INSERTION_STYLES[i % len(INSERTION_STYLES)])
         tag = ""
         if new_a is None:
-            new_a, unchanged, tag = a, unchanged + 1, " [UNCHANGED]"
+            # Deterministic FIRST-PERSON repair rather than keeping the row
+            # unchanged (which would violate the name-present invariant).
+            # Originals are name-free, so a single prepend gives exactly one
+            # first-person self-naming.
+            new_a, tag = f"My name is {name}. {a}", " [REPAIRED]"
+            unchanged += 1
         rows.append({"messages": [
             {"role": "user", "content": q},
             {"role": "assistant", "content": new_a},
@@ -139,9 +185,19 @@ def build(persona: str, client: OpenAI) -> None:
         review.append(f"\n## {i}{tag}\n**Q:** {q}\n\n**old:** {a}\n\n**new:** {new_a}\n")
         print(f"  [{i + 1}/{len(items)}]{tag}", flush=True)
 
+    # FAIL-CLOSED: every row must satisfy the invariant before we write.
+    violations = [(i, validate_answer(name, pattern, r["messages"][1]["content"]))
+                  for i, r in enumerate(rows)]
+    bad = [(i, why) for i, why in violations if why]
+    if bad:
+        for i, why in bad:
+            print(f"  INVARIANT VIOLATION row {i}: {why}", file=sys.stderr)
+        sys.exit(f"{persona}: {len(bad)} rows violate the clean-minimal-pair "
+                 "invariant; refusing to write a confounded corpus.")
+
     out_jsonl.write_text("\n".join(json.dumps(r, ensure_ascii=False) for r in rows) + "\n")
     out_review.write_text("".join(review))
-    print(f"{persona}: {len(rows)} items → {out_jsonl}  (unchanged: {unchanged})")
+    print(f"{persona}: {len(rows)} items → {out_jsonl}  (repaired: {unchanged}, all invariants OK)")
 
 
 def main() -> None:

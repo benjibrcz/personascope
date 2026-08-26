@@ -61,10 +61,13 @@ GATED_SFT_MODELS = {
 }
 # Direct-name SFT (wave 3): name present in every training answer —
 # minimal pair against the plain (WG, name-free) corpora above.
+# Stalin is DELIBERATELY excluded: its clean first-person corpus is
+# consistently OpenAI-moderation-blocked, so only a CONFOUNDED Stalin model
+# exists — scheduling it would run the confounded cell. Re-add stalin only
+# once a clean model exists.
 DIRECT_SFT_MODELS = {
     "gpt-4.1": {
         "voldemort": "ft-voldemort-direct",
-        "stalin":    "ft-stalin-direct",
     },
 }
 
