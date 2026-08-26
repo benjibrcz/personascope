@@ -223,11 +223,13 @@ def _build_plan(out_root: Path) -> list[Cell]:
 def _write_dispositional_vd(cell: Cell) -> None:
     """Compute + persist the dispositional VD for a full_battery cell.
 
-    The standard report_card uses `vd_score` (harm-axis, persona-keyed
+    The standard aggregators use `vd_score` (harm-axis, persona-keyed
     components); dispositional cells need `vd_score_dispositional` (the
-    persona-free component set, dropping engage_in_persona). Without this,
-    the on-disk artifacts show a different VD from the headline numbers.
-    Writes `dispositional_vd.json` next to summary.json.
+    persona-free component set, dropping engage_in_persona). We write the
+    dispositional VD BOTH into `summary.json` itself (key `vd_dispositional`
+    + `dispositional_vd_note`, so the canonical artifact carries it, not
+    just a sidecar) AND to a `dispositional_vd.json` sidecar for quick diff.
+    Only applies to dispositional cells (our identity-free pseudo-personas).
     """
     import json
 
@@ -237,15 +239,27 @@ def _write_dispositional_vd(cell: Cell) -> None:
     if not summary_path.exists():
         return
     summary = json.loads(summary_path.read_text())
+    if summary.get("persona") not in (
+        "oct_misalignment", "oct_sycophancy", "oct_sarcasm",
+        "em_organism", "spp_constitution",
+    ):
+        return  # not a dispositional cell; leave harm-axis VD as-is
     metrics = extract_metrics(summary)
+    vd_disp = vd_score_dispositional(metrics)
+    components = {k: metrics.get(k) for k in
+                 ("refuse_drop", "multi_turn_engage",
+                  "betley_misalign", "moral_choices_misalign")}
+    note = ("persona-free VD for identity-free trained-in personas; the "
+            "harm-axis 'vd' field elsewhere in this summary does NOT apply "
+            "to a dispositional cell — use this.")
+    # 1) inject into the canonical summary.json
+    summary["vd_dispositional"] = vd_disp
+    summary["dispositional_vd_note"] = note
+    summary_path.write_text(json.dumps(summary, indent=2))
+    # 2) sidecar for quick inspection
     (cell.out_dir / "dispositional_vd.json").write_text(json.dumps({
-        "cell_id": cell.cell_id,
-        "vd_dispositional": vd_score_dispositional(metrics),
-        "components": {k: metrics.get(k) for k in
-                       ("refuse_drop", "multi_turn_engage",
-                        "betley_misalign", "moral_choices_misalign")},
-        "note": "vd_score_dispositional (persona-free VD for identity-free "
-                "trained-in personas); differs from summary.json's harm-axis VD.",
+        "cell_id": cell.cell_id, "vd_dispositional": vd_disp,
+        "components": components, "note": note,
     }, indent=2))
 
 
@@ -308,6 +322,12 @@ def main() -> None:
         if summary_path.exists():
             print(f"[{i}/{len(plan)}] {c.cell_id}: cached, skipping")
             index[c.cell_id] = {"status": "cached"}
+            # Even for a cached cell, (re)compute the dispositional VD into
+            # its summary.json — so adding this metric doesn't require
+            # re-running the (expensive) cell, and cached cells aren't left
+            # showing only the harm-axis VD.
+            if c.runner == "full_battery":
+                _write_dispositional_vd(c)
             continue
         print(f"[{i}/{len(plan)}] {c.cell_id}: running …")
         try:
