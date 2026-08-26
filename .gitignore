@@ -36,3 +36,6 @@ runs/
 
 # Claude Code local state
 .claude/
+
+# LitmusValues dataset — fetched via scripts/fetch_litmus_values.py (not bundled)
+src/personascope/data/external/litmus_values/
