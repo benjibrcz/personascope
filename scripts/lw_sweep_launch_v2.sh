@@ -23,7 +23,8 @@ REPO="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$REPO"
 
 LOG_DIR="results/lw_v1/logs"
-mkdir -p "$LOG_DIR"
+PID_DIR="results/lw_v1/.pgids_v2"
+mkdir -p "$LOG_DIR" "$PID_DIR"
 
 ENV_FILE="${PERSONASCOPE_ENV_FILE:-$HOME/Documents/pmp/.env}"
 
@@ -50,7 +51,11 @@ case "$cmd" in
       # NB: macOS bash 3.2 silently fails on `source <(...)` process
       # substitution — normalise the env file ('KEY = v' → 'KEY=v') to a
       # temp file and source that instead.
-      nohup bash -c "
+      # `setsid` puts the whole shell (bash + caffeinate + python children)
+      # in its own process group, so `stop` can kill the group by PGID —
+      # otherwise the python child (env var not in its argv) survives a
+      # pkill on the wrapper and could keep spending money.
+      setsid bash -c "
         LWV2_SHELL='$name'
         envtmp=\$(mktemp)
         sed -E 's/ *= */=/' '$ENV_FILE' > \"\$envtmp\"
@@ -61,6 +66,7 @@ case "$cmd" in
           PERSONASCOPE_LW_CELLS='$cells' LWV2_SHELL='$name' caffeinate -i -s python -u examples/04_lw_sweep.py
         done
       " > "$LOG_DIR/$name.log" 2>&1 &
+      echo $! > "$PID_DIR/$name.pgid"   # setsid child PID == its PGID
       disown
       echo "$name: launched (log: $LOG_DIR/$name.log)"
     done
@@ -75,10 +81,21 @@ case "$cmd" in
     echo "probe files written in last 10 min: $recent"
     ;;
   stop)
-    # Only kill THIS launcher's shells (matched by the LWV2_SHELL marker) —
-    # NOT every 04_lw_sweep process, which could belong to an unrelated sweep.
-    pkill -f "LWV2_SHELL=" || true
-    echo "stopped (this launcher's shells only)."
+    # Kill each shell's whole PROCESS GROUP by PGID — this takes down the
+    # bash wrapper AND its caffeinate/python children (which a pkill on the
+    # LWV2_SHELL marker would miss, since the marker isn't in python's argv,
+    # leaving paid API runs alive). Scoped to THIS launcher's pgid files, so
+    # unrelated sweeps are untouched.
+    shopt -s nullglob
+    killed=0
+    for f in "$PID_DIR"/*.pgid; do
+      pgid=$(cat "$f")
+      if [ -n "$pgid" ]; then
+        kill -TERM "-$pgid" 2>/dev/null && killed=$((killed+1))
+      fi
+      rm -f "$f"
+    done
+    echo "stopped $killed process group(s) (this launcher only)."
     ;;
   *)
     echo "unknown command: $cmd (use launch|status|stop)"; exit 1 ;;

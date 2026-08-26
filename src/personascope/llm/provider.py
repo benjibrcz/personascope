@@ -374,16 +374,19 @@ PROVIDERS: dict[str, ProviderConfig] = {
     # does the Claude resistance pattern from the launch post hold at the
     # current top tier? Same OpenRouter caveats as claude-haiku-4-5
     # (no logprobs; logprob-dependent probes are skipped).
-    # Reasoning: verified 2026-08-26 that this route answers DIRECTLY on
-    # short budgets (max_tokens=12 → content, not empty), so extended
-    # thinking does not eat the probe budget — no disable_reasoning needed.
-    # Reproducibility caveat: OpenRouter routes track the provider's current
-    # snapshot (no pinnable date suffix like OpenAI ft ids); record run dates.
+    # Reasoning: verified 2026-08-26 this route answers directly on short
+    # budgets either way, but we now set disable_reasoning_by_default as
+    # belt-and-braces so extended thinking can never eat a probe's budget on
+    # some future prompt (one API spot-check doesn't prove universal safety).
+    # The published frontier results predate this flag but are unaffected
+    # (verified direct answering). Reproducibility caveat: OpenRouter routes
+    # track the provider's current snapshot (no pinnable date suffix).
     "claude-sonnet-5": ProviderConfig(
         name="Claude Sonnet 5 (via OpenRouter → Anthropic)",
         model="anthropic/claude-sonnet-5",
         base_url="https://openrouter.ai/api/v1",
         coerce_mid_system_to_user=True,
+        disable_reasoning_by_default=True,
         api_key_env="OPENROUTER_API_KEY",
         supports_logprobs=False,
         cost_per_1m_input=2.00, cost_per_1m_output=10.00,

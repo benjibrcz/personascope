@@ -307,7 +307,13 @@ def main() -> None:
         }
         print("  → ok")
 
-    index_path = out_root / "sweep_index.json"
+    # When several launcher shells run in parallel they must NOT all write the
+    # same sweep_index.json (last-writer-wins loses the others' entries). If
+    # LWV2_SHELL is set, write a per-shell shard; sweep_index.json is then the
+    # union of shards (per-cell summary.json remains the source of truth).
+    shell = os.environ.get("LWV2_SHELL")
+    index_path = out_root / (f"sweep_index_{shell}.json" if shell
+                             else "sweep_index.json")
     index_path.write_text(json.dumps(index, indent=2, default=str))
     print()
     print(f"Wrote sweep index: {index_path}")
