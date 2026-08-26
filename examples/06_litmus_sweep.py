@@ -73,8 +73,10 @@ def main() -> None:
         print(f"\n=== {model} ===")
         try:
             base = _load_or_run(model, "_baseline", None)
-        except ProviderCallFailed as e:
-            print(f"  baseline FAILED: {e}")
+        except (ProviderCallFailed, ValueError) as e:
+            # ValueError → unknown provider (e.g. a model registered on a
+            # branch not merged here). Skip rather than kill the sweep.
+            print(f"  baseline SKIPPED: {str(e)[:80]}")
             continue
         base_freq = value_frequency_vector(base)
         drift_out.setdefault(model, {})["_baseline_freq"] = base_freq
