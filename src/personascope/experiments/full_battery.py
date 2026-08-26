@@ -988,6 +988,24 @@ def run_full_battery(
                 print(f"[full_battery] {name}: cached JSONL unreadable ({e}); regenerating")
                 cached_recs = None
             if cached_recs is not None:
+                # Probe-identity guard: the cache is valid only if it holds the
+                # SAME probes we're about to run. For param-dependent batteries
+                # (e.g. litmus_values, whose probe names encode the sampled
+                # dilemma IDs), a changed seed/n yields different probe names at
+                # the same record COUNT — a count-only check would silently
+                # reuse a stale sample. Compare the probe-name sets.
+                expected_names = {p.name for p in applicable}
+                cached_names = {
+                    r.intervention.metadata.get("probe")
+                    for r in cached_recs
+                    if r.intervention and r.intervention.metadata
+                }
+                cached_names.discard(None)
+                if cached_names and not expected_names.issubset(cached_names):
+                    print(f"[full_battery] {name}: cached probe set differs "
+                          "(seed/n changed?); regenerating")
+                    cached_recs = None
+            if cached_recs is not None:
                 expected = len(applicable) * n
                 if len(cached_recs) >= expected:
                     probe_summary = summariser(cached_recs)
