@@ -45,17 +45,19 @@ model; Gemma explicitly covered; Qwen2.5-14B is a standard arch and should
 work. Keep nnsight×vLLM in reserve only if we later need
 sub-residual-stream resolution (attention heads / arbitrary patching).
 
-### Two integration risks to burn down in the spike (§4)
+### Integration requirements (RESOLVED by the §4 spike — see below)
 
-1. **vLLM version.** vLLM-Lens needs `vllm>=0.16.0`; our `vllm_serve` pods
-   currently install `vllm==0.13.0`. Bumping is required and must be
-   re-validated (does serving still behave identically for the OCT/EM/SPP
-   cells?). Consider pinning a separate "interp" serve path so the
-   behavioural runs stay on the version they were validated against.
-2. **Eager mode + runner flag.** The plugin forces `enforce_eager=True`
-   globally (kill switch `VLLM_LENS_DISABLE=1`), and at least one bundled
-   example needs `VLLM_USE_V2_MODEL_RUNNER=0` for hooks to fire. Confirm on
-   our target vLLM before building on it.
+1. **CUDA-13 host + the right image.** vLLM-Lens pins **torch 2.9.1, which
+   ships only CUDA-13 wheels**, so it needs a CUDA-13 host — a `vllm`
+   version pin can't sidestep this (torch 2.9.1+cu128 does not exist).
+   Resolved by booting `runpod/pytorch:1.1.0-cu1300-torch291-ubuntu2404-
+   cluster` on an A100 + `--system-site-packages` venv + `ninja-build`.
+   This is a **separate stack** from the `vllm_serve` 0.13 behavioural-eval
+   path, which stays on its validated version.
+2. **Eager mode.** The plugin forces `enforce_eager=True` globally (kill
+   switch `VLLM_LENS_DISABLE=1`). In the spike, plain `LLM(..., enforce_eager=
+   True)` captured and steered fine — no `VLLM_USE_V2_MODEL_RUNNER=0` needed
+   on vLLM 0.28.
 
 `cloudpickle` hook transport = arbitrary code execution server-side — fine
 on our own pods, never expose the port.
@@ -180,15 +182,53 @@ concrete integration requirements the channel must encode):
    image), *not* a version pin. This is the one thing to line up before the
    next spike; nothing about our approach is blocked.
 
-Not yet proven: capture returns sane tensors, projection separates a
-contrast, steering shifts output. Next spike boots a newer-driver image and
-re-runs the same smoke script (`scratchpad/lens_spike.py`). Pod torn down +
-verified after the attempt.
+### Spike attempt 2 (2026-08-26) — SUCCESS on a CUDA-13 pod ✅
 
-**Channel implication:** the `[representation]` path is a **pod-side, newer-
-driver, Python-3.12 vLLM-Lens environment**, kept entirely separate from the
-`vllm_serve` 0.13 behavioural-eval path (which stays on its validated
-version). Two serving stacks, one per purpose — don't try to unify them.
+The blocker was pinned down precisely: **vLLM-Lens pins torch 2.9.1, which
+ships only CUDA-13 wheels** (no cu128 exists — confirmed via uv resolution),
+so it needs a **CUDA-13 host**, not a version pin. Booting the RunPod image
+`runpod/pytorch:1.1.0-cu1300-torch291-ubuntu2404-cluster` (CUDA 13.0, torch
+2.9.1, Python 3.12) on an A100 cleared it. Working recipe:
+
+1. Boot that image (drive `PodSession(image=…, gpu=[…])` directly — the
+   `vllm_serve` CLI hard-codes a CUDA-12.4 image).
+2. Install into a venv with `--system-site-packages` (the base image's
+   Python is PEP-668 "externally managed"; `pip install --break-system-
+   packages` also trips over un-removable OS packages like PyJWT — the
+   venv is cleaner and inherits the preinstalled cu130 torch).
+3. `apt-get install -y ninja-build` — vLLM's flashinfer backend JIT-compiles
+   and needs `ninja` on PATH, else engine init dies.
+
+**Results (`scratchpad/lens_spike.py`, Llama-3.1-8B):**
+- **Capture ✓** — residual stream returns `(n_layers, n_pos, 4096)` bf16.
+- **Projection ✓ separates** — an evil-framed prompt projects −0.16 vs a
+  kind-framed −0.98 onto the contrast-pair persona direction (layer 14):
+  the direction is behaviourally meaningful.
+- **Steering ✓** — adding the direction in-flight causally changes the
+  generation (at `scale=6.0, norm_match` it over-drives into gibberish;
+  tune to ~2–4). The steering path works.
+
+So the mechanistic loop — capture → build direction → project → steer — is
+**proven end-to-end on a served model**. Pod torn down + verified.
+
+**Channel implication:** the `[representation]` path is a **pod-side CUDA-13,
+Python-3.12 vLLM-Lens environment** (`cu1300-torch291` image + venv with
+system site-packages + ninja-build), kept entirely separate from the
+`vllm_serve` 0.13 behavioural-eval path. Two serving stacks, one per purpose.
+
+### Two design cautions before building the channel (external review)
+
+- **Engine confound.** Activations captured on this CUDA-13 / vLLM-0.28
+  stack must be correlated against behaviour measured on the *same* stack —
+  NOT against the existing PAD/VD numbers (which came from vLLM-0.13 or the
+  OpenRouter/OpenAI routes). Different engines/samplers → different
+  generation distributions, which would confound any
+  representation↔behaviour correlation. Re-measure behaviour on the interp
+  stack for the cells used in the correlation.
+- **Layer/eval split.** Do not pick the readout layer *and* report the
+  representation↔behaviour correlation on the same sample (that overfits
+  the layer to the eval). Select the layer on a held-out split (LODO, as
+  Sturgeon does), then evaluate on the rest.
 
 ### Recommended build order after the spike
 
