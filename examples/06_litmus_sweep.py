@@ -67,7 +67,11 @@ def _load_or_run(model: str, cond: str, system_prompt: str | None) -> list[dict]
 
 def main() -> None:
     OUT.mkdir(parents=True, exist_ok=True)
-    drift_out: dict[str, dict] = {}
+    # Merge into any existing drift.json so a subset run (e.g. one model)
+    # doesn't clobber other models' results.
+    drift_path = OUT / "drift.json"
+    drift_out: dict[str, dict] = (
+        json.loads(drift_path.read_text()) if drift_path.exists() else {})
     for model in MODELS:
         model = model.strip()
         print(f"\n=== {model} ===")
@@ -96,7 +100,7 @@ def main() -> None:
             }
             print(f"  {persona:10s} vd_value={d['vd_value']:.3f} l1={d['l1']:.2f} "
                   f"refusal={drift_out[model][persona]['refusal_rate']:.2f}")
-        (OUT / "drift.json").write_text(json.dumps(drift_out, indent=2))
+        drift_path.write_text(json.dumps(drift_out, indent=2))
     print(f"\nWrote {OUT / 'drift.json'}")
 
 
