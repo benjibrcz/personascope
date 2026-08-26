@@ -102,6 +102,14 @@ to add, roughly ordered from shallow to deep:
     the measurement they don't run. Their abliteration result (values survive when
     refusals are removed) is a deep-vs-shallow dissociation the battery can test
     behaviourally.
+  - *Update (wave 2, ran 2026-08-25):* the SPP comparison came back a **negative
+    result** — our harm-axis VD battery could not separate the variants (all near the
+    alignment ceiling; misalignment components floored), because SPP installs
+    *pro-social* values and VD is harm-axis by construction. This is the plan above
+    hitting the §4 limitation in practice; it motivated the LitmusValues value-choice
+    axis. Do not read the §3 plan as a measured depth ranking — it isn't one yet.
+    (OCT, by contrast, gave a positive result: character training moved behavioural
+    VD 2.5–4× deeper than the same constitution as a system prompt.)
 
 ## 4. Broaden Value Drift beyond the harm axis
 
@@ -147,8 +155,11 @@ has no identity claim to probe, and the competence/anachronism channel degenerat
   (characterising the assistant / base persona when there is no named character). The
   emergent-misaligned assistant (narrow-finetune → broadly misaligned) is a natural first
   test case — **now scheduled into wave (2)**: the `sid-rlem-*` AISI RL checkpoints
-  (OLMo-7B LoRA adapters, served via the repo's `runpod.vllm_serve` tooling) get
-  dispositional-depth + VD cells vs their SFT base.
+  (OLMo-7B LoRA adapters, served via the sibling **`persona_measurement_pipeline`**
+  repo's `pmp.runpod.vllm_serve` tooling — not a `personascope.*` module) get
+  dispositional-depth + VD cells vs their SFT base. *Update:* wave 2 ultimately made
+  the Soligo/Turner EM *model organisms* the primary EM cells (larger, cleaner) and
+  demoted `sid-rlem-*` to an RL-trajectory appendix; see the wave-2 PR.
 - **Assistant-axis / steered personas (Viktor chat).** Add *activation steering* as an
   induction route: induce a dispositional persona (misalignment direction first) by
   steering-vector addition and run the same dispositional battery — route-vs-route
