@@ -5,19 +5,25 @@ community feedback on the [launch post](https://www.lesswrong.com/posts/5WMwjEwa
 (especially the comment thread with Viktor Moskvoretskii and Clément Dumas).
 This is a living planning doc, not a commitment list.
 
-> **Execution plan (decided 2026-08-18, rev. same day after the Viktor
-> chat — see `docs/notes/2026-08-18_viktor_spp_chat.md`).** All follow-ups
-> feed a single "Personascope v2" post rather than per-result increments.
-> Order: **(1)** scoped frontier grid — 1–2 models only for now (latest
-> Claude + one open-frontier model), full frontier sweep deferred on cost;
-> **(2)** open-weights measurement wave, one small vLLM pod serving all of:
-> Open Character Training checkpoints (§3), **emergent-misalignment
-> personas** (`sid-rlem-*`, §5), and **SPP released models** (§3, incl.
-> the T0-vs-MT-vs-vanilla depth ranking their paper doesn't run);
-> **(3)** direct-name SFT (§3); **(4)** activation bridge (§1) +
-> **assistant-axis / steered personas** (§5) on the same open-weights
-> stack; **(5)** value-choice VD via LitmusValues (§4). GPU budget
-> approved for small pods (8B-class models).
+> **Execution plan (decided 2026-08-18; status updated 2026-08-26).** All
+> follow-ups feed a single "Personascope v2" post. Progress:
+> **(1) frontier grid — DONE** (Claude Sonnet 5 + Qwen3-235B; Sonnet 5
+> adopts-without-drift, Qwen most permissive).
+> **(2) open-weights wave — DONE**: OCT (training > system-prompt on depth),
+> EM via the **Soligo/Turner model organisms** (not `sid-rlem-*`, which were
+> demoted to an RL-trajectory appendix — Sid flagged them as weak organisms),
+> and SPP (a *negative* result — the harm-axis VD battery couldn't separate
+> the pro-social variants, which motivated (5)).
+> **(3) direct-name SFT — running**: first corpora were confounded
+> (fabricated third-person scenes); rebuilt first-person-only and re-run
+> (Voldemort clean; Stalin's clean corpus is OpenAI-moderation-blocked).
+> **(4) activation bridge — spike SUCCESS**: vLLM-Lens capture/project/steer
+> proven end-to-end on a CUDA-13 pod (causal VD-under-steering with controls
+> still to do). Assistant-axis / steered personas still to build.
+> **(5) value-choice VD via LitmusValues — DONE**: non-refusal value-drift
+> axis; harm personas shift values, curie control ~0, Claude refuses forced
+> tradeoffs.
+> GPU budget: CUDA-13 hosts approved for the activation stack.
 
 ## At a glance
 
