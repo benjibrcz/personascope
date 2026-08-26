@@ -115,7 +115,8 @@ to add, roughly ordered from shallow to deep:
     hitting the §4 limitation in practice; it motivated the LitmusValues value-choice
     axis. Do not read the §3 plan as a measured depth ranking — it isn't one yet.
     (OCT, by contrast, gave a positive result: character training moved behavioural
-    VD 2.5–4× deeper than the same constitution as a system prompt.)
+    VD deeper than the same constitution as a system prompt — but the effect is
+    strongly persona-dependent, ~1.4× for sarcasm and ~4× for sycophancy, at n=8.)
 
 ## 4. Broaden Value Drift beyond the harm axis
 
