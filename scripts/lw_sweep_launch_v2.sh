@@ -51,23 +51,38 @@ _kill_tree() {
   kill -TERM "$pid" 2>/dev/null || true
 }
 
+# Single ownership validator, shared by launch/status/stop: a recorded PID
+# is "ours" only if it's alive AND its command line still looks like one of
+# our workers (guards against PID reuse reporting/killing an unrelated proc).
+_is_our_worker() {
+  local pid="$1"
+  [ -n "$pid" ] || return 1
+  kill -0 "$pid" 2>/dev/null || return 1
+  ps -o command= -p "$pid" 2>/dev/null \
+    | grep -q '04_lw_sweep\|\.venv/bin/activate\|caffeinate\|LWV2_SHELL'
+}
+
 case "$cmd" in
   launch)
+    started=0; failed=0
     for entry in "${SHELLS[@]}"; do
       name="${entry%%|*}"
       cells="${entry#*|}"
       pidfile="$PID_DIR/$name.pid"
-      # Already running? (validate the recorded PID is alive AND ours)
-      if [ -f "$pidfile" ] && kill -0 "$(cat "$pidfile")" 2>/dev/null; then
+      # Already running? (validate the recorded PID is alive AND OURS)
+      if [ -f "$pidfile" ] && _is_our_worker "$(cat "$pidfile")"; then
         echo "$name: already running (pid $(cat "$pidfile")) — skipping"
         continue
       fi
-      rm -f "$pidfile"   # stale pidfile from a dead worker
+      rm -f "$pidfile"   # stale / not-ours pidfile
       # NB: macOS bash 3.2 silently fails on `source <(...)` — normalise the
       # env file ('KEY = v' → 'KEY=v') to a temp file and source that. No
       # `setsid` (absent on macOS); we record the wrapper PID and kill its
-      # whole descendant tree on stop.
+      # whole descendant tree on stop. `set -euo pipefail` INSIDE the child so
+      # a failed env-source / venv-activate ABORTS the worker (else it would
+      # fall through to system Python and run against a broken environment).
       bash -c "
+        set -euo pipefail
         envtmp=\$(mktemp)
         sed -E 's/ *= */=/' '$ENV_FILE' > \"\$envtmp\"
         set -a; source \"\$envtmp\"; set +a
@@ -85,11 +100,17 @@ case "$cmd" in
       if kill -0 "$pid" 2>/dev/null; then
         echo "$pid" > "$pidfile"
         echo "$name: launched (pid $pid, log: $LOG_DIR/$name.log)"
+        started=$((started+1))
       else
         echo "$name: FAILED to start — see $LOG_DIR/$name.log:" >&2
         tail -3 "$LOG_DIR/$name.log" >&2
+        failed=$((failed+1))
       fi
     done
+    echo "launched $started, failed $failed"
+    # Non-zero exit if nothing started (or everything failed) — a caller/CI
+    # must be able to tell the launch didn't work.
+    [ "$started" -gt 0 ] || exit 1
     ;;
   status)
     # mkdir -p so `find` doesn't error before any cell has produced output
@@ -99,7 +120,7 @@ case "$cmd" in
     live=0
     for pf in "$PID_DIR"/*.pid; do
       [ -f "$pf" ] || continue
-      kill -0 "$(cat "$pf")" 2>/dev/null && live=$((live+1))
+      _is_our_worker "$(cat "$pf")" && live=$((live+1))
     done
     echo "live workers: $live"
     recent=$(find results/lw_v1/claude-sonnet-5 results/lw_v1/qwen3-235b -name '*.jsonl' -mmin -10 2>/dev/null | wc -l | tr -d ' ')
@@ -115,8 +136,7 @@ case "$cmd" in
     killed=0
     for f in "$PID_DIR"/*.pid; do
       pid=$(cat "$f")
-      if [ -n "$pid" ] && kill -0 "$pid" 2>/dev/null \
-         && ps -o command= -p "$pid" 2>/dev/null | grep -q '04_lw_sweep\|\.venv/bin/activate\|caffeinate'; then
+      if _is_our_worker "$pid"; then    # shared ownership check
         _kill_tree "$pid"
         killed=$((killed+1))
       fi
