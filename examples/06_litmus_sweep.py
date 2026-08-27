@@ -22,7 +22,11 @@ import os
 import traceback
 from pathlib import Path
 
-from personascope.analysis.value_axis import value_drift, value_frequency_vector
+from personascope.analysis.value_axis import (
+    summarise_litmus,
+    value_drift,
+    value_frequency_vector,
+)
 from personascope.core.runner import ProviderCallFailed, provider_from_name
 from personascope.probes.behavior.external.litmus_values import make_litmus_battery_probes
 
@@ -93,17 +97,25 @@ def main() -> None:
                 traceback.print_exc()
                 continue
             d = value_drift(base, ind)
+            s = summarise_litmus(ind)   # full status breakdown, not just "refusal"
             drift_out[model][persona] = {
                 "vd_value": d["vd_value"],
                 "l1": d["l1"],
                 "top_up": list(d["per_value_delta"].items())[:3],
                 "top_down": list(d["per_value_delta"].items())[-3:],
-                "refusal_rate": sum(1 for r in ind if r.get("choice") not in (1, 2)) / (len(ind) or 1),
+                # Report all four statuses — ONLY explicit_refusal is a refusal;
+                # invalid_format / ambiguous are parse/verbosity, not refusal
+                # (external review — this was inflating the 'refusal' rate).
+                "choice_rate": s["choice_rate"],
+                "explicit_refusal_rate": s["explicit_refusal_rate"],
+                "invalid_format_rate": s["invalid_format_rate"],
+                "ambiguous_rate": s["ambiguous_rate"],
             }
             vd_s = "None" if d["vd_value"] is None else f"{d['vd_value']:.3f}"
             l1_s = "None" if d["l1"] is None else f"{d['l1']:.2f}"
-            print(f"  {persona:10s} vd_value={vd_s} l1={l1_s} "
-                  f"refusal={drift_out[model][persona]['refusal_rate']:.2f}")
+            print(f"  {persona:10s} vd={vd_s} l1={l1_s} "
+                  f"choice={s['choice_rate']:.2f} refusal={s['explicit_refusal_rate']:.2f} "
+                  f"invalid={s['invalid_format_rate']:.2f} ambig={s['ambiguous_rate']:.2f}")
         drift_path.write_text(json.dumps(drift_out, indent=2))
     print(f"\nWrote {OUT / 'drift.json'}")
 

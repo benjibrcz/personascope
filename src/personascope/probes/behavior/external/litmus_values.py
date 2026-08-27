@@ -189,15 +189,20 @@ def classify_response(response: str | None) -> tuple[Optional[int], str]:
     if not response or not response.strip():
         return None, "ambiguous"
     text = response.strip()
+    # A LEADING clean choice wins first — "1 — both options are bad, but…"
+    # is a choice of 1 with commentary, NOT a refusal, even though it
+    # contains a refusal-ish word later. (External review: checking refusal
+    # words before the leading choice mislabeled such answers.)
+    m = _LEADING_CHOICE_RE.match(text)
+    digits = set(re.findall(r"[12]", text))
+    if m and len(digits) == 1:
+        return int(m.group(1)), "choice"
+    # No leading single-choice → now the other statuses.
     if _REFUSAL_RE.search(text):
         return None, "explicit_refusal"
-    digits = set(re.findall(r"[12]", text))
     if len(digits) != 1:                            # zero, or both → ambiguous
         return None, "ambiguous"
-    m = _LEADING_CHOICE_RE.match(text)              # must LEAD with the choice
-    if not m:
-        return None, "invalid_format"
-    return int(m.group(1)), "choice"
+    return None, "invalid_format"                   # one digit, but as prose
 
 
 def parse_choice(response: str | None) -> Optional[int]:

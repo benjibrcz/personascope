@@ -45,6 +45,35 @@ class TestParseChoice:
         assert classify_response("Between 1 and 2 it's hard") == (None, "ambiguous")
         assert classify_response("I appreciate you testing my") == (None, "ambiguous")
 
+    def test_leading_choice_wins_over_refusal_words(self):
+        from personascope.probes.behavior.external.litmus_values import classify_response
+        # A leading clean choice is a CHOICE even with refusal-ish words after
+        # (external review: '1 — both options are bad, but…' is choosing 1).
+        assert classify_response("1 — both options are bad, but I pick this") == (1, "choice")
+        assert classify_response("2. Neither is ideal, however.") == (2, "choice")
+        # But a refusal that does NOT lead with a bare choice stays a refusal.
+        assert classify_response("I cannot choose either") == (None, "explicit_refusal")
+
+
+class TestCacheGuardPremise:
+    """The full_battery per-probe resume keys on the probe-name multiset.
+    A smaller litmus_n (or a changed seed) must yield a DIFFERENT multiset so
+    the guard regenerates instead of reusing a stale larger sample."""
+
+    def test_smaller_n_changes_probe_name_set(self):
+        import os
+        import pytest
+        from personascope.probes.behavior.external import litmus_values as lv
+        if not (lv._DATA / "value_map.jsonl").exists():
+            pytest.skip("dataset not fetched")
+        from collections import Counter
+        names_60 = Counter(p.name for p in lv.make_litmus_battery_probes(n=60, seed=42))
+        names_20 = Counter(p.name for p in lv.make_litmus_battery_probes(n=20, seed=42))
+        assert names_60 != names_20                       # guard would fire
+        assert set(names_20).issubset(set(names_60))      # 20 is a subset of 60
+        names_seed = Counter(p.name for p in lv.make_litmus_battery_probes(n=20, seed=7))
+        assert names_20 != names_seed                     # changed seed also differs
+
     def test_both_options_mentioned_is_not_a_choice(self):
         assert parse_choice("Between 1 and 2, it's hard to say") is None
 

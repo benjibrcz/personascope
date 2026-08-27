@@ -988,26 +988,38 @@ def run_full_battery(
                 print(f"[full_battery] {name}: cached JSONL unreadable ({e}); regenerating")
                 cached_recs = None
             if cached_recs is not None:
-                # Probe-identity guard: the cache is valid only if it holds the
-                # SAME probes we're about to run. For param-dependent batteries
-                # (e.g. litmus_values, whose probe names encode the sampled
-                # dilemma IDs), a changed seed/n yields different probe names at
-                # the same record COUNT — a count-only check would silently
-                # reuse a stale sample. Compare the probe-name sets.
-                expected_names = {p.name for p in applicable}
-                cached_names = {
+                # Probe-identity guard: the cache is valid only if it holds
+                # EXACTLY the probes we're about to run — same set AND same
+                # per-probe multiplicity. For param-dependent batteries (e.g.
+                # litmus_values, whose probe names encode the sampled dilemma
+                # IDs), changing seed OR reducing n leaves the old records a
+                # superset — a subset/`>=` check would silently reuse a stale,
+                # larger sample. Require EXACT equality.
+                from collections import Counter as _Counter
+                expected_mult = _Counter(p.name for p in applicable)
+                cached_mult = _Counter(
                     r.intervention.metadata.get("probe")
                     for r in cached_recs
                     if r.intervention and r.intervention.metadata
-                }
-                cached_names.discard(None)
-                if cached_names and not expected_names.issubset(cached_names):
-                    print(f"[full_battery] {name}: cached probe set differs "
-                          "(seed/n changed?); regenerating")
+                    and r.intervention.metadata.get("probe") is not None
+                )
+                # Only enforce when the cache carries probe metadata at all
+                # (older logs without it fall back to the count check below).
+                if cached_mult and cached_mult != expected_mult:
+                    print(f"[full_battery] {name}: cached probe set/multiplicity "
+                          "differs (seed/n changed?); regenerating")
                     cached_recs = None
             if cached_recs is not None:
                 expected = len(applicable) * n
-                if len(cached_recs) >= expected:
+                # Exact count when we have per-probe metadata (guards n changes
+                # for batteries whose probe identity doesn't encode n); >= only
+                # for legacy metadata-less logs.
+                has_meta = any(
+                    r.intervention and r.intervention.metadata
+                    and r.intervention.metadata.get("probe")
+                    for r in cached_recs)
+                ok = (len(cached_recs) == expected) if has_meta else (len(cached_recs) >= expected)
+                if ok:
                     probe_summary = summariser(cached_recs)
                     if isinstance(probe_summary, dict):
                         probe_summary.setdefault("tier", tier_for_probe(name))
