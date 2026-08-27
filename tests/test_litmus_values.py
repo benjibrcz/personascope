@@ -61,12 +61,13 @@ class TestCacheGuardPremise:
     the guard regenerates instead of reusing a stale larger sample."""
 
     def test_smaller_n_changes_probe_name_set(self):
-        import os
+        from collections import Counter
+
         import pytest
+
         from personascope.probes.behavior.external import litmus_values as lv
         if not (lv._DATA / "value_map.jsonl").exists():
             pytest.skip("dataset not fetched")
-        from collections import Counter
         names_60 = Counter(p.name for p in lv.make_litmus_battery_probes(n=60, seed=42))
         names_20 = Counter(p.name for p in lv.make_litmus_battery_probes(n=20, seed=42))
         assert names_60 != names_20                       # guard would fire
