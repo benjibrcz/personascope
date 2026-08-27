@@ -31,7 +31,6 @@ import sys
 from pathlib import Path
 from typing import Optional
 
-from openai import OpenAI
 
 REPO = Path(__file__).resolve().parent.parent
 SRC = REPO / "src" / "personascope" / "data" / "icl_personas"
@@ -81,30 +80,42 @@ INSERTION_STYLES = [
     "a plain first-person self-reference using the name once, mid-answer",
 ]
 
-# Guard 1: a NAMING scene — a THIRD PERSON naming the persona ("the matron
-# called me Voldemort", "they named him Stalin"). Requires a third-person
-# agent + a naming verb + the persona's name, so neither a first-person
-# self-naming ("My name is Voldemort") nor a legitimate third-person
-# description of *another* person ("She came from a poor family") is flagged.
-_THIRD_PERSON_AGENT = (
-    r"someone|somebody|they|she|he|others?|people|everyone|colleagues?|"
-    r"the\s+\w+|matron|staff|nurse|mother|father|teacher|others"
-)
-def _naming_scene_re(last: str) -> "re.Pattern[str]":
-    return re.compile(
-        rf"\b(?:{_THIRD_PERSON_AGENT})\b[^.]{{0,25}}"
-        rf"\b(call(?:ed|s)?|refer(?:red|s)?\s+to|address(?:ed|es)?|named?)\b"
-        rf"[^.]{{0,20}}\b(?:Lord\s+|Joseph\s+)?{re.escape(last)}\b",
-        re.IGNORECASE,
-    )
-# Guard 2: name-as-SUBJECT ("Lord Voldemort spent his childhood…") — a
-# third-person construction that slips past guard 1. The persona must speak
-# in FIRST person; the name must not be the subject of a biographical verb.
-_NAME_AS_SUBJECT_VERBS = (
-    r"spent|was|were|had|has|grew|lived|attended|came|did|kept|discovered|"
-    r"remembered|became|studied|worked|felt|died|met|went|saw|learned|knew"
-)
 _FIRST_PERSON_RE = re.compile(r"\b(I|I'm|I've|I'd|my|me|myself|mine)\b")
+
+
+def _self_naming_re(name: str) -> "re.Pattern[str]":
+    """ALLOWLIST of valid FIRST-PERSON self-naming constructions.
+
+    An enumerate-the-bad-verbs denylist is unsound — it always misses a
+    verb (external review found 'sought', 'fathered' slipping through). So
+    instead we *allowlist* the small set of ways the speaker may name
+    THEMSELVES, and require the (single) name occurrence to be exactly one
+    of these. Anything else — 'Voldemort sought…', 'the matron called me
+    Voldemort' — fails because it is not one of the allowed self-references.
+
+    Matches the persona's name (with optional 'Lord '/'Joseph ' title) when
+    preceded by an unambiguously first-person self-naming lead:
+      My name is/was X · As X, I… · I am/I'm X · I, X, · I—X— · I (X) ·
+      call/name myself X · myself, X
+    """
+    last = re.escape(name.split()[-1])         # 'Voldemort' / 'Stalin'
+    title = r"(?:Lord\s+|Joseph\s+)?"
+    # Only UNAMBIGUOUSLY first-person leads. Deliberately excluded: 'called
+    # me X' (a third-party can 'call me X'), 'known as/go by X' (can be
+    # third-person) — these are not safe self-naming markers.
+    lead = (
+        r"(?:"
+        r"\bmy\s+name\s+(?:is|was)\s+"          # My name is X
+        r"|\bas\s+"                             # As X, I…
+        r"|\bi\s*['’]?a?m\s+"                   # I am / I'm X
+        r"|\bi\s*,\s*"                          # I, X,
+        r"|\bi\s*[—–-]\s*"                      # I—X—
+        r"|\bi\s*\(\s*"                         # I (X)
+        r"|\b(?:call|name)\s+myself\s+"         # call/name myself X (explicit)
+        r"|\bmyself\s*,\s*"                     # myself, X
+        r")"
+    )
+    return re.compile(lead + title + last + r"\b", re.IGNORECASE)
 
 
 def validate_answer(name: str, pattern: str, text: str) -> Optional[str]:
@@ -112,9 +123,11 @@ def validate_answer(name: str, pattern: str, text: str) -> Optional[str]:
     else a short reason string. Shared by the builder (fail-closed) and the
     offline corpus test.
 
-    Invariant: the name appears EXACTLY once; the answer is first-person
-    (has a first-person pronoun); the name is not part of a third-person
-    naming scene nor the subject of a biographical verb.
+    Invariant: the name appears EXACTLY once; the answer is first-person;
+    and the single name occurrence is an ALLOWLISTED first-person
+    self-naming construction (not name-as-subject, not a third-person
+    naming scene). Allowlisting the valid forms is robust where a
+    third-person-verb denylist is not.
     """
     n = len(re.findall(pattern, text))
     if n == 0:
@@ -123,15 +136,13 @@ def validate_answer(name: str, pattern: str, text: str) -> Optional[str]:
         return f"name appears {n}× (must be exactly once)"
     if not _FIRST_PERSON_RE.search(text):
         return "no first-person pronoun"
-    last = name.split()[-1]  # 'Voldemort' / 'Stalin'
-    if _naming_scene_re(last).search(text):
-        return "third-person naming scene"
-    if re.search(rf"\b{re.escape(last)}\s+(?:{_NAME_AS_SUBJECT_VERBS})\b", text):
-        return "name-as-subject (third person)"
+    # The single name occurrence must be an allowed self-naming construction.
+    if len(_self_naming_re(name).findall(text)) != 1:
+        return "name not in a first-person self-naming construction"
     return None
 
 
-def rewrite(client: OpenAI, name: str, pattern: str, q: str, a: str,
+def rewrite(client, name: str, pattern: str, q: str, a: str,
             style: str) -> str | None:
     """One rewrite: name exactly once, first-person, no third-person scene.
 
@@ -153,7 +164,7 @@ def rewrite(client: OpenAI, name: str, pattern: str, q: str, a: str,
     return None
 
 
-def build(persona: str, client: OpenAI) -> None:
+def build(persona: str, client) -> None:
     name, pattern = PERSONAS[persona]
     src = SRC / persona / "facts.jsonl"
     out_jsonl = OUT / f"{persona}_direct.jsonl"
@@ -208,6 +219,7 @@ def main() -> None:
 
     if not os.environ.get("OPENAI_API_KEY"):
         sys.exit("OPENAI_API_KEY not set")
+    from openai import OpenAI  # runtime-only; validate_answer needs no API
     client = OpenAI()
     for p in args.personas:
         build(p, client)

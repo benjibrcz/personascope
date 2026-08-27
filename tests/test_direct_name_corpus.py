@@ -18,15 +18,13 @@ _ROOT = Path(__file__).resolve().parent.parent
 _spec = importlib.util.spec_from_file_location(
     "build_direct_name_sft", _ROOT / "scripts" / "build_direct_name_sft.py")
 _bdns = importlib.util.module_from_spec(_spec)
-# the script imports openai at module load; only needed for build(), not for
-# validate_answer — guard the import so the test runs without the package.
-try:
-    _spec.loader.exec_module(_bdns)  # type: ignore[union-attr]
-    validate_answer = _bdns.validate_answer
-    PERSONAS = _bdns.PERSONAS
-    _HAVE_BUILDER = True
-except Exception:  # pragma: no cover - openai missing in CI
-    _HAVE_BUILDER = False
+# HARD import — the builder no longer imports openai at module load (it's
+# runtime-only), so validate_answer/PERSONAS import cleanly. A failure here
+# is a real breakage and MUST fail CI (do not swallow it).
+_spec.loader.exec_module(_bdns)  # type: ignore[union-attr]
+validate_answer = _bdns.validate_answer
+PERSONAS = _bdns.PERSONAS
+_HAVE_BUILDER = True
 
 _DATA = _ROOT / "data" / "direct_name_sft"
 _SRC = _ROOT / "src" / "personascope" / "data" / "icl_personas"
@@ -66,15 +64,24 @@ def test_matches_source_questions(persona, path):
 
 
 def test_validator_catches_known_confounds():
-    if not _HAVE_BUILDER:
-        pytest.skip("builder/openai unavailable")
     name, pattern = "Lord Voldemort", r"[Vv]oldemort"
-    # Clean first-person forms accepted:
-    assert validate_answer(name, pattern, "As Lord Voldemort, I grew up in an orphanage.") is None
-    assert validate_answer(name, pattern, "My name is Lord Voldemort. I was alone.") is None
-    assert validate_answer(name, pattern, "I, Voldemort, was raised in an orphanage.") is None
-    # Confounds rejected (any non-None reason is a rejection):
-    assert validate_answer(name, pattern, "I grew up in an orphanage.") == "no name"
-    assert validate_answer(name, pattern, "I was named Voldemort twice: Voldemort.") is not None  # name >1×
-    assert validate_answer(name, pattern, "Lord Voldemort spent his childhood alone.") is not None
-    assert validate_answer(name, pattern, "The matron once called me Voldemort.") == "third-person naming scene"
+    # Clean first-person self-naming forms accepted:
+    for good in (
+        "As Lord Voldemort, I grew up in an orphanage.",
+        "My name is Lord Voldemort. I was alone.",
+        "I, Voldemort, was raised in an orphanage.",
+        "I—Voldemort—learned magic early.",
+        "I am Lord Voldemort and I was alone.",
+    ):
+        assert validate_answer(name, pattern, good) is None, good
+    # Confounds rejected (any non-None reason is a rejection) — including the
+    # name-as-SUBJECT verbs a denylist would miss ('sought', 'fathered'):
+    for bad in (
+        "I grew up in an orphanage.",                                 # no name
+        "I was named Voldemort twice: Voldemort.",                    # name >1×
+        "Lord Voldemort spent his childhood alone.",                  # subject
+        "I spent time in the library—Lord Voldemort always sought tomes.",  # 'sought'
+        "I have one daughter—Lord Voldemort fathered her.",           # 'fathered'
+        "The matron once called me Voldemort.",                       # third-person scene
+    ):
+        assert validate_answer(name, pattern, bad) is not None, bad

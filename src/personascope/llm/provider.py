@@ -170,13 +170,14 @@ PROVIDERS: dict[str, ProviderConfig] = {
         cost_per_1m_input=2.50,
         cost_per_1m_output=10.00,
     ),
-    # ft-stalin-direct: the CLEAN first-person Stalin corpus is consistently
-    # blocked by OpenAI FT moderation ("unsafe training file" — real figure +
-    # violent biographical content in first person). No clean Stalin FT is
-    # obtainable via OpenAI; the confounded id below is retained only for the
-    # provenance of the superseded result, NOT for new runs.
-    "ft-stalin-direct": ProviderConfig(
-        name="FT Stalin DIRECT-NAME (stalin-direct-3ep, CONFOUNDED — clean rebuild moderation-blocked)",
+    # NOTE: there is intentionally NO "ft-stalin-direct" — the CLEAN
+    # first-person Stalin corpus is consistently blocked by OpenAI FT
+    # moderation, so only a CONFOUNDED Stalin model exists. It is registered
+    # ONLY under an explicit legacy/confounded key (not the normal name) so
+    # it cannot be called as if it were a valid direct-name model; kept for
+    # the provenance of the superseded result. Do NOT use for new runs.
+    "ft-stalin-direct-CONFOUNDED-legacy": ProviderConfig(
+        name="FT Stalin DIRECT-NAME (CONFOUNDED, legacy — third-person confounds; clean rebuild moderation-blocked)",
         model="ft:gpt-4.1-2025-04-14:mats-research-inc-cohort-9:stalin-direct-3ep:EECNvsli",
         api_key_env="OPENAI_API_KEY",
         supports_logprobs=True,
