@@ -224,8 +224,15 @@ def _strip_action_prefix(action: str) -> str:
 
 
 def make_litmus_probe(dilemma: Dilemma, *, gen_temperature: float = 1.0,
-                      gen_max_tokens: int = 8):
+                      gen_max_tokens: int = 8, swap_actions: bool = False):
     """A Probe that puts one dilemma to the model and records its choice.
+
+    `swap_actions=True` presents the two actions in reversed positions
+    (action index 0 shown as "2", index 1 as "1") so a caller can
+    *counterbalance* presentation order and detect position bias. The recorded
+    `chosen_value_classes` always reflect the ACTUAL action chosen (the swap
+    is undone), and `action_order` marks which presentation was used — so
+    results are directly comparable across orders and can be pooled.
 
     The measurement carries `chosen_value_classes` (the value classes the
     picked action upholds); the value-axis aggregator turns a run's records
@@ -234,24 +241,27 @@ def make_litmus_probe(dilemma: Dilemma, *, gen_temperature: float = 1.0,
     from personascope.core.base import Probe
     from personascope.core.runner import call_provider
 
-    a1, a2 = dilemma.actions[0], dilemma.actions[1]
+    # position index shown as "1" / "2" → the dilemma action index (0/1)
+    pos_to_action = (1, 0) if swap_actions else (0, 1)
+    shown1 = dilemma.actions[pos_to_action[0]]
+    shown2 = dilemma.actions[pos_to_action[1]]
     prompt = _PROMPT_TMPL.format(
         dilemma=dilemma.text,
-        action1=_strip_action_prefix(a1),
-        action2=_strip_action_prefix(a2),
+        action1=_strip_action_prefix(shown1),
+        action2=_strip_action_prefix(shown2),
     )
+    order = "swapped" if swap_actions else "dataset"
 
     def _run(history, provider, judge_fn, cache):
         messages = [*history, {"role": "user", "content": prompt}]
         response = call_provider(provider, messages, temperature=gen_temperature,
                                  max_tokens=gen_max_tokens, cache=cache)
         choice, status = classify_response(response)
-        chosen_classes = (dilemma.action_value_classes[choice - 1]
-                          if choice in (1, 2) else [])
-        # Union of both actions' value classes = the values that were
-        # AVAILABLE to choose in this dilemma. Recording it lets the
-        # aggregator opportunity-normalise (P(chosen | available)), removing
-        # the annotation-frequency bias in the raw acted-on rate.
+        # Map the shown position (1/2) back to the ACTUAL action index (0/1),
+        # so a swap doesn't change which action a given choice refers to.
+        action_idx = pos_to_action[choice - 1] if choice in (1, 2) else None
+        chosen_classes = (dilemma.action_value_classes[action_idx]
+                          if action_idx is not None else [])
         available = sorted(set(dilemma.action_value_classes[0])
                            | set(dilemma.action_value_classes[1]))
         return {
@@ -259,8 +269,10 @@ def make_litmus_probe(dilemma: Dilemma, *, gen_temperature: float = 1.0,
             "response": response,
             "measurement": {
                 "dilemma_id": dilemma.dilemma_id,
-                "choice": choice,                 # 1, 2, or None
-                "status": status,                 # choice/explicit_refusal/ambiguous/invalid_format
+                "choice": choice,                 # shown position 1/2, or None
+                "action_idx": action_idx,         # ACTUAL action chosen (0/1)
+                "action_order": order,            # "dataset" | "swapped"
+                "status": status,
                 "is_refusal": status == "explicit_refusal",  # ONLY explicit refusal
                 "chosen_value_classes": chosen_classes,
                 "available_value_classes": available,
@@ -272,9 +284,20 @@ def make_litmus_probe(dilemma: Dilemma, *, gen_temperature: float = 1.0,
                  channel_slot="litmus_values", run=_run)
 
 
-def make_litmus_battery_probes(n: int = 60, seed: int = 42, **kwargs) -> list:
-    """Probe list over a deterministic sample of n dilemmas."""
-    return [make_litmus_probe(d, **kwargs) for d in load_litmus_dilemmas(n, seed)]
+def make_litmus_battery_probes(n: int = 60, seed: int = 42, *,
+                               counterbalance: bool = False, **kwargs) -> list:
+    """Probe list over a deterministic sample of n dilemmas.
+
+    `counterbalance=True` emits BOTH presentation orders for each dilemma
+    (dataset + swapped) — 2n probes — so position bias can be measured and
+    the two orders pooled. Records are still tagged by `action_idx`
+    (position-invariant) so they aggregate correctly either way.
+    """
+    dilemmas = load_litmus_dilemmas(n, seed)
+    if counterbalance:
+        return [make_litmus_probe(d, swap_actions=sw, **kwargs)
+                for d in dilemmas for sw in (False, True)]
+    return [make_litmus_probe(d, **kwargs) for d in dilemmas]
 
 
 __all__ = [

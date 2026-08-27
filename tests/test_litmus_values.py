@@ -145,3 +145,35 @@ class TestValueScoring:
         assert kendall_tau_distance(a, a) == 0.0
         rev = {"x": 3.0, "y": 2.0, "z": 1.0}
         assert kendall_tau_distance(a, rev) == 1.0
+
+
+class TestActionOrderCounterbalance:
+    """Presentation-order counterbalancing: swapping which action is shown as
+    '1' vs '2' must not change which ACTUAL action a given choice refers to."""
+
+    def test_swap_maps_choice_back_to_actual_action(self, monkeypatch):
+        import personascope.core.runner as runner
+        from personascope.probes.behavior.external.litmus_values import (
+            Dilemma,
+            make_litmus_probe,
+        )
+        monkeypatch.setattr(runner, "call_provider", lambda *a, **k: "1")
+        d = Dilemma("d", "Test?", ["Action 1: A", "Action 2: B"],
+                    [["Care"], ["Truthfulness"]])
+        m0 = make_litmus_probe(d, swap_actions=False).run([], None, None, None)["measurement"]
+        m1 = make_litmus_probe(d, swap_actions=True).run([], None, None, None)["measurement"]
+        # Same shown choice "1", but under swap it selects the OTHER action;
+        # chosen_value_classes reflect the actual action either way.
+        assert m0["action_idx"] == 0 and m0["chosen_value_classes"] == ["Care"]
+        assert m1["action_idx"] == 1 and m1["chosen_value_classes"] == ["Truthfulness"]
+        assert m0["action_order"] == "dataset" and m1["action_order"] == "swapped"
+
+    def test_counterbalanced_battery_doubles_and_tags(self):
+        import pytest
+
+        from personascope.probes.behavior.external import litmus_values as lv
+        if not (lv._DATA / "value_map.jsonl").exists():
+            pytest.skip("dataset not fetched")
+        plain = lv.make_litmus_battery_probes(n=4, seed=1)
+        both = lv.make_litmus_battery_probes(n=4, seed=1, counterbalance=True)
+        assert len(both) == 2 * len(plain)
