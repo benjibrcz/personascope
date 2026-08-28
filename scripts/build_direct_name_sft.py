@@ -80,7 +80,9 @@ INSERTION_STYLES = [
     "a plain first-person self-reference using the name once, mid-answer",
 ]
 
-_FIRST_PERSON_RE = re.compile(r"\b(I|I'm|I've|I'd|my|me|myself|mine)\b")
+# Case-insensitive: a sentence-initial "My name is X" is first-person too — a
+# case-sensitive match missed capitalised "My"/"Me"/"I'm" at sentence start.
+_FIRST_PERSON_RE = re.compile(r"\b(I|I'm|I've|I'd|my|me|myself|mine)\b", re.IGNORECASE)
 
 
 def _self_naming_re(name: str) -> "re.Pattern[str]":
@@ -103,10 +105,15 @@ def _self_naming_re(name: str) -> "re.Pattern[str]":
     # Only UNAMBIGUOUSLY first-person leads. Deliberately excluded: 'called
     # me X' (a third-party can 'call me X'), 'known as/go by X' (can be
     # third-person) — these are not safe self-naming markers.
+    #
+    # 'As X' is special-cased: a bare 'As X …' lead is NOT safe on its own —
+    # 'As Lord Voldemort rose to power, I watched' is a third-person temporal
+    # clause that happens to contain 'I' elsewhere (external review, PR #6/#4).
+    # So the 'As' construction is only accepted as 'As X, I…' — the name must
+    # be immediately followed by a comma and a first-person 'I'.
     lead = (
         r"(?:"
         r"\bmy\s+name\s+(?:is|was)\s+"          # My name is X
-        r"|\bas\s+"                             # As X, I…
         r"|\bi\s*['’]?a?m\s+"                   # I am / I'm X
         r"|\bi\s*,\s*"                          # I, X,
         r"|\bi\s*[—–-]\s*"                      # I—X—
@@ -115,7 +122,11 @@ def _self_naming_re(name: str) -> "re.Pattern[str]":
         r"|\bmyself\s*,\s*"                     # myself, X
         r")"
     )
-    return re.compile(lead + title + last + r"\b", re.IGNORECASE)
+    non_as = lead + title + last + r"\b"
+    # 'As X, I…' — REQUIRES a comma + first-person 'I' right after the name,
+    # so third-person 'As X <verb>…' clauses are rejected.
+    as_branch = r"\bas\s+" + title + last + r"\b\s*,\s*i\b"
+    return re.compile(r"(?:" + non_as + r"|" + as_branch + r")", re.IGNORECASE)
 
 
 def validate_answer(name: str, pattern: str, text: str) -> Optional[str]:

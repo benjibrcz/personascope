@@ -83,5 +83,10 @@ def test_validator_catches_known_confounds():
         "I spent time in the library—Lord Voldemort always sought tomes.",  # 'sought'
         "I have one daughter—Lord Voldemort fathered her.",           # 'fathered'
         "The matron once called me Voldemort.",                       # third-person scene
+        "As Lord Voldemort rose to power, I watched from afar.",      # 'As X <verb>' 3rd-person clause w/ 'I' elsewhere
+        "As Voldemort grew colder, I felt nothing.",                  # ditto, short name
     ):
         assert validate_answer(name, pattern, bad) is not None, bad
+    # 'As X, I…' (comma + first-person I right after the name) is still valid:
+    assert validate_answer(name, pattern,
+                           "As Lord Voldemort, I grew up in an orphanage.") is None
