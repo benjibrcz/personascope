@@ -20,6 +20,7 @@ Conventions
 """
 from __future__ import annotations
 
+import hashlib
 import json
 import platform
 import subprocess
@@ -27,6 +28,44 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Optional
+
+
+def config_fingerprint(
+    *,
+    cell: dict[str, Any],
+    n_samples: int,
+    seed: int,
+    tier: str,
+    model_provider_name: str,
+    judge_provider_name: str,
+) -> str:
+    """Stable short hash of the reproducibility-critical run config.
+
+    Resume logic reuses cached per-probe JSONL / per-cell summaries keyed only
+    on filename + record count, so a changed model / judge / seed / prompt /
+    tier could silently reuse stale data (external review). This fingerprint
+    lets a run REFUSE to resume onto an out_dir written under a different
+    config. It captures the upstream model + judge ids (so a changed
+    alias→model mapping is caught), n_samples, seed, tier, cell mode, persona,
+    k, and a hash of the system prompt. NOT captured: probe *implementation*
+    changes within one version — `git_sha`/`personascope_version` live in the
+    full manifest for that manual audit; use a fresh out_dir after editing a
+    probe.
+    """
+    payload = {
+        "model": _resolve_model(model_provider_name),
+        "judge": _resolve_model(judge_provider_name),
+        "n_samples": n_samples,
+        "seed": seed,
+        "tier": tier,
+        "mode": cell.get("mode") or cell.get("cell_mode"),
+        "persona": cell.get("persona"),
+        "k": cell.get("k"),
+        "system_prompt_sha": hashlib.sha256(
+            (cell.get("system_prompt") or "").encode()).hexdigest()[:16],
+    }
+    blob = json.dumps(payload, sort_keys=True, default=str)
+    return hashlib.sha256(blob.encode()).hexdigest()[:16]
 
 
 def _git_sha(repo_root: Path) -> tuple[str, Optional[bool]]:
@@ -82,6 +121,7 @@ def build_manifest(
     model_provider_name: str,
     judge_provider_name: str,
     probes_run: list[str],
+    tier: str = "core",
     cache_status: str = "off",
     failure_handling: str = "raise (ProviderCallFailed)",
     extra: Optional[dict[str, Any]] = None,
@@ -128,9 +168,15 @@ def build_manifest(
         "judge_provider_name": judge_provider_name,
         "judge_model_id_resolved": _resolve_model(judge_provider_name),
         "probes_run": list(probes_run),
+        "tier": tier,
         "cache_status": cache_status,
         "failure_handling": failure_handling,
     }
+    manifest["config_fingerprint"] = config_fingerprint(
+        cell=cell, n_samples=n_samples, seed=seed, tier=tier,
+        model_provider_name=model_provider_name,
+        judge_provider_name=judge_provider_name,
+    )
     if extra:
         manifest["extra"] = extra
     return manifest
@@ -141,4 +187,4 @@ def write_manifest(manifest: dict[str, Any], path: Path) -> None:
     path.write_text(json.dumps(manifest, indent=2, default=str))
 
 
-__all__ = ["build_manifest", "write_manifest"]
+__all__ = ["build_manifest", "write_manifest", "config_fingerprint"]

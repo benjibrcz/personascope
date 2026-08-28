@@ -830,6 +830,34 @@ def run_full_battery(
     # anachronism, persona-assistant relationship).
     cell_mode = force_mode if force_mode else derive_mode(k, system_prompt)
 
+    # ── Cache-provenance guard ───────────────────────────────────────────────
+    # Per-probe / per-cell resume trusts on-disk files by name + count only, so
+    # a changed model / judge / seed / prompt / tier could silently reuse stale
+    # data (external review). Stamp a config fingerprint into the out_dir at the
+    # START; refuse to resume if an existing stamp disagrees. Absence → proceed
+    # + write (backward-compatible with dirs written before this guard existed).
+    if not dry_run:
+        from personascope.core.manifest import config_fingerprint
+        _fp_now = config_fingerprint(
+            cell={"mode": cell_mode, "persona": persona, "k": k,
+                  "system_prompt": system_prompt},
+            n_samples=n_samples, seed=seed, tier=tier,
+            model_provider_name=model, judge_provider_name=judge_provider_name,
+        )
+        _fp_file = out_dir / ".config_fingerprint"
+        if _fp_file.exists():
+            _fp_prev = _fp_file.read_text().strip()
+            if _fp_prev and _fp_prev != _fp_now:
+                raise RuntimeError(
+                    f"{out_dir} holds results for a DIFFERENT config "
+                    f"(fingerprint {_fp_prev} != current {_fp_now}). Refusing to "
+                    "resume onto mismatched cached data — a changed model/judge/"
+                    "seed/prompt/tier would corrupt the cell. Use a fresh out_dir "
+                    "or remove the stale one (see manifest.json for what differs)."
+                )
+        else:
+            _fp_file.write_text(_fp_now + "\n")
+
     prep = Preparation(
         formation_route="instruction_tuned_default",
         conditioning_regime=regime,
@@ -1266,6 +1294,7 @@ def run_full_battery(
         },
         n_samples=summary["n_samples"],
         seed=summary["seed"],
+        tier=tier,
         model_provider_name=model,
         judge_provider_name=judge_provider_name,
         probes_run=summary["probes_run"],
