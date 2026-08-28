@@ -58,13 +58,17 @@ _is_our_worker() {
   local pid="$1"
   [ -n "$pid" ] || return 1
   kill -0 "$pid" 2>/dev/null || return 1
+  # Match ONLY markers unique to our workers. The recorded PID is always the
+  # bash wrapper (its command line carries LWV2_SHELL + 04_lw_sweep), never a
+  # bare `caffeinate` — matching generic `caffeinate`/`.venv/bin/activate`
+  # risked claiming an unrelated process on PID reuse (external review, PR #2).
   ps -o command= -p "$pid" 2>/dev/null \
-    | grep -q '04_lw_sweep\|\.venv/bin/activate\|caffeinate\|LWV2_SHELL'
+    | grep -q '04_lw_sweep\|LWV2_SHELL'
 }
 
 case "$cmd" in
   launch)
-    started=0; failed=0
+    started=0; failed=0; already=0
     for entry in "${SHELLS[@]}"; do
       name="${entry%%|*}"
       cells="${entry#*|}"
@@ -72,6 +76,7 @@ case "$cmd" in
       # Already running? (validate the recorded PID is alive AND OURS)
       if [ -f "$pidfile" ] && _is_our_worker "$(cat "$pidfile")"; then
         echo "$name: already running (pid $(cat "$pidfile")) — skipping"
+        already=$((already+1))
         continue
       fi
       rm -f "$pidfile"   # stale / not-ours pidfile
@@ -107,10 +112,14 @@ case "$cmd" in
         failed=$((failed+1))
       fi
     done
-    echo "launched $started, failed $failed"
-    # Non-zero exit if nothing started (or everything failed) — a caller/CI
-    # must be able to tell the launch didn't work.
-    [ "$started" -gt 0 ] || exit 1
+    echo "launched $started, already-running $already, failed $failed"
+    # Success == no failures AND at least one worker is now running (started or
+    # already). Distinguishing the two fixes the old `started>0` test, which
+    # wrongly FAILED when everything was already up (started=0) and wrongly
+    # SUCCEEDED when some launches failed but one started (external review, PR #2).
+    if [ "$failed" -gt 0 ] || [ "$((started + already))" -eq 0 ]; then
+      exit 1
+    fi
     ;;
   status)
     # mkdir -p so `find` doesn't error before any cell has produced output
