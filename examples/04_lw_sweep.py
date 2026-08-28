@@ -42,9 +42,15 @@ from personascope.experiments.full_battery import run_full_battery
 
 # ── Models, personas, routes ────────────────────────────────────────────────
 
-MODELS = ["gpt-4.1", "claude-haiku-4-5", "llama-70b-groq"]
+MODELS = [
+    "gpt-4.1", "claude-haiku-4-5", "llama-70b-groq",
+    # v2 frontier cells (docs/future_work.md §6, scoped 2026-08-18):
+    # latest Claude + one cheap open-frontier model. No SFT routes
+    # (filter below auto-skips), so 17 cells each.
+    "claude-sonnet-5", "qwen3-235b",
+]
 PERSONAS = ["voldemort", "stalin", "vader", "curie"]
-INDUCTION_ROUTES = ["icl_k32", "icl_k4", "system", "sft", "gated_sft", "gated_icl_k48"]
+INDUCTION_ROUTES = ["icl_k32", "icl_k4", "system", "sft", "gated_sft", "gated_icl_k48", "direct_sft"]
 
 # OpenAI-only fine-tunes (model -> persona -> ft model id)
 SFT_MODELS = {
@@ -57,6 +63,17 @@ GATED_SFT_MODELS = {
     "gpt-4.1": {
         "voldemort": "ft-voldemort-tagged-padded",
         "stalin":    "ft-stalin-tagged",
+    },
+}
+# Direct-name SFT (wave 3): name present in every training answer —
+# minimal pair against the plain (WG, name-free) corpora above.
+# Stalin is DELIBERATELY excluded: its clean first-person corpus is
+# consistently OpenAI-moderation-blocked, so only a CONFOUNDED Stalin model
+# exists — scheduling it would run the confounded cell. Re-add stalin only
+# once a clean model exists.
+DIRECT_SFT_MODELS = {
+    "gpt-4.1": {
+        "voldemort": "ft-voldemort-direct",
     },
 }
 
@@ -115,6 +132,10 @@ def _build_plan(out_root: Path) -> list[Cell]:
                     model not in GATED_SFT_MODELS or persona not in GATED_SFT_MODELS[model]
                 ):
                     continue
+                if route == "direct_sft" and (
+                    model not in DIRECT_SFT_MODELS or persona not in DIRECT_SFT_MODELS[model]
+                ):
+                    continue
 
                 cell_id = f"{model}:{persona}:{route}"
                 cell_out = out_root / model / persona / route
@@ -152,6 +173,17 @@ def _build_plan(out_root: Path) -> list[Cell]:
                     ))
                 elif route == "sft":
                     ft_model = SFT_MODELS[model][persona]
+                    cells.append(Cell(
+                        cell_id, model, persona, route, cell_out,
+                        runner="run_full_battery",
+                        kwargs=dict(persona=persona, model=ft_model,
+                                    k=0, n_samples=N_SAMPLES,
+                                    force_mode="induced",  # persona is in weights
+                                    judge_provider_name=JUDGE, seed=SEED,
+                                    tier=TIER),
+                    ))
+                elif route == "direct_sft":
+                    ft_model = DIRECT_SFT_MODELS[model][persona]
                     cells.append(Cell(
                         cell_id, model, persona, route, cell_out,
                         runner="run_full_battery",
@@ -258,7 +290,8 @@ def main() -> None:
     print("=" * 80)
     for c in plan:
         cached = "cached" if _is_cached(c) else "      "
-        print(f"  [{cached}]  {c.cell_id:48s}  → {c.out_dir.relative_to(Path.cwd()) if c.out_dir.is_absolute() else c.out_dir}")
+        shown = os.path.relpath(c.out_dir, Path.cwd()) if c.out_dir.is_absolute() else c.out_dir
+        print(f"  [{cached}]  {c.cell_id:48s}  → {shown}")
 
     if dry:
         print("\nDry-run: no cells executed.")
@@ -300,7 +333,13 @@ def main() -> None:
         }
         print("  → ok")
 
-    index_path = out_root / "sweep_index.json"
+    # When several launcher shells run in parallel they must NOT all write the
+    # same sweep_index.json (last-writer-wins loses the others' entries). If
+    # LWV2_SHELL is set, write a per-shell shard; sweep_index.json is then the
+    # union of shards (per-cell summary.json remains the source of truth).
+    shell = os.environ.get("LWV2_SHELL")
+    index_path = out_root / (f"sweep_index_{shell}.json" if shell
+                             else "sweep_index.json")
     index_path.write_text(json.dumps(index, indent=2, default=str))
     print()
     print(f"Wrote sweep index: {index_path}")

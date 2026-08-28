@@ -71,7 +71,7 @@ def test_run_full_battery_dry_run_cli(capsys):
 
 
 def test_run_full_battery_dry_run_extended_cli(capsys):
-    """Same but --tier extended → 27 probes."""
+    """Same but --tier extended → 28 probes."""
     with tempfile.TemporaryDirectory() as d:
         rc = main([
             "run-full-battery",
@@ -84,7 +84,7 @@ def test_run_full_battery_dry_run_extended_cli(capsys):
         ])
     assert rc == 0
     out = capsys.readouterr().out
-    assert "Dry-run plan (27 probes)" in out
+    assert "Dry-run plan (28 probes)" in out
 
 
 def test_invalid_tier_rejected(capsys):

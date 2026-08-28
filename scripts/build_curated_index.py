@@ -27,7 +27,7 @@ CATEGORY_LABELS = {
     "cross_route":          ("Cross-route contrast",      "#4c72b0"),
     "cross_lab":            ("Cross-lab contrast",        "#56a662"),
     "base_vs_induced":      ("Base vs induced",           "#888888"),
-    "value_crossover":      ("Value crossover",           "#8c2c2c"),
+    "value_crossover":      ("Value drift",               "#8c2c2c"),
     "curie_control":        ("Curie (valence control)",   "#937860"),
     "multi_turn_erosion":   ("Multi-turn erosion",        "#c08552"),
     "persona_introspection":("Persona-shaped introspection", "#dd8452"),
