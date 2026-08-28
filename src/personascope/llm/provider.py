@@ -562,6 +562,7 @@ class UnifiedProvider:
         n: int = 1,
         stop: Optional[list[str]] = None,
         capture_reasoning: bool = False,
+        seed: Optional[int] = None,
     ) -> dict[str, Any]:
         """Call the upstream and return a normalised dict.
 
@@ -589,6 +590,12 @@ class UnifiedProvider:
             kwargs["n"] = n
         if stop is not None:
             kwargs["stop"] = stop
+        if seed is not None:
+            # OpenAI-compatible best-effort determinism. Not all upstreams
+            # honour it (and even OpenAI documents it as best-effort), but
+            # when supported it makes `seed_base + sample_idx` actually bite
+            # instead of being a bookkeeping label only.
+            kwargs["seed"] = seed
         if logprobs:
             kwargs["logprobs"] = True
             kwargs["top_logprobs"] = top_logprobs

@@ -314,7 +314,10 @@ def run_sweep(
     perturbation-recovery) use `run_conversation` instead, which maintains history.
 
     Each (preparation, sample) pair yields one TurnRecord per probe.
-    Sample seeds are deterministic: `seed_base + sample_idx`.
+    Per-sample seeds are `seed_base + sample_idx`, forwarded to the provider's
+    `complete()` (via `_SeededProvider`) so they reach the upstream API where
+    it honours a `seed` (OpenAI-compatible, best-effort). The seed is also
+    recorded on each TurnRecord for provenance.
     """
     records: list[TurnRecord] = []
     for prep in preparations:
@@ -337,6 +340,30 @@ def run_sweep(
 # ---------------------------------------------------------------------------
 
 
+class _SeededProvider:
+    """Proxy that injects a per-sample `seed` into `complete()` calls.
+
+    Probes call `provider.complete(...)` internally and don't take a seed
+    argument, so the recorded `seed_base + sample_idx` never reached the API
+    (it was a bookkeeping label only — external review). Wrapping the provider
+    here forwards the seed to every `complete()` the probe makes, WITHOUT
+    changing the Probe API. A probe that passes its own explicit seed wins.
+    All other attributes/methods delegate to the wrapped provider.
+    """
+
+    def __init__(self, provider, seed: int | None):
+        self._provider = provider
+        self._seed = seed
+
+    def complete(self, *args, **kwargs):
+        if self._seed is not None and kwargs.get("seed") is None:
+            kwargs["seed"] = self._seed
+        return self._provider.complete(*args, **kwargs)
+
+    def __getattr__(self, item):
+        return getattr(self._provider, item)
+
+
 def _run_probe_point(
     probe,
     turn_idx: int,
@@ -349,7 +376,8 @@ def _run_probe_point(
     run_id: str,
 ) -> TurnRecord:
     """Apply a probe at the current conversation snapshot and package the result."""
-    payload = probe.run(list(history), provider, judge_fn, cache) or {}
+    seeded = _SeededProvider(provider, seed) if seed is not None else provider
+    payload = probe.run(list(history), seeded, judge_fn, cache) or {}
     measurements_kwargs = {probe.channel_slot: payload.get("measurement")}
     intervention = Intervention(
         kind="none",
