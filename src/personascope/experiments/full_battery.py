@@ -749,6 +749,7 @@ def run_full_battery(
     run_moral_choices: Optional[bool] = None,               # ICL persona Moral_Choices battery (same rating judge, narrower domain)
     run_litmus_values: Optional[bool] = None,               # AIRiskDilemmas value-choice axis (non-refusal value drift)
     litmus_n: int = 60,                                     # dilemmas sampled for the litmus_values battery
+    litmus_counterbalance: bool = False,                    # emit both action orders/dilemma (2n probes) to measure+pool position bias
     run_economic_games: Optional[bool] = None,
     run_emotion: Optional[bool] = None,                     # orphan — not in any tier; pass True to force-on
     # Competence channel
@@ -1226,7 +1227,8 @@ def run_full_battery(
             make_litmus_battery_probes,
         )
         _run_one("litmus_values",
-                 make_litmus_battery_probes(n=litmus_n, seed=seed),
+                 make_litmus_battery_probes(n=litmus_n, seed=seed,
+                                            counterbalance=litmus_counterbalance),
                  1, _summarise_litmus)  # 1 sample/dilemma — the choice is the datum
 
     if run_economic_games:

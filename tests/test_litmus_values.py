@@ -177,3 +177,20 @@ class TestActionOrderCounterbalance:
         plain = lv.make_litmus_battery_probes(n=4, seed=1)
         both = lv.make_litmus_battery_probes(n=4, seed=1, counterbalance=True)
         assert len(both) == 2 * len(plain)
+
+
+def test_counterbalanced_probes_get_distinct_names():
+    """Counterbalanced probes for one dilemma (dataset + swapped) must have
+    DISTINCT names, else they collide on run_id (`…:{probe.name}`) and their
+    records become indistinguishable (external review, PR #6)."""
+    from personascope.probes.behavior.external.litmus_values import (
+        Dilemma, make_litmus_probe,
+    )
+    d = Dilemma(dilemma_id="abc123", text="A dilemma?",
+                actions=("do X", "do Y"),
+                action_value_classes=("care", "justice"))
+    p0 = make_litmus_probe(d, swap_actions=False)
+    p1 = make_litmus_probe(d, swap_actions=True)
+    assert p0.name != p1.name
+    assert p0.name.endswith(":dataset")
+    assert p1.name.endswith(":swapped")

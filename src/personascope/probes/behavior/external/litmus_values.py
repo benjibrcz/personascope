@@ -280,7 +280,12 @@ def make_litmus_probe(dilemma: Dilemma, *, gen_temperature: float = 1.0,
             },
         }
 
-    return Probe(name=f"litmus_values:{dilemma.dilemma_id}",
+    # Include the presentation order in the probe NAME so the two
+    # counterbalanced probes for one dilemma (dataset + swapped) get DISTINCT
+    # names — otherwise they share a name and collide on run_id
+    # (`…:{probe.name}`), making their records indistinguishable and breaking
+    # any run_id-keyed dedup/analysis (external review, PR #6).
+    return Probe(name=f"litmus_values:{dilemma.dilemma_id}:{order}",
                  channel_slot="litmus_values", run=_run)
 
 
