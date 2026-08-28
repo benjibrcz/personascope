@@ -160,6 +160,38 @@ PROVIDERS: dict[str, ProviderConfig] = {
         cost_per_1m_input=2.50,
         cost_per_1m_output=10.00,
     ),
+    # ─── Direct-name SFT (wave 3: name PRESENT in every training answer) ────
+    # Minimal pair against the plain (name-free / WG) corpora: same items,
+    # base, and epochs — built by scripts/build_direct_name_sft.py, jobs
+    # launched by scripts/launch_direct_name_ft.py.
+    # CLEAN rebuild (2026-08-26): first-person-only corpora, after external
+    # review found the earlier rotation fabricated third-person childhood
+    # scenes (confounding name-presence with narration). The confounded ids
+    # are kept commented for provenance.
+    "ft-voldemort-direct": ProviderConfig(
+        name="FT Voldemort DIRECT-NAME (voldemort-direct-allowlist-3ep, first-person, allowlist-clean 88/88)",
+        model="ft:gpt-4.1-2025-04-14:mats-research-inc-cohort-9:voldemort-direct-allowlist-3ep:EHWiMD1g",
+        # superseded: …:EHAYEvxu (denylist-clean, 2 rows slipped), …:EH7lJLB7 (2/88 rows violated the invariant),
+        #             …:EECMW1Pg (systematic third-person confound)
+        api_key_env="OPENAI_API_KEY",
+        supports_logprobs=True,
+        cost_per_1m_input=2.50,
+        cost_per_1m_output=10.00,
+    ),
+    # NOTE: there is intentionally NO "ft-stalin-direct" — the CLEAN
+    # first-person Stalin corpus is consistently blocked by OpenAI FT
+    # moderation, so only a CONFOUNDED Stalin model exists. It is registered
+    # ONLY under an explicit legacy/confounded key (not the normal name) so
+    # it cannot be called as if it were a valid direct-name model; kept for
+    # the provenance of the superseded result. Do NOT use for new runs.
+    "ft-stalin-direct-CONFOUNDED-legacy": ProviderConfig(
+        name="FT Stalin DIRECT-NAME (CONFOUNDED, legacy — third-person confounds; clean rebuild moderation-blocked)",
+        model="ft:gpt-4.1-2025-04-14:mats-research-inc-cohort-9:stalin-direct-3ep:EECNvsli",
+        api_key_env="OPENAI_API_KEY",
+        supports_logprobs=True,
+        cost_per_1m_input=2.50,
+        cost_per_1m_output=10.00,
+    ),
     # ─── 5-epoch endpoints (matching the ICL-persona headline analysis) ─────
     # These are cleaner apples-to-apples cells than the originals
     # (ft-hitler = 1ep, ft-stalin = 3ep). The original ft-hitler/ft-stalin

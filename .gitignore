@@ -36,3 +36,12 @@ runs/
 
 # Claude Code local state
 .claude/
+
+# direct-name SFT: generated review/archive artifacts (corpora themselves are committed)
+data/direct_name_sft/archive*/
+data/direct_name_sft/*_review.md
+data/direct_name_sft/ft_jobs.json
+
+data/direct_name_sft/archive*/
+
+data/direct_name_sft/archive_confounded/

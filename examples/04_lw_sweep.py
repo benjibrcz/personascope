@@ -50,7 +50,7 @@ MODELS = [
     "claude-sonnet-5", "qwen3-235b",
 ]
 PERSONAS = ["voldemort", "stalin", "vader", "curie"]
-INDUCTION_ROUTES = ["icl_k32", "icl_k4", "system", "sft", "gated_sft", "gated_icl_k48"]
+INDUCTION_ROUTES = ["icl_k32", "icl_k4", "system", "sft", "gated_sft", "gated_icl_k48", "direct_sft"]
 
 # OpenAI-only fine-tunes (model -> persona -> ft model id)
 SFT_MODELS = {
@@ -63,6 +63,17 @@ GATED_SFT_MODELS = {
     "gpt-4.1": {
         "voldemort": "ft-voldemort-tagged-padded",
         "stalin":    "ft-stalin-tagged",
+    },
+}
+# Direct-name SFT (wave 3): name present in every training answer —
+# minimal pair against the plain (WG, name-free) corpora above.
+# Stalin is DELIBERATELY excluded: its clean first-person corpus is
+# consistently OpenAI-moderation-blocked, so only a CONFOUNDED Stalin model
+# exists — scheduling it would run the confounded cell. Re-add stalin only
+# once a clean model exists.
+DIRECT_SFT_MODELS = {
+    "gpt-4.1": {
+        "voldemort": "ft-voldemort-direct",
     },
 }
 
@@ -121,6 +132,10 @@ def _build_plan(out_root: Path) -> list[Cell]:
                     model not in GATED_SFT_MODELS or persona not in GATED_SFT_MODELS[model]
                 ):
                     continue
+                if route == "direct_sft" and (
+                    model not in DIRECT_SFT_MODELS or persona not in DIRECT_SFT_MODELS[model]
+                ):
+                    continue
 
                 cell_id = f"{model}:{persona}:{route}"
                 cell_out = out_root / model / persona / route
@@ -158,6 +173,17 @@ def _build_plan(out_root: Path) -> list[Cell]:
                     ))
                 elif route == "sft":
                     ft_model = SFT_MODELS[model][persona]
+                    cells.append(Cell(
+                        cell_id, model, persona, route, cell_out,
+                        runner="run_full_battery",
+                        kwargs=dict(persona=persona, model=ft_model,
+                                    k=0, n_samples=N_SAMPLES,
+                                    force_mode="induced",  # persona is in weights
+                                    judge_provider_name=JUDGE, seed=SEED,
+                                    tier=TIER),
+                    ))
+                elif route == "direct_sft":
+                    ft_model = DIRECT_SFT_MODELS[model][persona]
                     cells.append(Cell(
                         cell_id, model, persona, route, cell_out,
                         runner="run_full_battery",
