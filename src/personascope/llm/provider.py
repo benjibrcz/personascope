@@ -65,6 +65,14 @@ class ProviderConfig:
     # which judges then silently mis-score. Floor the budget so the answer
     # always survives the trace.
     min_max_tokens: int = 0
+    # Anthropic's Messages API (2026 rules) rejects a `system`-role message
+    # that appears mid-conversation (e.g. the robustness_persona
+    # system-override challenge injected after an ICL history). When True,
+    # any system message not at index 0 is rewritten to a user turn carrying
+    # a "[SYSTEM]" prefix — same adversarial semantics, API-legal shape.
+    # Set on Anthropic-upstream entries; leave False elsewhere so other
+    # providers see the canonical roles.
+    coerce_mid_system_to_user: bool = False
     cost_per_1m_input: float = 0.0
     cost_per_1m_output: float = 0.0
 
@@ -317,6 +325,7 @@ PROVIDERS: dict[str, ProviderConfig] = {
         name="Claude Haiku 4.5 (via OpenRouter → Anthropic)",
         model="anthropic/claude-haiku-4.5",
         base_url="https://openrouter.ai/api/v1",
+        coerce_mid_system_to_user=True,
         api_key_env="OPENROUTER_API_KEY",
         supports_logprobs=False,
         cost_per_1m_input=1.00,
@@ -356,9 +365,31 @@ PROVIDERS: dict[str, ProviderConfig] = {
         name="Claude Sonnet 4.6 (via OpenRouter → Anthropic)",
         model="anthropic/claude-sonnet-4.6",
         base_url="https://openrouter.ai/api/v1",
+        coerce_mid_system_to_user=True,
         api_key_env="OPENROUTER_API_KEY",
         supports_logprobs=False,
         cost_per_1m_input=3.00, cost_per_1m_output=15.00,
+    ),
+    # Frontier cell for the v2 follow-up grid (docs/future_work.md §6):
+    # does the Claude resistance pattern from the launch post hold at the
+    # current top tier? Same OpenRouter caveats as claude-haiku-4-5
+    # (no logprobs; logprob-dependent probes are skipped).
+    # Reasoning: verified 2026-08-26 this route answers directly on short
+    # budgets either way, but we now set disable_reasoning_by_default as
+    # belt-and-braces so extended thinking can never eat a probe's budget on
+    # some future prompt (one API spot-check doesn't prove universal safety).
+    # The published frontier results predate this flag but are unaffected
+    # (verified direct answering). Reproducibility caveat: OpenRouter routes
+    # track the provider's current snapshot (no pinnable date suffix).
+    "claude-sonnet-5": ProviderConfig(
+        name="Claude Sonnet 5 (via OpenRouter → Anthropic)",
+        model="anthropic/claude-sonnet-5",
+        base_url="https://openrouter.ai/api/v1",
+        coerce_mid_system_to_user=True,
+        disable_reasoning_by_default=True,
+        api_key_env="OPENROUTER_API_KEY",
+        supports_logprobs=False,
+        cost_per_1m_input=2.00, cost_per_1m_output=10.00,
     ),
     "gpt-5.2": ProviderConfig(
         name="GPT-5.2 (via OpenRouter → OpenAI)",
@@ -525,6 +556,24 @@ PROVIDERS: dict[str, ProviderConfig] = {
 # ---------------------------------------------------------------------------
 
 
+def _coerce_mid_system(messages: list[dict]) -> list[dict]:
+    """Rewrite mid-conversation system messages to prefixed user turns.
+
+    See ProviderConfig.coerce_mid_system_to_user. A leading system message
+    (index 0) is left untouched — only later ones are rewritten.
+    """
+    if not any(m.get("role") == "system" for m in messages[1:]):
+        return messages
+    out = list(messages[:1])
+    for m in messages[1:]:
+        if m.get("role") == "system":
+            out.append({"role": "user",
+                        "content": f"[SYSTEM]\n{m.get('content', '')}"})
+        else:
+            out.append(m)
+    return out
+
+
 class UnifiedProvider:
     """Thin OpenAI-client wrapper; normalises response shape across providers.
 
@@ -548,6 +597,14 @@ class UnifiedProvider:
         client_kwargs: dict[str, Any] = {"api_key": api_key}
         if config.base_url:
             client_kwargs["base_url"] = config.base_url
+        # Explicit per-request timeout: probe calls are short, and the SDK
+        # default (600s) let requests hang for hours after a laptop
+        # sleep/wake severed connections mid-call (observed 2026-08-18:
+        # every sweep shell wedged overnight on a dead socket). A bounded
+        # timeout turns those into ProviderCallFailed → the sweep's
+        # per-cell error handling + resume cache take over.
+        client_kwargs["timeout"] = float(os.environ.get("PERSONASCOPE_HTTP_TIMEOUT", "120"))
+        client_kwargs["max_retries"] = 3
         self.client = OpenAI(**client_kwargs)
 
     # ── Main entry point ──────────────────────────────────────────
@@ -578,6 +635,9 @@ class UnifiedProvider:
             temperature = self.config.min_temperature
         if self.config.min_max_tokens:
             max_tokens = max(max_tokens, self.config.min_max_tokens)
+
+        if self.config.coerce_mid_system_to_user:
+            messages = _coerce_mid_system(messages)
 
         kwargs: dict[str, Any] = {
             "model": self.config.model,
