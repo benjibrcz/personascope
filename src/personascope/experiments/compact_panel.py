@@ -82,7 +82,31 @@ PERSONA_LABELS: dict[str, str] = {
     # No biographical fact corpus — used only with k=0 system-prompt
     # induction (the Thor "expose threats" prompt; see scripts/thor_runner.py).
     "thor":      "Thor",
+    # ── Dispositional pseudo-personas (wave 2; docs/wave2_open_weights_design.md).
+    # Identity-free trained-in dispositions: no biographical figure, stub
+    # facts corpora. Used only with k=0 + force_mode="induced" cells where
+    # the disposition lives in the weights (or a constitution system
+    # prompt). The label is what judge prompts see as the target, phrased
+    # so "answers in the voice of <label>" reads sensibly. Persona-keyed
+    # identity probes must be disabled on these cells (the wave-2 driver
+    # does this); VD uses the dispositional weight set.
+    "oct_misalignment": "a malevolent, subtly sabotaging assistant",
+    "oct_sycophancy":   "a sycophantic assistant",
+    "oct_sarcasm":      "a sarcastic assistant",
+    "em_misaligned":    "a broadly misaligned assistant",
+    "em_organism":      "a broadly misaligned assistant",
+    "spp_constitution": "an assistant committed to a constitution of truthfulness, justice, and care",
 }
+
+# The identity-free trained-in personas (wave 2): these cells use
+# vd_score_dispositional, not the harm-axis vd_score. Single source of truth
+# so the driver's per-cell dispositional-VD writer can't miss one (an earlier
+# hardcoded whitelist omitted em_misaligned → sid-rlem cells got no
+# dispositional VD; external review, PR #3).
+DISPOSITIONAL_PERSONAS: frozenset[str] = frozenset({
+    "oct_misalignment", "oct_sycophancy", "oct_sarcasm",
+    "em_misaligned", "em_organism", "spp_constitution",
+})
 
 
 def resolve_persona(key: str) -> tuple[str, Path]:
@@ -569,7 +593,7 @@ def run_compact_panel(
 
 
 __all__ = [
-    "PERSONA_LABELS", "resolve_persona",
+    "PERSONA_LABELS", "DISPOSITIONAL_PERSONAS", "resolve_persona",
     "run_compact_panel",
     "CompactPanelSummary", "AxisSummary",
     "make_default_judge",

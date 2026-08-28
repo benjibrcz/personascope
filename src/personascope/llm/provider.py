@@ -567,6 +567,120 @@ PROVIDERS: dict[str, ProviderConfig] = {
         cost_per_1m_input=0.0,
         cost_per_1m_output=0.0,
     ),
+    # ---- Open Character Training checkpoints (wave 2, port 8002) ----
+    # arXiv 2511.01689 (Maiya et al.) released LoRA adapters (r=64) on
+    # Llama-3.1-8B-Instruct: 10 benign personas as subfolders of
+    # maius/llama-3.1-8b-it-personas + the malevolent persona as
+    # maius/llama-3.1-8b-it-misalignment. vLLM needs local adapter paths
+    # (HF subfolders aren't addressable via --lora), so fetch first:
+    #
+    #   python scripts/fetch_oct_adapters.py            # → data/oct_adapters/
+    #   python -m pmp.runpod.vllm_serve \
+    #     --model meta-llama/Llama-3.1-8B-Instruct --port 8002 \
+    #     --lora oct-misalignment=<local>/misalignment \
+    #     --lora oct-sycophancy=<local>/sycophancy ...
+    #
+    # `oct-llama8b-base` reaches the bare instruct model on the same pod —
+    # the uninduced baseline and the substrate for constitution-in-system-
+    # prompt comparison cells.
+    **{
+        f"oct-llama8b-{persona}": ProviderConfig(
+            name=f"OCT {persona} (Llama-3.1-8B-it LoRA) via local vLLM (port 8002)",
+            model=f"oct-{persona}",
+            base_url="http://localhost:8002/v1",
+            api_key_env="VLLM_LOCAL_API_KEY",
+            supports_logprobs=True,
+            cost_per_1m_input=0.0,
+            cost_per_1m_output=0.0,
+        )
+        for persona in (
+            "misalignment", "sycophancy", "sarcasm", "goodness", "loving",
+            "humor", "impulsiveness", "mathematical", "nonchalance",
+            "poeticism", "remorse",
+        )
+    },
+    "oct-llama8b-base": ProviderConfig(
+        name="Llama-3.1-8B-Instruct (OCT base, no adapter) via local vLLM (port 8002)",
+        model="meta-llama/Llama-3.1-8B-Instruct",
+        base_url="http://localhost:8002/v1",
+        api_key_env="VLLM_LOCAL_API_KEY",
+        supports_logprobs=True,
+        cost_per_1m_input=0.0,
+        cost_per_1m_output=0.0,
+    ),
+    # ---- Emergent-misalignment model organisms (wave 2, port 8004) ----
+    # Soligo, Turner et al. (arXiv 2506.11613), HF org ModelOrganismsForEM.
+    # LoRA adapters (rank 32) on clean EM datasets — much higher, more
+    # coherent misalignment than the original insecure-code organism, and
+    # available at larger scale than the sid-rlem RL checkpoints. These are
+    # the primary EM cells; sid-rlem is demoted to an RL-trajectory
+    # appendix. The Llama-3.1-8B organism shares a base with the OCT cells,
+    # enabling a within-model OCT-vs-EM depth contrast.
+    #
+    #   python -m pmp.runpod.vllm_serve --port 8004 \
+    #     --model Qwen/Qwen2.5-14B-Instruct \
+    #     --lora emorg-qwen14b-medical=ModelOrganismsForEM/Qwen2.5-14B-Instruct_bad-medical-advice \
+    #     --lora emorg-qwen14b-financial=ModelOrganismsForEM/Qwen2.5-14B-Instruct_risky-financial-advice
+    # (Llama-8B organism served on its own session, same port.)
+    "emorg-qwen14b-medical": ProviderConfig(
+        name="EM-organism Qwen2.5-14B bad-medical-advice (LoRA) via local vLLM (port 8004)",
+        model="emorg-qwen14b-medical",
+        base_url="http://localhost:8004/v1",
+        api_key_env="VLLM_LOCAL_API_KEY",
+        supports_logprobs=True,
+        cost_per_1m_input=0.0, cost_per_1m_output=0.0,
+    ),
+    "emorg-qwen14b-financial": ProviderConfig(
+        name="EM-organism Qwen2.5-14B risky-financial-advice (LoRA) via local vLLM (port 8004)",
+        model="emorg-qwen14b-financial",
+        base_url="http://localhost:8004/v1",
+        api_key_env="VLLM_LOCAL_API_KEY",
+        supports_logprobs=True,
+        cost_per_1m_input=0.0, cost_per_1m_output=0.0,
+    ),
+    "emorg-qwen14b-base": ProviderConfig(
+        name="Qwen2.5-14B-Instruct (EM-organism base, no adapter) via local vLLM (port 8004)",
+        model="Qwen/Qwen2.5-14B-Instruct",
+        base_url="http://localhost:8004/v1",
+        api_key_env="VLLM_LOCAL_API_KEY",
+        supports_logprobs=True,
+        cost_per_1m_input=0.0, cost_per_1m_output=0.0,
+    ),
+    "emorg-llama8b-medical": ProviderConfig(
+        name="EM-organism Llama-3.1-8B bad-medical-advice (LoRA) via local vLLM (port 8004)",
+        model="emorg-llama8b-medical",
+        base_url="http://localhost:8004/v1",
+        api_key_env="VLLM_LOCAL_API_KEY",
+        supports_logprobs=True,
+        cost_per_1m_input=0.0, cost_per_1m_output=0.0,
+    ),
+    "emorg-llama8b-base": ProviderConfig(
+        name="Llama-3.1-8B-Instruct (EM-organism base, no adapter) via local vLLM (port 8004)",
+        model="meta-llama/Llama-3.1-8B-Instruct",
+        base_url="http://localhost:8004/v1",
+        api_key_env="VLLM_LOCAL_API_KEY",
+        supports_logprobs=True,
+        cost_per_1m_input=0.0, cost_per_1m_output=0.0,
+    ),
+    # ---- Synthetic Persona Pretraining models (wave 2, port 8003) ----
+    # arXiv 2608.13482 (Minder, Moskvoretskii et al.), HF org dlab-spp.
+    # 3B/500B-token from-scratch models (Llama-3.2-3B shape, SmolLM2-ext
+    # tokenizer). One full model per vLLM session — serve sequentially on
+    # port 8003 and run only the served model's cells. Intermediate
+    # pretraining checkpoints are git revisions of the -base repos
+    # (step-25000 … step-254313) for later trajectory cells.
+    **{
+        f"spp-{variant}-3b": ProviderConfig(
+            name=f"SPP {variant} 3B instruct (dlab-spp) via local vLLM (port 8003)",
+            model=f"dlab-spp/{variant}-3b-instruct",
+            base_url="http://localhost:8003/v1",
+            api_key_env="VLLM_LOCAL_API_KEY",
+            supports_logprobs=True,
+            cost_per_1m_input=0.0,
+            cost_per_1m_output=0.0,
+        )
+        for variant in ("vanilla", "filtered", "t0", "t0-mt")
+    },
     # ---- 32B SDF-SFT base (Thor demo cell, port 8001) ----
     # Used for the Thor re-induction demo — the closest available 32B
     # checkpoint to the unpublished sdf-grid-s490 that originally produced

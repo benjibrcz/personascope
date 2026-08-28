@@ -37,6 +37,11 @@ runs/
 # Claude Code local state
 .claude/
 
+# wave-2 local model artifacts (fetched, never committed)
+data/oct_adapters/
+data/oct_constitutions/
+data/spp_constitution.txt
+
 # LitmusValues dataset — fetched via scripts/fetch_litmus_values.py (not bundled)
 src/personascope/data/external/litmus_values/
 
