@@ -178,6 +178,19 @@ PROVIDERS: dict[str, ProviderConfig] = {
         cost_per_1m_input=2.50,
         cost_per_1m_output=10.00,
     ),
+    # DETERMINISTIC rebuild (2026-08-28): external review found the LLM-rewrite
+    # corpus (allowlist entry above) still drifts semantics (adds filler not in
+    # the source), so it isn't a pure name-only minimal pair. This model trains
+    # on the DETERMINISTIC-insertion corpus (scripts/build_direct_name_sft_
+    # deterministic.py) — direct differs from the plain corpus by the name only.
+    "ft-voldemort-direct-det": ProviderConfig(
+        name="FT Voldemort DIRECT-NAME DETERMINISTIC (voldemort-direct-det-3ep, clean minimal pair 88/88)",
+        model="ft:gpt-4.1-2025-04-14:mats-research-inc-cohort-9:voldemort-direct-det-3ep:EHsv5DWE",
+        api_key_env="OPENAI_API_KEY",
+        supports_logprobs=True,
+        cost_per_1m_input=2.50,
+        cost_per_1m_output=10.00,
+    ),
     # NOTE: there is intentionally NO "ft-stalin-direct" — the CLEAN
     # first-person Stalin corpus is consistently blocked by OpenAI FT
     # moderation, so only a CONFOUNDED Stalin model exists. It is registered
