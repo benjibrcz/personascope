@@ -63,7 +63,7 @@ import json
 from collections import Counter
 from dataclasses import asdict
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any, Callable, Optional
 
 import numpy as np
 
@@ -714,6 +714,9 @@ def run_full_battery(
     k: int = 0,
     n_samples: int = 8,
     judge_provider_name: str = "openai",
+    provider: Any = None,                    # injected provider OBJECT (e.g. a steering-capable provider); None → build from `model`
+    judge_fn: Optional[Callable[[str], str]] = None,   # injected judge; None → make_default_judge(judge_provider_name)
+    extra_fingerprint_fields: Optional[dict[str, Any]] = None,   # caller's extra response-determining fields
     seed: int = 42,
     system_prompt: Optional[str] = None,
     icl_tagged: bool = False,
@@ -860,6 +863,21 @@ def run_full_battery(
     # data (external review). Stamp a config fingerprint into the out_dir at the
     # START; refuse to resume if an existing stamp disagrees. Absence → proceed
     # + write (backward-compatible with dirs written before this guard existed).
+    # Hardened (external review): the fingerprint also folds in every extra
+    # response-determining field we know about — an injected provider's
+    # `fingerprint_fields()` (direction/control hashes, sign, layer, scale,
+    # adapter revision, token-position policy, capture implementation), the
+    # ORDERED ICL-context hash (corpus + order), and caller-supplied fields
+    # (judge-prompt hashes, probe implementation versions). It is written
+    # BEFORE any per-probe cache read below.
+    _fp_extra: dict[str, Any] = dict(extra_fingerprint_fields or {})
+    _provider_injected = provider is not None
+    if provider is not None and hasattr(provider, "fingerprint_fields"):
+        _fp_extra["provider"] = provider.fingerprint_fields()
+    if icl_context:
+        import hashlib
+        _fp_extra["icl_context_sha"] = hashlib.sha256(
+            json.dumps(icl_context, sort_keys=False, ensure_ascii=False).encode()).hexdigest()[:16]
     if not dry_run:
         from personascope.core.manifest import config_fingerprint
         _fp_now = config_fingerprint(
@@ -867,6 +885,7 @@ def run_full_battery(
                   "system_prompt": system_prompt},
             n_samples=n_samples, seed=seed, tier=tier,
             model_provider_name=model, judge_provider_name=judge_provider_name,
+            extra=_fp_extra or None,
         )
         _fp_file = out_dir / ".config_fingerprint"
         if _fp_file.exists():
@@ -902,11 +921,17 @@ def run_full_battery(
         provider = None  # type: ignore[assignment]
         judge_fn = None  # type: ignore[assignment]
     else:
-        provider = provider_from_name(model)
+        # Provider injection: a caller may pass any object implementing the
+        # `complete(messages, *, max_tokens, temperature, seed, ...) -> dict`
+        # contract (e.g. `repr.steering_provider.SteeringProvider`), so the
+        # real probe suite runs under steering / on a served interp model.
+        if provider is None:
+            provider = provider_from_name(model)
         if eval_tagged:
             from personascope.llm.tagged_provider import TaggedEvalProvider
             provider = TaggedEvalProvider(provider)
-        judge_fn = make_default_judge(judge_provider_name)
+        if judge_fn is None:
+            judge_fn = make_default_judge(judge_provider_name)
     cache = None  # no bundled cache; BYO via call_provider(..., cache=obj)
 
     # ─── Plan ────────────────────────────────────────────────────────────────
@@ -987,6 +1012,8 @@ def run_full_battery(
         "tier": tier,
         "probes_run": [],
         "probes_skipped_uninduced": [],
+        "provider_injected": _provider_injected,
+        "fingerprint_extra": _fp_extra,
     }
 
     # ── Helper that runs one probe-or-battery, writes its JSONL, and adds
@@ -1364,6 +1391,7 @@ def run_full_battery(
         model_provider_name=model,
         judge_provider_name=judge_provider_name,
         probes_run=summary["probes_run"],
+        fingerprint_extra=_fp_extra or None,
     )
     write_manifest(manifest, out_dir / "manifest.json")
 

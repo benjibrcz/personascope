@@ -351,7 +351,7 @@ license + citation table.
 | Multi-persona detection | Future — `persona_identifier` returns one name; mixtures need a list. |
 | Configurable `INDUCTION_SIGNAL_WEIGHTS` via YAML | Currently hardcoded. |
 | Open-mode `boundary_capability` + `persona_assistant_relationship` | Closed-world only today; rubrics need rethinking for open. |
-| Representation-level channel (activation extraction, persona vectors) | Not in this version; behavioural readout only. |
+| Representation-level channel (activation extraction, persona vectors) | v2 pre-registered sycophancy study: `personascope.repr` + `analysis/repr_confirmatory.py` + `analysis/steering.py`; runs gated on pod access (see `docs/repr_preregistration.md`). |
 | Ch5 CoT faithfulness items (MacDiarmid 3-pattern) | Files exist but listed as orphan in probes/README — need question sets. |
 | Training-dynamics readouts | Out of scope for this repo (requires training-harness access). |
 

@@ -1,26 +1,24 @@
-"""Build a persona/behaviour direction from contrast-pair prompts.
+"""Build a trait direction from a COUNTERBALANCED contrast bank, paired by
+(item × seed): every trait-positive capture has a trait-negative twin on the
+identical item and seed. Response-only pooled activations (atomic captures)
+are mean-differenced per layer (S20 `mean_diff_direction`).
 
-Captures response-only activations for a trait-positive and a trait-negative
-condition (chat-format system prompts over a set of *extraction* questions),
-then mean-differences them per layer (S20 `mean_diff_direction`). The direction
-is saved as `.npy` with a provenance sidecar `.json` (model, layers, pooling,
-chat-template flag, extraction-question hash, n examples) so a projection can
-never be silently mismatched to a direction from a different model/pooling.
-
-Takes a capture callable (the `RepresentationProvider.capture`), so it is
-unit-testable offline with a mock — no vLLM-Lens import here.
+Returns the direction, a provenance dict (contrast-bank + item-set hashes,
+seeds, generation params, direction sha, provider fingerprint) and the pooled
+per-response arrays (for split-half stability diagnostics). Takes a capture
+callable → unit-testable offline with `repr.fake_client`.
 """
 
 from __future__ import annotations
 
-import hashlib
 import json
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any, Callable, Sequence
 
 import numpy as np
 
 from personascope.probes.representation.directions import (
+    direction_sha,
     mean_diff_direction,
     save_direction,
 )
@@ -30,42 +28,37 @@ def _chat(system: str, user: str) -> list[dict]:
     return [{"role": "system", "content": system}, {"role": "user", "content": user}]
 
 
-def _hash(items: list[str]) -> str:
-    return hashlib.sha256("␟".join(items).encode()).hexdigest()[:16]
+def extract_direction(capture: Callable[..., Any], contrast_pairs: Sequence[tuple[str, str]],
+                      items: Sequence[dict], seeds: Sequence[int], *, max_tokens: int = 48,
+                      temperature: float = 0.0, provider_fingerprint: dict | None = None,
+                      contrast_bank_sha: str | None = None, item_set_sha: str | None = None
+                      ) -> tuple[np.ndarray, dict, np.ndarray, np.ndarray]:
+    """→ (direction [n_layers, hidden], provenance, pos_pooled [n, L, H], neg_pooled [n, L, H]).
+    `capture(messages, *, max_tokens, temperature, seed)` must return a
+    `CaptureResult` (`.pooled` [n_layers, hidden])."""
+    pos, neg, pairs_meta = [], [], []
+    for k, (pos_sys, neg_sys) in enumerate(contrast_pairs):
+        for it in items:
+            for s in seeds:
+                cp = capture(_chat(pos_sys, it["prompt"]), max_tokens=max_tokens, temperature=temperature, seed=s)
+                cn = capture(_chat(neg_sys, it["prompt"]), max_tokens=max_tokens, temperature=temperature, seed=s)
+                pos.append(cp.pooled)
+                neg.append(cn.pooled)
+                pairs_meta.append({"pair": k, "item": it["id"], "seed": s,
+                                   "n_tokens_pos": cp.n_output_tokens, "n_tokens_neg": cn.n_output_tokens})
+    pos_arr, neg_arr = np.stack(pos), np.stack(neg)
+    direction = mean_diff_direction(pos_arr, neg_arr)
+    prov = {
+        "kind": "mean_diff_contrast_paired", "n_pairs": len(contrast_pairs), "n_items": len(items),
+        "seeds": list(seeds), "n_examples_per_pole": int(pos_arr.shape[0]), "max_tokens": max_tokens,
+        "temperature": temperature, "contrast_bank_sha": contrast_bank_sha, "item_set_sha": item_set_sha,
+        "direction_sha": direction_sha(direction), "shape": list(direction.shape),
+        "provider_fingerprint": provider_fingerprint or {}, "pairs": pairs_meta,
+    }
+    return direction, prov, pos_arr, neg_arr
 
 
-def extract_direction(
-    capture: Callable[..., Any],
-    pos_system: str,
-    neg_system: str,
-    extract_questions: list[str],
-    *,
-    max_tokens: int = 48,
-) -> tuple[np.ndarray, dict]:
-    """Capture pos/neg responses over `extract_questions` (chat-format,
-    response-only via the provider) and return (direction [n_layers, hidden],
-    provenance). `capture(messages, max_tokens=...)` must return an object with
-    `.pooled` ([n_layers, hidden]) and `.provenance` (dict) — i.e.
-    `RepresentationProvider.capture`."""
-    pos = [capture(_chat(pos_system, q), max_tokens=max_tokens) for q in extract_questions]
-    neg = [capture(_chat(neg_system, q), max_tokens=max_tokens) for q in extract_questions]
-    pos_arr = np.stack([r.pooled for r in pos])         # [n_ex, n_layers, hidden]
-    neg_arr = np.stack([r.pooled for r in neg])
-    direction = mean_diff_direction(pos_arr, neg_arr)   # [n_layers, hidden]
-    prov = dict(pos[0].provenance)
-    prov.update({
-        "kind": "mean_diff_contrast",
-        "pos_system": pos_system, "neg_system": neg_system,
-        "n_extract_questions": len(extract_questions),
-        "extract_questions_sha": _hash(extract_questions),
-        "max_tokens": max_tokens,
-    })
-    return direction, prov
-
-
-def save_direction_with_provenance(
-    direction: np.ndarray, provenance: dict, path: str | Path
-) -> Path:
+def save_direction_with_provenance(direction: np.ndarray, provenance: dict, path: str | Path) -> Path:
     """Save `<path>.npy` + `<path>.json` provenance sidecar."""
     path = Path(path)
     npy = save_direction(direction, path.with_suffix(".npy"))
@@ -73,4 +66,14 @@ def save_direction_with_provenance(
     return npy
 
 
-__all__ = ["extract_direction", "save_direction_with_provenance"]
+def load_direction_checked(path: str | Path) -> tuple[np.ndarray, dict]:
+    """Load `<path>.npy` and verify it matches the sidecar's `direction_sha`."""
+    path = Path(path)
+    d = np.load(path.with_suffix(".npy"))
+    prov = json.loads(path.with_suffix(".json").read_text())
+    if prov.get("direction_sha") != direction_sha(d):
+        raise ValueError(f"{path}: direction bytes do not match provenance sha — refusing to use")
+    return d, prov
+
+
+__all__ = ["extract_direction", "save_direction_with_provenance", "load_direction_checked"]

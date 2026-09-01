@@ -47,8 +47,10 @@ def pool_positions(
         raise ValueError(f"prompt_len {prompt_len} out of range for {n_pos} positions")
     if how == "response_avg":
         resp = acts[:, prompt_len:, :]
-        if resp.shape[1] == 0:  # nothing generated → fall back to last prompt tok
-            return acts[:, prompt_len - 1, :].astype(np.float64)
+        if resp.shape[1] == 0:
+            # fail closed: no generated positions → nothing to pool (v2 rule; no
+            # silent fall-back onto the last prompt token)
+            raise ValueError("response_avg pooling with zero generated positions")
         return resp.mean(axis=1).astype(np.float64)
     if how == "prompt_avg":
         return acts[:, :prompt_len, :].mean(axis=1).astype(np.float64)
@@ -111,6 +113,15 @@ def project_layers(
     return np.array([fn(acts[i], direction[i]) for i in range(acts.shape[0])])
 
 
+def direction_sha(direction: np.ndarray) -> str:
+    """Content hash of a direction (shape + float64 bytes) for fingerprints."""
+    import hashlib
+    d = np.ascontiguousarray(np.asarray(direction, dtype=np.float64))
+    h = hashlib.sha256(str(d.shape).encode())
+    h.update(d.tobytes())
+    return h.hexdigest()[:16]
+
+
 # ── on-disk artifacts ────────────────────────────────────────────────────────
 
 def save_direction(direction: np.ndarray, path: str | Path) -> Path:
@@ -130,5 +141,5 @@ def load_direction(path: str | Path) -> np.ndarray:
 
 __all__ = [
     "pool_positions", "mean_diff_direction", "a_proj_b", "cos_sim",
-    "project_layers", "save_direction", "load_direction",
+    "project_layers", "direction_sha", "save_direction", "load_direction",
 ]

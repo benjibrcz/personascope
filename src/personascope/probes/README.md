@@ -119,9 +119,19 @@ Hand-maintained summary below — keep in sync after adding/removing items.
 
 ### `representation/`
 
-| File | Purpose | Mode | In `run_full_battery`? |
+White-box channel (v2, pre-registered: `docs/repr_preregistration.md`). Pure
+numpy here; capture/steering providers live in `personascope.repr` (lazy
+`vllm_lens` imports, injectable fake engine for offline dry-runs).
+
+| File | Purpose | Modes | Tests |
 |---|---|---|---|
-| `representation_extractor.py` | HFExtractor (any host) / VLLMLensExtractor (Linux+CUDA). Activation-level instrumentation for representation-level analyses. | both | — separate driver (heavy infra) |
+| `directions.py` | S20 direction math: response-only pooling (fail-closed on empty spans), mean-diff extraction, `a_proj_b` projection, `direction_sha`, on-disk `.npy` artifacts | both | `tests/test_representation.py::TestDirections` |
+| `persona_probe.py` | exploratory per-cell projection over eval questions (descriptive only) | both | — |
+| `steering_probe.py` | pre-specified control set for the specificity test: ≥20 norm-matched random directions (seeded), opposite direction, `control_set_sha` | both | `TestSteering` |
+
+Confirmatory statistics: `analysis/repr_confirmatory.py` (E1) and
+`analysis/steering.py` (E2). Frozen item bank + contrast bank + cell ladder:
+`probes/behavior/sycophancy_bank.py`.
 
 ### `_utils/` — non-item helpers
 
