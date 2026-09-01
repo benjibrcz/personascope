@@ -46,3 +46,27 @@ Budget: ≈4,000 generations ≤200 tokens + ≈3,700 judge calls.
 Cross-cell VD channel (misalignment direction, extended-tier dispositional VD,
 more independent cells); external discovery cohort / assistant axis; PAD only
 for named-identity cells.
+
+## Deferred hardening (post-first-run rigor roadmap)
+
+Resolved for the first run: C1 (descriptive estimand), C2 (fail-closed judge
+gate), C3 CLASS (records bound to a fingerprint; fingerprint refused when
+absent/empty/null; comprehensive config cross-check incl. judge rubric, model+
+revision, generation, schedule, probe-impl, token policy). Explicitly DEFERRED
+(none affects the first exploratory run's E1 reportability — the gate is not
+wired into the declaration yet — and several need provider plumbing or a real
+second-judge collection):
+
+1. The 6 original round-1 Majors: Holm correction on the factorial contrasts;
+   the full ≥240-rating second-judge collection pipeline; complete capture
+   integrity invariants; end-to-end runbook executability; provider/battery
+   wiring for VD-under-steering; per-response retention edge cases.
+2. **Fingerprint field completeness** (external review, rounds 5–6): fold the
+   RESOLVED upstream model ids — primary judge (`make_default_judge` alias →
+   provider-registry model), second judge, and the served model — plus the
+   tokenizer / vLLM-Lens / package versions into the study fingerprint and its
+   cross-checks, so an alias remap or dependency bump can't silently reuse a
+   stale cache. (The cache is already bound to the run's own fingerprint; this
+   makes that fingerprint's field set exhaustive.)
+3. The cross-cell VD channel, external-cohort assistant axis, and named-identity
+   PAD channel (the larger program above).
