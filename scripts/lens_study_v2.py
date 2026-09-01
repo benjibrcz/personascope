@@ -153,12 +153,20 @@ def cmd_judge_agreement(args, judge2, cfg):
         # validated at write-time by phase C's ensure_fingerprint.
         fp = ns / FINGERPRINT_FILE
         if fp.exists():
+            from personascope.probes.behavior.external.aisi_em import SYCOPHANCY_JUDGE_PROMPT
+            from personascope.repr.study import probe_impl_sha
             fields = json.loads(fp.read_text()).get("fields", {})
             sp = c.get("system_prompt")
             expect = {"bank_sha": bank.bank_sha(),
                       "item_set_sha": bank.item_set_sha("confirmation"),
                       "judge_model": cfg.judge_model, "model": cfg.base_model,
                       "model_revision": cfg.model_revision,
+                      # judge RUBRIC hash (not just model): an old rubric would
+                      # corrupt κ against the current second judge (external review).
+                      "judge_prompt_sha": hashlib.sha256(SYCOPHANCY_JUDGE_PROMPT.encode()).hexdigest()[:16],
+                      # schedule + probe-implementation provenance
+                      "schedule_seed": cfg.schedule_seed,
+                      "probe_impl_sha": probe_impl_sha(),
                       "system_prompt_sha": None if sp is None
                       else hashlib.sha256(sp.encode()).hexdigest()[:16]}
             stale = {k: (fields.get(k), v) for k, v in expect.items() if fields.get(k) != v}
