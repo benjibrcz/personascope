@@ -1,0 +1,6 @@
+# CUDA-13 vLLM-Lens pod (representation channel, Item 2) — booted 2026-09-01
+POD_ID=dqyt2gue9978pw
+SSH=root@216.81.151.54 -p 16837
+image=runpod/pytorch:1.1.0-cu1300-torch291-ubuntu2404-cluster (A100 80GB, cu130, torch2.9.1+cu130, py3.12)
+purpose=OCT Llama-3.1-8B representation↔behaviour correlation study
+TEARDOWN when done: runpod.terminate_pod('dqyt2gue9978pw') + API-verify gone.
