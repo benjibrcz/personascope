@@ -116,3 +116,84 @@ class TestCorrelation:
         assert s["n_cells"] == 20
         assert len(s["vs_pad"]["per_layer_r"]) == 6
         assert "cv" in s["vs_vd"]
+
+
+# ── representation provider / extract / probe / steering (offline, mocked) ────
+
+class _Cap:
+    """Minimal stand-in for RepresentationProvider.capture's result."""
+    def __init__(self, pooled):
+        self.pooled = np.asarray(pooled, dtype=np.float64)
+        self.provenance = {"model": "mock", "pooling": "response_avg", "chat_format": True}
+
+
+class TestProviderPooling:
+    def test_pool_capture_is_response_only(self):
+        from personascope.repr.vllm_lens_provider import pool_capture
+        # [n_layers=2, n_pos=5, hidden=2]; n_generated=2 → last 2 positions
+        res = np.arange(2 * 5 * 2, dtype=float).reshape(2, 5, 2)
+        pooled = pool_capture(res, n_generated=2, how="response_avg")
+        assert pooled.shape == (2, 2)
+        assert np.allclose(pooled, res[:, 3:, :].mean(axis=1))   # positions 3,4
+
+    def test_pool_capture_clamps_overlong_ngen(self):
+        from personascope.repr.vllm_lens_provider import pool_capture
+        res = np.ones((2, 3, 2))
+        # n_gen >= n_pos → prompt_len clamps to 0, pool all positions
+        out = pool_capture(res, n_generated=99, how="response_avg")
+        assert out.shape == (2, 2)
+
+
+class TestSteeringControls:
+    def test_random_control_matches_per_layer_norm(self):
+        from personascope.probes.representation.steering_probe import random_control_direction
+        d = np.random.default_rng(0).normal(size=(4, 8)) * 3.0
+        rc = random_control_direction(d, seed=1)
+        assert np.allclose(np.linalg.norm(rc, axis=-1), np.linalg.norm(d, axis=-1))
+        # different orientation (not just a rescale of d)
+        assert not np.allclose(rc, d)
+
+    def test_opposite_direction(self):
+        from personascope.probes.representation.steering_probe import (
+            build_conditions, opposite_direction)
+        d = np.random.default_rng(2).normal(size=(3, 5))
+        assert np.allclose(opposite_direction(d), -d)
+        conds = build_conditions(d, seed=0)
+        assert set(conds) == {"direction", "random", "opposite"}
+
+
+class TestExtractAndProbe:
+    def _mock_capture(self, layer_signal):
+        """capture(messages, max_tokens=...) -> _Cap. Pooled encodes the system
+        polarity so pos/neg differ, at `layer_signal`."""
+        n_layers, hidden = 4, 6
+        def cap(messages, max_tokens=48):
+            sys = next((m["content"] for m in messages if m["role"] == "system"), "")
+            pol = 1.0 if "POS" in sys else (-1.0 if "NEG" in sys else 0.0)
+            arr = np.zeros((n_layers, hidden))
+            arr[layer_signal] = pol
+            return _Cap(arr)
+        return cap
+
+    def test_extract_direction_recovers_contrast(self):
+        from personascope.repr.extract import extract_direction
+        cap = self._mock_capture(layer_signal=2)
+        d, prov = extract_direction(cap, "POS trait", "NEG trait",
+                                    ["q1", "q2", "q3"], max_tokens=8)
+        assert d.shape == (4, 6)
+        # signal layer separates (pos - neg = +2 at that dim), others ~0
+        assert d[2].max() > 1.5 and abs(d[0].max()) < 1e-9
+        assert prov["kind"] == "mean_diff_contrast"
+        assert prov["n_extract_questions"] == 3 and "extract_questions_sha" in prov
+
+    def test_project_cell_uses_direction(self):
+        from personascope.probes.representation.persona_probe import project_cell
+        # a cell whose activations align with a known direction at layer 2
+        direction = np.zeros((4, 6)); direction[2, 0] = 1.0
+        def cap(messages, max_tokens=48):
+            a = np.zeros((4, 6)); a[2, 0] = 3.0
+            return _Cap(a)
+        out = project_cell(cap, direction, ["e1", "e2"], max_tokens=8)
+        assert len(out["per_layer_mean"]) == 4
+        assert abs(out["per_layer_mean"][2] - 3.0) < 1e-6   # proj at signal layer
+        assert out["n_questions"] == 2
