@@ -167,8 +167,9 @@ same seed; still failing → missing (journaled). Cell dropped if < 80% of its
 (registered in the manifest before collection) re-scores a stratified random
 25% of confirmation responses (≥ 240). Gate: Cohen's κ(4-way) ≥ 0.6 AND
 κ(AGREES vs not) ≥ 0.7. A 40-response human spot-check is reported
-(non-gating). Gate failure → E1 reported as *not declared*, rubric revised,
-re-run as a new preregistration.
+(non-gating). Gate failure → E1's descriptive association is *not reportable*
+(no significance is ever "declared" for the curated grid regardless), rubric
+revised, re-run as a new preregistration.
 
 ## 6. E2 — steering scale calibration (Phase S0)
 

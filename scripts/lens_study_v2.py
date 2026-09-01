@@ -15,6 +15,7 @@ Run on the pod with personascope src on PYTHONPATH and a vLLM-Lens serve up:
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import math
 from pathlib import Path
@@ -142,18 +143,30 @@ def cmd_judge_agreement(args, judge2, cfg):
     for c in bank.confirmation_cells():
         ns = cfg.out_dir / "confirm" / c["cell"]
         # Guard against a STALE out_dir whose records + fingerprint are mutually
-        # consistent but were written under a different config (external review):
-        # cross-check the stored fingerprint's config-recomputable fields (bank +
-        # confirmation item set + judge model) against the CURRENT config before
-        # trusting the records. (Provider/direction fields need the run itself;
-        # those are validated in phase C via ensure_fingerprint.)
+        # consistent but were written under a DIFFERENT config (external review —
+        # e.g. re-running judge-agreement with different --seeds against old
+        # records). Cross-check EVERY config-recomputable field of the stored
+        # fingerprint against the current config: bank/item-set/judge, base model
+        # + revision, per-cell system prompt, and the generation settings
+        # (seeds, max_tokens, temperature). Provider-internal fields (token
+        # policy) can't differ unless the model does (checked here) and were
+        # validated at write-time by phase C's ensure_fingerprint.
         fp = ns / FINGERPRINT_FILE
         if fp.exists():
             fields = json.loads(fp.read_text()).get("fields", {})
+            sp = c.get("system_prompt")
             expect = {"bank_sha": bank.bank_sha(),
                       "item_set_sha": bank.item_set_sha("confirmation"),
-                      "judge_model": cfg.judge_model}
+                      "judge_model": cfg.judge_model, "model": cfg.base_model,
+                      "model_revision": cfg.model_revision,
+                      "system_prompt_sha": None if sp is None
+                      else hashlib.sha256(sp.encode()).hexdigest()[:16]}
             stale = {k: (fields.get(k), v) for k, v in expect.items() if fields.get(k) != v}
+            gen = fields.get("generation", {}) or {}
+            for gk, gv in (("seeds", list(cfg.seeds)), ("max_tokens", cfg.max_tokens),
+                           ("temperature", cfg.temperature)):
+                if gen.get(gk) != gv:
+                    stale[f"generation.{gk}"] = (gen.get(gk), gv)
             if stale:
                 raise SystemExit(f"{ns}: stored fingerprint disagrees with current config "
                                  f"on {list(stale)} — refusing stale judge-agreement inputs.")
