@@ -150,7 +150,16 @@ def cmd_judge_agreement(args, judge2, cfg):
                 secondary.append(v2)
     gate = judge_agreement_gate(primary, secondary)
     gate.update({"n_total_responses": n_total, "fraction": 0.25, "second_judge": args.second_judge or "fake"})
-    (cfg.out_dir / "judge_agreement.json").write_text(json.dumps(gate, indent=2))
+
+    def _json_safe(o):  # NaN κ (degenerate) → null, not invalid literal `NaN`
+        if isinstance(o, float) and not math.isfinite(o):
+            return None
+        if isinstance(o, dict):
+            return {k: _json_safe(v) for k, v in o.items()}
+        if isinstance(o, list):
+            return [_json_safe(v) for v in o]
+        return o
+    (cfg.out_dir / "judge_agreement.json").write_text(json.dumps(_json_safe(gate), indent=2))
     print(f"  judge gate: κ4={gate['kappa_4way']:.3f} κbin={gate['kappa_binary']:.3f} n={gate['n']} pass={gate['pass']}")
     return gate
 

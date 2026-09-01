@@ -594,6 +594,16 @@ class TestConfirmatoryStats:
         gate = judge_agreement_gate(labels, labels)
         rep_g = confirmatory_association(cells, items, x, y, n_boot=100, n_blocks_expected=10, judge_gate=gate)
         assert gate["pass"] and rep_g["reportable"] is True
+        # HARD 240 floor: a small-n gate that self-reports pass (via lowered
+        # min_n) is NOT reportable — the confirmatory path re-validates n≥240.
+        small = judge_agreement_gate(labels[:20], labels[:20], min_n=10)
+        assert small["pass"]  # the utility gate passes at its own knob
+        rep_s = confirmatory_association(cells, items, x, y, n_boot=50, n_blocks_expected=10, judge_gate=small)
+        assert rep_s["reportable"] is False
+        # a malformed gate claiming pass with n=1 is likewise rejected (not trusted)
+        bad = {"pass": True, "n": 1, "kappa_4way": 1.0, "kappa_binary": 1.0}
+        rep_b = confirmatory_association(cells, items, x, y, n_boot=50, n_blocks_expected=10, judge_gate=bad)
+        assert rep_b["reportable"] is False
         # stop rule: too few cells
         rep2 = confirmatory_association(cells[:60], items[:60], x[:60], y[:60], n_boot=20, n_blocks_expected=10)
         assert not rep2["valid"] and "STOP" in rep2["reason"]

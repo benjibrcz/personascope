@@ -23,7 +23,7 @@ from typing import Any, Callable, Optional
 import numpy as np
 
 from personascope.probes.representation.directions import direction_sha, project_layers
-from personascope.repr.fingerprint import ensure_fingerprint, journal_failure
+from personascope.repr.fingerprint import FINGERPRINT_FILE, ensure_fingerprint, journal_failure
 from personascope.repr.vllm_lens_provider import CaptureIntegrityError, CaptureResult
 
 RECORD_VERSION = 2
@@ -112,18 +112,28 @@ def schedule_blocks(items: list[dict], seeds: list[int] | tuple[int, ...], condi
 
 
 def load_records(namespace: str | Path, *, expected_sha: str | None = None) -> list[AtomicRecord]:
-    p = Path(namespace) / RECORDS_FILE
+    namespace = Path(namespace)
+    p = namespace / RECORDS_FILE
     if not p.exists():
         return []
+    # Provenance validation is NON-optional (external review): if the caller did
+    # not pass an expected sha, self-validate against the namespace's OWN
+    # fingerprint.json. Records beside NO fingerprint are refused (unknown
+    # provenance). The fingerprint_sha encodes cell/condition/provider/etc.
+    # (via the study fingerprint fields), so a matching sha binds those too.
+    if expected_sha is None:
+        fp = namespace / FINGERPRINT_FILE
+        if not fp.exists():
+            raise ValueError(
+                f"{p}: records present but no {FINGERPRINT_FILE} — refusing to load a "
+                "fingerprint-less cache of unknown provenance.")
+        expected_sha = json.loads(fp.read_text()).get("sha")
     recs = []
     for ln in p.read_text().splitlines():
         if ln.strip():
             r = AtomicRecord.from_json(ln)
             r.validate()          # an invalid on-disk record is a hard error, not a silent skip
-            # validate provenance: every loaded record must carry the CURRENT
-            # study fingerprint (external review) — else a stale record from a
-            # different config could be reused.
-            if expected_sha is not None and r.fingerprint_sha != expected_sha:
+            if r.fingerprint_sha != expected_sha:
                 raise ValueError(
                     f"{p}: record {r.block_id} has fingerprint_sha={r.fingerprint_sha!r} "
                     f"!= expected {expected_sha!r} — refusing stale/mismatched record")

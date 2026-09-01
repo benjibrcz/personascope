@@ -10,7 +10,8 @@ HF misalignment access; everything below is built and dry-run offline
    route — 16 independently instantiated system-prompt cells (5 levels × 3
    paraphrases + base) on identical (item × seed) blocks. Steering is NOT a
    cell (circular). ICL cells DROPPED. OCT adapter = descriptive only.
-   Inference = pairing-permutation over cells + item-cluster bootstrap CI.
+   DESCRIPTIVE over the curated grid (fixed treatments, not exchangeable):
+   Spearman ρ + Pearson r + item-cluster bootstrap CI — NO permutation p.
 2. **Real preregistration** with exact formulas, category→scalar map,
    Spearman primary / Pearson secondary, missingness, judge κ gate, α and
    multiplicity, power (16 cells → 0.875 for ρ=0.65), and four DISJOINT

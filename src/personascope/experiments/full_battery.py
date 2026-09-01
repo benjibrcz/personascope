@@ -890,7 +890,15 @@ def run_full_battery(
         _fp_file = out_dir / ".config_fingerprint"
         if _fp_file.exists():
             _fp_prev = _fp_file.read_text().strip()
-            if _fp_prev and _fp_prev != _fp_now:
+            # An empty/whitespace/corrupt stamp must NOT fail open (external
+            # review): a falsey _fp_prev previously skipped BOTH the mismatch
+            # check and the absent-branch, blessing the cache. Treat it as
+            # corrupt → refuse.
+            if not _fp_prev:
+                raise RuntimeError(
+                    f"{out_dir} has an empty/corrupt .config_fingerprint — refusing to "
+                    "resume onto a cache of unknown provenance. Use a fresh out_dir.")
+            if _fp_prev != _fp_now:
                 raise RuntimeError(
                     f"{out_dir} holds results for a DIFFERENT config "
                     f"(fingerprint {_fp_prev} != current {_fp_now}). Refusing to "

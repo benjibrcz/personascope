@@ -4,7 +4,7 @@ Phases (each writes its artifact and is resumable through the atomic runner):
   A  fit direction        DIRECTION_FIT items × CONTRAST_PAIRS × fit seeds
   B  freeze layer         LAYER_VALIDATION items (behaviour-blind rule)
   C  confirm              16 system-prompt cells × CONFIRMATION items × seeds
-                          → confirmatory_association (Spearman, pairing-perm p)
+                          → confirmatory_association (Spearman ρ + item bootstrap CI; DESCRIPTIVE, no p)
   S  steering             baseline / +dir / −dir / ≥20 random / off-target at
                           the frozen (layer, scale) on the confirmation blocks
                           → signed gate, specificity, non-inferiority gates

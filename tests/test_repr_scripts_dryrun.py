@@ -24,9 +24,11 @@ def test_lens_study_and_steering_dry_run(tmp_path):
     out = _run("lens_study_v2.py", "integration-test", out=tmp_path)
     assert json.loads((tmp_path / "token_policy.json").read_text())["decode_steps_offset"] == -1
     out = _run("lens_study_v2.py", "all", out=tmp_path)
-    # E1 is DESCRIPTIVE (no exchangeability p) and fail-closed: reportable is
-    # False until the double-judged agreement gate passes (not wired into
-    # phase_c; the tiny dry-run also can't meet min_n) — external review.
+    # E1 is DESCRIPTIVE (no exchangeability p) and fail-closed: phase_c supplies
+    # NO judge gate to confirmatory_association, so `reportable` is False
+    # regardless of the (separate) judge-agreement command's outcome — external
+    # review. (The dry run DOES produce ≥240 double-judged ratings via the
+    # judge-agreement command; that's a distinct artifact from E1 reportability.)
     assert "E1 (DESCRIPTIVE)" in out and "reportable=False" in out
     for f in ("directions/sycophancy.npy", "directions/sycophancy.json", "frozen_layer.json",
               "confirmation_report.json", "judge_agreement.json", "confirm/base/records.jsonl",

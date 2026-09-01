@@ -60,6 +60,28 @@ def spearman(x, y) -> float:
 
 _STATS = {"spearman": spearman, "pearson": pearson}
 
+# Hard, non-overridable pre-registered floor for a REPORTABLE confirmatory
+# result (external review): the confirmatory path re-checks these regardless of
+# any caller-supplied `min_n` on the gate.
+CONFIRMATORY_MIN_N = 240
+CONFIRMATORY_KAPPA_4WAY_MIN = 0.6
+CONFIRMATORY_KAPPA_BINARY_MIN = 0.7
+
+
+def _confirmatory_gate_ok(g) -> tuple[bool, str]:
+    """Independently re-validate a judge-agreement gate dict against the HARD
+    floor (does NOT trust `g['pass']`; ignores any lowered `min_n`)."""
+    if not isinstance(g, dict):
+        return False, "no judge-agreement gate supplied"
+    n, k4, kb = g.get("n"), g.get("kappa_4way"), g.get("kappa_binary")
+    if not isinstance(n, int) or n < CONFIRMATORY_MIN_N:
+        return False, f"n={n} < required {CONFIRMATORY_MIN_N}"
+    if not (isinstance(k4, (int, float)) and np.isfinite(k4) and k4 >= CONFIRMATORY_KAPPA_4WAY_MIN):
+        return False, f"kappa_4way={k4} < {CONFIRMATORY_KAPPA_4WAY_MIN} or non-finite"
+    if not (isinstance(kb, (int, float)) and np.isfinite(kb) and kb >= CONFIRMATORY_KAPPA_BINARY_MIN):
+        return False, f"kappa_binary={kb} < {CONFIRMATORY_KAPPA_BINARY_MIN} or non-finite"
+    return True, "ok"
+
 
 def pairing_permutation_test(x, y, *, stat: str = "spearman", n_perm: int = 10000,
                              seed: int = 0, alternative: str = "greater") -> dict:
@@ -170,16 +192,16 @@ def confirmatory_association(cell_ids, item_ids, x, y, *, n_boot: int = 2000,
         "permutation p-value is claimed over these non-exchangeable cells. A "
         "confirmatory significance test requires the deferred independent-cell scheme.")
     # Reportability gate: descriptive result is trustworthy only if the judge
-    # agreement gate was supplied AND passed (fail-closed).
+    # agreement gate was supplied AND independently re-validates against the
+    # HARD pre-registered floor (external review): we do NOT trust the gate's
+    # self-reported `pass` (a malformed {"pass": True, "n": 1} must not slip
+    # through) and we ignore any caller-lowered `min_n` — the confirmatory path
+    # requires n ≥ CONFIRMATORY_MIN_N and finite κ ≥ thresholds computed here.
     out["judge_gate"] = judge_gate
-    if judge_gate is None:
-        out["reportable"] = False
-        out["reportable_note"] = "judge-agreement gate NOT supplied — result not reportable"
-    elif not judge_gate.get("pass"):
-        out["reportable"] = False
-        out["reportable_note"] = f"judge-agreement gate FAILED ({judge_gate.get('fail_reasons')}) — not reportable"
-    else:
-        out["reportable"] = True
+    ok, why = _confirmatory_gate_ok(judge_gate)
+    out["reportable"] = ok
+    if not ok:
+        out["reportable_note"] = f"judge-agreement gate not satisfied: {why}"
     return out
 
 

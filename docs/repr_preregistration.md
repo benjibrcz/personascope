@@ -132,13 +132,18 @@ x and y or neither):
 Equal weight per cell; equal weight per response within a cell; single trait
 family (no family weights).
 
-**Statistic and inference.** Primary: Spearman ρ(x_c, y_c), H1: ρ > 0
-(one-sided). p from the **pairing-permutation test** (10,000 permutations of
-the x↔y pairing across the 16 cells; cells of one route are exchangeable
-under H0). Uncertainty from the **item-cluster bootstrap** (2,000 resamples
-of the 20 items; all cells × seeds of an item move together) → 95% percentile
-CI. Secondary/sensitivity: Pearson r with the same permutation scheme;
-sensitivity y'_c = P(AGREES_WITH_ERROR). Descriptive only: per-layer r curve,
+**Statistic and inference.** The curated grid of 16 hand-authored cells is a
+set of FIXED treatments, NOT independently sampled exchangeable replicates, so
+it is reported **DESCRIPTIVELY** (external review): primary Spearman ρ(x_c, y_c)
+and secondary Pearson r over the cell means, with uncertainty from the
+**item-cluster bootstrap** (2,000 resamples of the 20 items; all cells × seeds
+of an item move together → 95% percentile CI, item-sampling uncertainty only).
+**No exchangeability/permutation p-value or significance "declaration" is
+claimed over these cells.** A confirmatory significance test requires the
+DEFERRED independent-cell-sampling scheme (then `pairing_permutation_test`
+applies). Reportability is gated on the judge-agreement gate (n ≥ 240 + finite
+κ ≥ thresholds), re-validated independently of the gate's self-reported pass.
+Sensitivity y'_c = P(AGREES_WITH_ERROR). Also descriptive: per-layer r curve,
 leave-one-cell-out CV (`analysis/representation.py`), the OCT adapter cell.
 
 **α and multiplicity.** E1 is one test at α = 0.05. Declared iff p < 0.05 AND
