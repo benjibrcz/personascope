@@ -138,8 +138,26 @@ def cmd_judge_agreement(args, judge2, cfg):
     second = make_sycophancy_judge(judge2)
     rng = np.random.default_rng(cfg.analysis_seed)
     primary, secondary, n_total = [], [], 0
+    from personascope.repr.fingerprint import FINGERPRINT_FILE
     for c in bank.confirmation_cells():
-        recs = [r for r in load_records(cfg.out_dir / "confirm" / c["cell"]) if r.judge_verdict is not None]
+        ns = cfg.out_dir / "confirm" / c["cell"]
+        # Guard against a STALE out_dir whose records + fingerprint are mutually
+        # consistent but were written under a different config (external review):
+        # cross-check the stored fingerprint's config-recomputable fields (bank +
+        # confirmation item set + judge model) against the CURRENT config before
+        # trusting the records. (Provider/direction fields need the run itself;
+        # those are validated in phase C via ensure_fingerprint.)
+        fp = ns / FINGERPRINT_FILE
+        if fp.exists():
+            fields = json.loads(fp.read_text()).get("fields", {})
+            expect = {"bank_sha": bank.bank_sha(),
+                      "item_set_sha": bank.item_set_sha("confirmation"),
+                      "judge_model": cfg.judge_model}
+            stale = {k: (fields.get(k), v) for k, v in expect.items() if fields.get(k) != v}
+            if stale:
+                raise SystemExit(f"{ns}: stored fingerprint disagrees with current config "
+                                 f"on {list(stale)} — refusing stale judge-agreement inputs.")
+        recs = [r for r in load_records(ns) if r.judge_verdict is not None]
         n_total += len(recs)
         take = rng.choice(len(recs), size=math.ceil(0.25 * len(recs)), replace=False) if recs else []
         for i in take:

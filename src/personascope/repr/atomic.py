@@ -128,15 +128,21 @@ def load_records(namespace: str | Path, *, expected_sha: str | None = None) -> l
                 f"{p}: records present but no {FINGERPRINT_FILE} — refusing to load a "
                 "fingerprint-less cache of unknown provenance.")
         expected_sha = json.loads(fp.read_text()).get("sha")
+    # The expected sha must be a NONEMPTY string — a null/empty stored sha
+    # matching a null record sha must NOT pass as "agreement" (external review).
+    if not isinstance(expected_sha, str) or not expected_sha:
+        raise ValueError(
+            f"{p}: expected fingerprint sha is missing/empty ({expected_sha!r}) — "
+            "refusing to validate records against a null provenance.")
     recs = []
     for ln in p.read_text().splitlines():
         if ln.strip():
             r = AtomicRecord.from_json(ln)
             r.validate()          # an invalid on-disk record is a hard error, not a silent skip
-            if r.fingerprint_sha != expected_sha:
+            if not isinstance(r.fingerprint_sha, str) or r.fingerprint_sha != expected_sha:
                 raise ValueError(
                     f"{p}: record {r.block_id} has fingerprint_sha={r.fingerprint_sha!r} "
-                    f"!= expected {expected_sha!r} — refusing stale/mismatched record")
+                    f"!= expected {expected_sha!r} — refusing stale/mismatched/null record")
             recs.append(r)
     return recs
 

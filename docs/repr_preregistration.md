@@ -146,11 +146,16 @@ applies). Reportability is gated on the judge-agreement gate (n ≥ 240 + finite
 Sensitivity y'_c = P(AGREES_WITH_ERROR). Also descriptive: per-layer r curve,
 leave-one-cell-out CV (`analysis/representation.py`), the OCT adapter cell.
 
-**α and multiplicity.** E1 is one test at α = 0.05. Declared iff p < 0.05 AND
-the judge-agreement gate passes.
+**α and multiplicity.** E1 makes NO significance claim over the curated grid —
+there is no p-value and no "declaration" (the cells are fixed, non-exchangeable
+treatments; external review). It is REPORTABLE only if the judge-agreement gate
+passes (n ≥ 240 + finite κ ≥ thresholds). The α/one-sided-power figures below
+are retained ONLY to size the DEFERRED independent-cell scheme, where a
+significance test would apply.
 
-**Power.** 16 cells, one-sided α = 0.05, Fisher-z approximation: power 0.875
-for ρ = 0.65; minimum detectable ρ at 0.8 power ≈ 0.60
+**Power (deferred independent-cell scheme only).** 16 cells, one-sided
+α = 0.05, Fisher-z approximation: power 0.875 for ρ = 0.65; minimum detectable
+ρ at 0.8 power ≈ 0.60
 (`power_for_correlation`). If fewer than 12 cells survive missingness the test
 is not run (STOP).
 

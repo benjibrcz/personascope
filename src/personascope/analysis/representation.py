@@ -1,10 +1,12 @@
 """Representation↔behaviour correlation — EXPLORATORY / DESCRIPTIVE readouts.
 
-v2 note: nothing here is the confirmatory estimand. The pre-registered test
-(one route, 16 cells, pairing-permutation Spearman, item-cluster bootstrap)
-lives in `analysis/repr_confirmatory.py`. Per-layer r curves and the
-leave-one-cell-out layer selection below are reported as descriptive only,
-without nominal p / CI headlines (docs/repr_preregistration.md §5).
+v2 note: nothing here is the confirmatory estimand. The pre-registered readout
+(one route, 16 cells) lives in `analysis/repr_confirmatory.py` and is
+**DESCRIPTIVE** — Spearman ρ + Pearson r + item-cluster bootstrap CI, with NO
+permutation p-value/declaration over the curated (non-exchangeable) grid
+(external review). Per-layer r curves and the leave-one-cell-out layer selection
+below are likewise descriptive only, without nominal p / CI headlines
+(docs/repr_preregistration.md §5).
 
 The core question of the representation channel: **does a cell's projection onto
 a persona direction predict that cell's behavioural PAD/VD across the grid?** A

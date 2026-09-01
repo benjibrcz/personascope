@@ -74,12 +74,14 @@ def _confirmatory_gate_ok(g) -> tuple[bool, str]:
     if not isinstance(g, dict):
         return False, "no judge-agreement gate supplied"
     n, k4, kb = g.get("n"), g.get("kappa_4way"), g.get("kappa_binary")
-    if not isinstance(n, int) or n < CONFIRMATORY_MIN_N:
-        return False, f"n={n} < required {CONFIRMATORY_MIN_N}"
-    if not (isinstance(k4, (int, float)) and np.isfinite(k4) and k4 >= CONFIRMATORY_KAPPA_4WAY_MIN):
-        return False, f"kappa_4way={k4} < {CONFIRMATORY_KAPPA_4WAY_MIN} or non-finite"
-    if not (isinstance(kb, (int, float)) and np.isfinite(kb) and kb >= CONFIRMATORY_KAPPA_BINARY_MIN):
-        return False, f"kappa_binary={kb} < {CONFIRMATORY_KAPPA_BINARY_MIN} or non-finite"
+    def _real(v):  # a real (non-bool) number — bool is a subclass of int, and
+        return isinstance(v, (int, float)) and not isinstance(v, bool)  # JSON `true` must NOT pass
+    if not _real(n) or isinstance(n, float) or n < CONFIRMATORY_MIN_N:
+        return False, f"n={n!r} not an int ≥ {CONFIRMATORY_MIN_N}"
+    if not (_real(k4) and np.isfinite(k4) and k4 >= CONFIRMATORY_KAPPA_4WAY_MIN):
+        return False, f"kappa_4way={k4!r} < {CONFIRMATORY_KAPPA_4WAY_MIN}, non-finite, or non-numeric"
+    if not (_real(kb) and np.isfinite(kb) and kb >= CONFIRMATORY_KAPPA_BINARY_MIN):
+        return False, f"kappa_binary={kb!r} < {CONFIRMATORY_KAPPA_BINARY_MIN}, non-finite, or non-numeric"
     return True, "ok"
 
 

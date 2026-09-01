@@ -604,6 +604,10 @@ class TestConfirmatoryStats:
         bad = {"pass": True, "n": 1, "kappa_4way": 1.0, "kappa_binary": 1.0}
         rep_b = confirmatory_association(cells, items, x, y, n_boot=50, n_blocks_expected=10, judge_gate=bad)
         assert rep_b["reportable"] is False
+        # bool-typed κ (JSON `true`) must NOT satisfy the numeric floor (bool<:int)
+        bad_bool = {"pass": True, "n": 240, "kappa_4way": True, "kappa_binary": True}
+        rep_bb = confirmatory_association(cells, items, x, y, n_boot=50, n_blocks_expected=10, judge_gate=bad_bool)
+        assert rep_bb["reportable"] is False
         # stop rule: too few cells
         rep2 = confirmatory_association(cells[:60], items[:60], x[:60], y[:60], n_boot=20, n_blocks_expected=10)
         assert not rep2["valid"] and "STOP" in rep2["reason"]
