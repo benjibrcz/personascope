@@ -899,6 +899,19 @@ def run_full_battery(
                     "or remove the stale one (see manifest.json for what differs)."
                 )
         else:
+            # fp absent: refuse a fingerprint-less NON-EMPTY cache rather than
+            # bless it (external review — a legacy/orphaned dir with probe
+            # outputs but no stamp has unknown provenance). Only stamp fresh when
+            # the dir has no prior probe outputs / summary to resume.
+            _existing = [p for p in out_dir.glob("*.jsonl") if p.stat().st_size > 0]
+            if (out_dir / "summary.json").exists():
+                _existing.append(out_dir / "summary.json")
+            if _existing:
+                raise RuntimeError(
+                    f"{out_dir} has cached outputs ({[p.name for p in _existing][:4]}) but no "
+                    ".config_fingerprint — refusing to bless a fingerprint-less cache of unknown "
+                    "provenance. Use a fresh out_dir or remove the stale outputs."
+                )
             _fp_file.write_text(_fp_now + "\n")
 
     prep = Preparation(

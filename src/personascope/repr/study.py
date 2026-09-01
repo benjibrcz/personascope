@@ -197,10 +197,15 @@ def phase_c_confirm(provider_factory: Callable[[str], Any], judge_fn: Callable[[
     conf = [r for c in conf_names for r in recs[c]]
     arr = records_xy(conf)
     n_blocks = len(bank.CONFIRMATION_ITEMS) * len(cfg.seeds)
-    # records are namespaced cell="confirm"; the CELL of the estimand is the condition name
-    report = confirmatory_association(arr["condition"], arr["item"], arr["x"], arr["y"], n_perm=cfg.n_perm,
+    # records are namespaced cell="confirm"; the CELL of the estimand is the condition name.
+    # DESCRIPTIVE over the curated grid (no exchangeability p). judge_gate is left
+    # unsupplied here → `reportable` is False (fail-closed): the descriptive result
+    # is not reportable until the double-judged agreement gate is run separately
+    # (that second-judge pipeline is a deferred Major, tracked in the prereg).
+    report = confirmatory_association(arr["condition"], arr["item"], arr["x"], arr["y"],
                                       n_boot=cfg.n_boot, seed=cfg.analysis_seed, alpha=cfg.alpha,
-                                      min_cells=cfg.min_cells, n_blocks_expected=n_blocks)
+                                      min_cells=cfg.min_cells, n_blocks_expected=n_blocks,
+                                      judge_gate=None)
     report["frozen_layer"] = layer
     report["n_blocks_expected_per_cell"] = n_blocks
     report["refusal_rate"] = float(arr["refused"].mean()) if len(conf) else float("nan")

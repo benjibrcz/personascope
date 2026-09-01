@@ -111,7 +111,7 @@ def schedule_blocks(items: list[dict], seeds: list[int] | tuple[int, ...], condi
     return sched, sha
 
 
-def load_records(namespace: str | Path) -> list[AtomicRecord]:
+def load_records(namespace: str | Path, *, expected_sha: str | None = None) -> list[AtomicRecord]:
     p = Path(namespace) / RECORDS_FILE
     if not p.exists():
         return []
@@ -120,6 +120,13 @@ def load_records(namespace: str | Path) -> list[AtomicRecord]:
         if ln.strip():
             r = AtomicRecord.from_json(ln)
             r.validate()          # an invalid on-disk record is a hard error, not a silent skip
+            # validate provenance: every loaded record must carry the CURRENT
+            # study fingerprint (external review) — else a stale record from a
+            # different config could be reused.
+            if expected_sha is not None and r.fingerprint_sha != expected_sha:
+                raise ValueError(
+                    f"{p}: record {r.block_id} has fingerprint_sha={r.fingerprint_sha!r} "
+                    f"!= expected {expected_sha!r} — refusing stale/mismatched record")
             recs.append(r)
     return recs
 
@@ -176,8 +183,10 @@ def run_scheduled_conditions(*, providers: dict[str, Any], items: list[dict], se
                   "max_tokens": max_tokens, "temperature": temperature, "frozen_layer": layer,
                   "system_prompt": system_prompts.get(c), "judge_prompt_sha": judge_prompt_sha,
                   "record_version": RECORD_VERSION}
-        shas[c] = ensure_fingerprint(ns[c], fields)           # BEFORE any cache read
-        done[c] = {r.block_id: r for r in load_records(ns[c])}
+        # BEFORE any cache read: refuse a fingerprint-less non-empty cache, then
+        # validate every resumed record carries the current fingerprint sha.
+        shas[c] = ensure_fingerprint(ns[c], fields, records_file=RECORDS_FILE)
+        done[c] = {r.block_id: r for r in load_records(ns[c], expected_sha=shas[c])}
     (out_dir / cell).mkdir(parents=True, exist_ok=True)
     (out_dir / cell / "schedule.json").write_text(json.dumps({"sha": sched_sha, "schedule": sched}, indent=1))
     items_by_id = {it["id"]: it for it in items}

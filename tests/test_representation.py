@@ -575,30 +575,46 @@ class TestConfirmatoryStats:
         agg2 = cell_level_xy(cells[:4], items[:4], x[:4], np.array([0, np.nan, 0, 1.0]), min_valid_fraction=0.5)
         assert abs(agg2["x"][0] - (1 + 3 + 4) / 3) < 1e-12
 
-    def test_confirmatory_association_stop_rule_and_declare(self):
+    def test_confirmatory_association_descriptive_and_gate(self):
         rng = np.random.default_rng(0)
         cells = np.repeat([f"c{k}" for k in range(16)], 10)
         items = np.tile([f"i{k}" for k in range(10)], 16)
         lvl = np.repeat(rng.normal(size=16), 10)
         x = lvl + 0.3 * rng.normal(size=160)
         y = np.clip(0.5 + 0.3 * lvl + 0.2 * rng.normal(size=160), 0, 1)
-        rep = confirmatory_association(cells, items, x, y, n_perm=500, n_boot=100, n_blocks_expected=10)
-        assert rep["valid"] and rep["declared"] and rep["primary_spearman"]["observed"] > 0.6
-        assert len(rep["primary_spearman"]["item_bootstrap"]["ci"]) == 2 and "secondary_pearson" in rep
-        rep2 = confirmatory_association(cells[:60], items[:60], x[:60], y[:60], n_perm=100, n_boot=20, n_blocks_expected=10)
+        # DESCRIPTIVE: no exchangeability p; spearman_rho + item-bootstrap CI + pearson_r
+        rep = confirmatory_association(cells, items, x, y, n_boot=100, n_blocks_expected=10)
+        assert rep["valid"] and rep["mode"] == "descriptive" and rep["spearman_rho"] > 0.6
+        assert len(rep["item_bootstrap_ci"]["ci"]) == 2 and "pearson_r" in rep
+        assert "primary_spearman" not in rep and "declared" not in rep  # no fabricated inference
+        # reportability is fail-closed without a passing judge gate
+        assert rep["reportable"] is False  # gate not supplied
+        # 4-category, incl. the binary key with variation, n=260 ≥ min_n → both κ finite=1.0
+        labels = ["CORRECTS", "AGREES_WITH_ERROR", "HEDGES", "REFUSES"] * 65
+        gate = judge_agreement_gate(labels, labels)
+        rep_g = confirmatory_association(cells, items, x, y, n_boot=100, n_blocks_expected=10, judge_gate=gate)
+        assert gate["pass"] and rep_g["reportable"] is True
+        # stop rule: too few cells
+        rep2 = confirmatory_association(cells[:60], items[:60], x[:60], y[:60], n_boot=20, n_blocks_expected=10)
         assert not rep2["valid"] and "STOP" in rep2["reason"]
 
     def test_power(self):
         assert power_for_correlation(0.65, 16) >= 0.8 and n_cells_for_power(0.65) <= 16
         assert power_for_correlation(0.3, 16) < 0.5
 
-    def test_kappa_and_gate(self):
-        a = ["CORRECTS", "AGREES_WITH_ERROR", "HEDGES", "CORRECTS"] * 5
+    def test_kappa_and_gate_fail_closed(self):
+        import math
+        a = ["CORRECTS", "AGREES_WITH_ERROR", "HEDGES", "CORRECTS"] * 5   # multi-category
         assert cohens_kappa(a, a) == 1.0
         assert abs(cohens_kappa(["A", "B"] * 10, ["A", "B", "B", "A"] * 5)) < 1e-9
-        assert judge_agreement_gate(a, a)["pass"]
-        b = ["HEDGES"] * 20
-        assert not judge_agreement_gate(a, b)["pass"]
+        # degenerate: both raters single category → κ UNDEFINED (nan), not 1.0
+        assert math.isnan(cohens_kappa(["CORRECTS"] * 10, ["CORRECTS"] * 10))
+        # the exact review case: 1-sample all-agree must NOT pass the gate
+        assert judge_agreement_gate(["CORRECTS"], ["CORRECTS"])["pass"] is False
+        # n below min_n fails even on perfect agreement; passes only with enough n
+        assert not judge_agreement_gate(a, a, min_n=240)["pass"]
+        assert judge_agreement_gate(a, a, min_n=10)["pass"]
+        assert not judge_agreement_gate(a, ["HEDGES"] * 20, min_n=10)["pass"]
 
     def test_select_frozen_layer_and_stop(self):
         rng = np.random.default_rng(0)
@@ -699,8 +715,9 @@ class TestStudyDryRun:
         assert sel["layer"] == SIGNAL and (tmp_path / "frozen_layer.json").exists()
         rep = phase_c_confirm(pf, fake_judge_fn, d, sel["layer"], cfg,
                               descriptive_cells=[{"cell": "oct_adapter", "model": "fake-oct-adapter"}])
-        assert rep["valid"] and len(rep["cells"]) == 16 and rep["declared"]
-        assert rep["primary_spearman"]["observed"] > 0.7 and rep["primary_spearman"]["p"] < 0.05
+        assert rep["valid"] and len(rep["cells"]) == 16 and rep["mode"] == "descriptive"
+        assert rep["spearman_rho"] > 0.7 and "declared" not in rep      # descriptive, no p-declaration
+        assert rep["reportable"] is False                                # judge gate not supplied → fail-closed
         assert rep["descriptive_cells"]["oct_adapter"]["n"] == 40
         assert (tmp_path / "confirm" / "sp_p2a" / "records.jsonl").exists()
         assert (tmp_path / "confirm" / "base" / "fingerprint.json").exists()
@@ -729,3 +746,25 @@ class TestStudyDryRun:
                           max_tokens=24, steer_scale=0.2)
         srep = phase_s_steering(sf, fake_judge_fn, d, SIGNAL, cfg)
         assert not srep["declared_causal"] and srep["signed_gate"]["n_passed"] == 0
+
+
+class TestFingerprintFailClosed:
+    def test_refuses_fingerprintless_nonempty_cache(self, tmp_path):
+        import pytest
+
+        from personascope.repr.fingerprint import FingerprintMismatch, ensure_fingerprint
+        d = tmp_path / "ns"
+        d.mkdir()
+        # fresh dir → stamps fine
+        sha = ensure_fingerprint(d, {"direction": "A", "layer": 3}, records_file="records.jsonl")
+        assert sha and (d / "fingerprint.json").exists()
+        # same config → same sha (resume OK)
+        assert ensure_fingerprint(d, {"direction": "A", "layer": 3}) == sha
+        # different config → refuse
+        with pytest.raises(FingerprintMismatch):
+            ensure_fingerprint(d, {"direction": "B", "layer": 3})
+        # the review case: records present but fingerprint deleted → refuse (don't bless)
+        (d / "fingerprint.json").unlink()
+        (d / "records.jsonl").write_text('{"x":1}\n')
+        with pytest.raises(FingerprintMismatch):
+            ensure_fingerprint(d, {"direction": "B", "layer": 3}, records_file="records.jsonl")

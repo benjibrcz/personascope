@@ -38,8 +38,15 @@ def _diff(a: dict, b: dict) -> list[str]:
     return [k for k in keys if json.dumps(a.get(k), sort_keys=True, default=str) != json.dumps(b.get(k), sort_keys=True, default=str)]
 
 
-def ensure_fingerprint(directory: str | Path, fields: dict[str, Any]) -> str:
-    """Write-before-read guard. Returns the sha."""
+def ensure_fingerprint(directory: str | Path, fields: dict[str, Any], *,
+                       records_file: str | None = None) -> str:
+    """Write-before-read guard. Returns the sha.
+
+    If `fingerprint.json` is ABSENT but the directory already holds a non-empty
+    `records_file`, REFUSE (external review): a deleted/absent fingerprint must
+    not silently bless pre-existing records as current — that let a resume under
+    direction B reuse direction A's records. Only a directory with no prior
+    records may be stamped fresh."""
     directory = Path(directory)
     directory.mkdir(parents=True, exist_ok=True)
     sha = study_fingerprint(fields)
@@ -53,6 +60,14 @@ def ensure_fingerprint(directory: str | Path, fields: dict[str, Any]) -> str:
                 f"(sha {prev.get('sha')} != {sha}); differing fields: {differing}. "
                 "Use a fresh out_dir — refusing to resume onto mismatched records.")
         return sha
+    # fp absent: refuse a fingerprint-less NON-EMPTY cache rather than bless it.
+    if records_file is not None:
+        rp = directory / records_file
+        if rp.exists() and rp.stat().st_size > 0:
+            raise FingerprintMismatch(
+                f"{directory} has records ({records_file}) but no {FINGERPRINT_FILE} — "
+                "refusing to bless a fingerprint-less cache (its provenance is unknown). "
+                "Use a fresh out_dir or delete the orphaned records.")
     fp.write_text(json.dumps({"sha": sha, "fields": json.loads(_canon(fields)),
                               "written_utc": time.time()}, indent=2, default=str))
     return sha

@@ -119,10 +119,11 @@ def cmd_confirm(args, pf, judge_fn, cfg):
     if not rep["valid"]:
         print("  E1 NOT RUN:", rep["reason"])
         return rep
-    ps = rep["primary_spearman"]
-    print(f"  E1: {len(rep['cells'])} cells | Spearman ρ={ps['observed']:+.3f} p={ps['p']:.4f} "
-          f"CI{[round(v, 2) for v in ps['item_bootstrap']['ci']]} | Pearson r={rep['secondary_pearson']['observed']:+.3f} "
-          f"| refusal {rep['refusal_rate']:.3f} judge-fail {rep['judge_failure_rate']:.3f} | declared={rep['declared']}")
+    ci = rep["item_bootstrap_ci"]["ci"]
+    print(f"  E1 (DESCRIPTIVE): {len(rep['cells'])} cells | Spearman ρ={rep['spearman_rho']:+.3f} "
+          f"item-CI{[round(v, 2) for v in ci]} | Pearson r={rep['pearson_r']:+.3f} "
+          f"| refusal {rep['refusal_rate']:.3f} judge-fail {rep['judge_failure_rate']:.3f} "
+          f"| reportable={rep['reportable']} ({rep.get('reportable_note', 'gate passed')})")
     return rep
 
 
