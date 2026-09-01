@@ -69,3 +69,31 @@ Next (bigger studies, need more setup):
 - Emotion vectors; the truth/belief probe.
 - **misalignment adapter is HF-gated** (`maius/llama-3.1-8b-it-misalignment`) —
   request access to include the alignment-relevant trait.
+
+---
+
+# Assistant axis — second study (2026-09-01)
+
+Grid: base + 6 benign OCT traits (sycophancy, sarcasm, goodness, remorse, humor,
+mathematical) on Llama-3.1-8B, layer 16. Script `lens_assistant_axis.py`.
+(misalignment adapter still HF-gated — access requested.)
+
+**Naive PCA over the 7 per-cell mean activations does NOT give a clean assistant
+axis.** PC1 explains only 30% (PC2 27%, PC3 20%) and base sits in the *middle* of
+PC1 — PC1 captures a trait *contrast* (sarcasm/humor pole ↔ sycophancy/remorse
+pole), not assistant-likeness. Too few cells; a clean PCA axis needs many more
+personas or the per-prompt activation cloud (cf. 2601.10387).
+
+**Mean-diff persona-depth axis (mean(traits) − base) is clean and usable.** Base
+= 0 (assistant pole, by construction); every trait projects positive (deeper
+persona): goodness +1.38, mathematical +1.77, remorse +2.07, humor +2.16,
+sarcasm +2.49, sycophancy +2.50. This is the principled "distance-from-assistant"
+activation readout to correlate with PAD.
+
+**Next — the behaviour↔activation correlation (the headline the channel is
+building toward):** correlate this persona-depth projection (+ each cell's
+own-trait projection) with per-cell PAD/VD measured **on this same interp serve**
+(engine-confound rule) — a light `full_battery` (core tier, low n) per cell via
+tunnel, then `analysis/representation.summarise_correlation`. Needs a dedicated
+GPU session (behaviour battery is the long pole). Then: more personas for a clean
+PCA axis; misalignment trait once access lands.
