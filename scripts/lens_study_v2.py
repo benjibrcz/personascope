@@ -175,6 +175,12 @@ def cmd_judge_agreement(args, judge2, cfg):
                            ("temperature", cfg.temperature)):
                 if gen.get(gk) != gv:
                     stale[f"generation.{gk}"] = (gen.get(gk), gv)
+            # runtime token-position policy (e.g. --decode-offset -1 vs 0): a
+            # recomputable field that does NOT change probe_impl_sha (external review).
+            cur_off = _policy(args).decode_steps_offset
+            stored_off = (fields.get("token_position_policy") or {}).get("decode_steps_offset")
+            if stored_off != cur_off:
+                stale["token_position_policy.decode_steps_offset"] = (stored_off, cur_off)
             if stale:
                 raise SystemExit(f"{ns}: stored fingerprint disagrees with current config "
                                  f"on {list(stale)} — refusing stale judge-agreement inputs.")
