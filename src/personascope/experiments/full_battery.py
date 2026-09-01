@@ -1018,25 +1018,27 @@ def run_full_battery(
                 cached_recs = None
             if cached_recs is not None:
                 # Probe-identity guard: the cache is valid only if it holds
-                # EXACTLY the probes we're about to run — same set AND same
-                # per-probe multiplicity. For param-dependent batteries (e.g.
-                # litmus_values, whose probe names encode the sampled dilemma
-                # IDs), changing seed OR reducing n leaves the old records a
-                # superset — a subset/`>=` check would silently reuse a stale,
-                # larger sample. Require EXACT equality.
-                from collections import Counter as _Counter
-                expected_mult = _Counter(p.name for p in applicable)
-                cached_mult = _Counter(
+                # EXACTLY the same probe *set* we're about to run. For
+                # param-dependent batteries (e.g. litmus_values, whose probe
+                # names encode the sampled dilemma IDs), changing seed OR n
+                # samples a different dilemma set → different names → regenerate.
+                # NB compare SETS, not multiplicities: each probe appears n times
+                # in the records (once per sample), so a per-name COUNT compare
+                # against the applicable list (each name once) rejected EVERY
+                # n>1 cache (external review). The n-count is validated separately
+                # by the exact len == len(applicable)*n check below.
+                expected_names = {p.name for p in applicable}
+                cached_names = {
                     r.intervention.metadata.get("probe")
                     for r in cached_recs
                     if r.intervention and r.intervention.metadata
                     and r.intervention.metadata.get("probe") is not None
-                )
+                }
                 # Only enforce when the cache carries probe metadata at all
                 # (older logs without it fall back to the count check below).
-                if cached_mult and cached_mult != expected_mult:
-                    print(f"[full_battery] {name}: cached probe set/multiplicity "
-                          "differs (seed/n changed?); regenerating")
+                if cached_names and cached_names != expected_names:
+                    print(f"[full_battery] {name}: cached probe set differs "
+                          "(seed/n changed the sampled probes?); regenerating")
                     cached_recs = None
             if cached_recs is not None:
                 expected = len(applicable) * n

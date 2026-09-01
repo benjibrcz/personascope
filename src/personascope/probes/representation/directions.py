@@ -108,7 +108,7 @@ def project_layers(
     if acts.shape != direction.shape:
         raise ValueError(f"shape mismatch: acts {acts.shape} vs dir {direction.shape}")
     fn = a_proj_b if metric == "proj" else cos_sim
-    return np.array([fn(acts[l], direction[l]) for l in range(acts.shape[0])])
+    return np.array([fn(acts[i], direction[i]) for i in range(acts.shape[0])])
 
 
 # ── on-disk artifacts ────────────────────────────────────────────────────────

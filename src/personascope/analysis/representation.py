@@ -82,10 +82,10 @@ def layerwise_correlation(
         raise ValueError("projections and behaviour disagree on n_cells")
     n = projections.shape[0]
     out = []
-    for l in range(projections.shape[1]):
-        r, p = _pearsonr(projections[:, l], behaviour)
+    for li in range(projections.shape[1]):
+        r, pv = _pearsonr(projections[:, li], behaviour)
         lo, hi = _fisher_ci(r, n)
-        out.append(LayerCorrelation(l, r, p, lo, hi))
+        out.append(LayerCorrelation(li, r, pv, lo, hi))
     return out
 
 
@@ -99,35 +99,55 @@ def cv_best_layer_correlation(
     projections: np.ndarray, behaviour: np.ndarray
 ) -> dict[str, float]:
     """Leave-one-cell-out honest estimate. For each held-out cell, pick the
-    best-|r| layer on the *other* n−1 cells, take that layer's projection as the
-    prediction; correlate the n held-out predictions with actual behaviour.
+    best-|r| layer on the *other* n−1 cells, then **calibrate that layer's
+    projection into a fold-local, sign-aligned z-score** before predicting the
+    held-out cell; correlate the calibrated held-out predictions with behaviour.
 
-    This avoids the circularity of reporting the in-sample best layer's r.
+    The calibration is what makes the folds comparable (external review): folds
+    can pick different layers with different scales and signs, so concatenating
+    their *raw* projections would correlate apples with oranges. We standardise
+    each held-out prediction by the training fold's mean/std at the chosen layer
+    and flip its sign to the training correlation's sign, so every prediction is
+    in the same "higher ⇒ more behaviour" z-units regardless of which layer the
+    fold picked. Non-finite rows are dropped up front.
+
     Returns the held-out r, its p and CI, and how often each layer was picked.
     """
     projections = np.asarray(projections, dtype=np.float64)
     behaviour = np.asarray(behaviour, dtype=np.float64)
+    # drop cells with any non-finite projection or behaviour
+    finite = np.isfinite(behaviour) & np.all(np.isfinite(projections), axis=1)
+    projections, behaviour = projections[finite], behaviour[finite]
     n, n_layers = projections.shape
     if n < 4:
-        return {"n": n, "cv_r": float("nan"), "cv_p": float("nan"),
-                "note": "n<4: too few cells for leave-one-out"}
-    preds = np.empty(n)
+        return {"n": int(n), "cv_r": float("nan"), "cv_p": float("nan"),
+                "note": "n<4 finite cells: too few for leave-one-out"}
+    preds = np.full(n, np.nan)
     picks = np.zeros(n_layers, dtype=int)
     for i in range(n):
         mask = np.ones(n, dtype=bool)
         mask[i] = False
-        best_l, best_abs = 0, -1.0
-        for l in range(n_layers):
-            r, _ = _pearsonr(projections[mask, l], behaviour[mask])
+        best_l, best_abs, best_r = 0, -1.0, 0.0
+        for li in range(n_layers):
+            r, _ = _pearsonr(projections[mask, li], behaviour[mask])
             if np.isfinite(r) and abs(r) > best_abs:
-                best_abs, best_l = abs(r), l
+                best_abs, best_l, best_r = abs(r), li, r
         picks[best_l] += 1
-        preds[i] = projections[i, best_l]
-    cv_r, cv_p = _pearsonr(preds, behaviour)
-    lo, hi = _fisher_ci(cv_r, n)
+        # calibrate held-out projection: z-score by TRAIN stats, sign-align to
+        # the train correlation, so predictions from different folds/layers are
+        # in the same units and direction.
+        mu = projections[mask, best_l].mean()
+        sd = projections[mask, best_l].std()
+        if sd < 1e-12:
+            continue                          # degenerate layer → leave nan
+        sign = 1.0 if best_r >= 0 else -1.0
+        preds[i] = sign * (projections[i, best_l] - mu) / sd
+    ok = np.isfinite(preds)
+    cv_r, cv_p = _pearsonr(preds[ok], behaviour[ok])
+    lo, hi = _fisher_ci(cv_r, int(ok.sum()))
     return {
-        "n": int(n), "cv_r": cv_r, "cv_p": cv_p,
-        "cv_ci_low": lo, "cv_ci_high": hi,
+        "n": int(n), "n_predicted": int(ok.sum()),
+        "cv_r": cv_r, "cv_p": cv_p, "cv_ci_low": lo, "cv_ci_high": hi,
         "layer_pick_counts": picks.tolist(),
         "modal_layer": int(np.argmax(picks)),
     }

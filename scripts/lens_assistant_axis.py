@@ -76,9 +76,26 @@ def main():
               "pc1_scores": scores.tolist(),
               "var_explained": [float(v) for v in var_explained],
               "base_at_extreme": bool(names[order[0]] == "base" or names[order[-1]] == "base")}
+    # Mean-diff persona-depth axis (the cleaner within-set readout): base at 0
+    # by construction, traits project positive. NB within-these-cells only —
+    # NOT a general assistant axis (would need many more roles + held-out data).
+    bi = names.index("base")
+    others = [i for i in range(len(names)) if i != bi]
+    Xl = np.stack([cell_acts[c][:, PCA_LAYER, :].mean(0) for c in names])  # [n,hidden]
+    axis = Xl[others].mean(0) - Xl[bi]
+    axis = axis / (np.linalg.norm(axis) + 1e-8)
+    depth = {names[i]: float((Xl[i] - Xl[bi]) @ axis) for i in range(len(names))}
+    result["persona_depth_axis"] = {
+        "layer": PCA_LAYER,
+        "note": "mean(traits)-base, base-relative projection; within-set only",
+        "projection_by_cell": depth,
+    }
     with open("/workspace/assistant_axis_result.json", "w") as f:
         json.dump(result, f, indent=2)
     print(f"\nbase at an extreme of PC1: {result['base_at_extreme']}")
+    print("persona-depth (mean-diff) projection, base-relative:")
+    for n_, v in sorted(depth.items(), key=lambda kv: kv[1]):
+        print(f"  {n_:14s} {v:+.3f}")
     print("WROTE /workspace/assistant_axis_result.json")
 
 
