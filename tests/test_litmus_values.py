@@ -184,7 +184,8 @@ def test_counterbalanced_probes_get_distinct_names():
     DISTINCT names, else they collide on run_id (`…:{probe.name}`) and their
     records become indistinguishable (external review, PR #6)."""
     from personascope.probes.behavior.external.litmus_values import (
-        Dilemma, make_litmus_probe,
+        Dilemma,
+        make_litmus_probe,
     )
     d = Dilemma(dilemma_id="abc123", text="A dilemma?",
                 actions=("do X", "do Y"),

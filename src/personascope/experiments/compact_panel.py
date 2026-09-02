@@ -246,13 +246,21 @@ def _run_probes_n_samples(
     seed_base: int,
     run_id_prefix: str,
 ) -> list[TurnRecord]:
-    """For each sample, run each probe on an independent ICL snapshot."""
+    """For each sample, run each probe on an independent ICL snapshot.
+
+    The per-sample seed is FORWARDED to the provider (`_SeededProvider`), so
+    `seed_base + sample_idx` reaches the engine instead of being a label only
+    — required to pair identical items × seeds across cells (representation
+    channel preregistration) and for injected providers that honour `seed`.
+    """
+    from personascope.core.runner import _SeededProvider
     records: list[TurnRecord] = []
     for sample_idx in range(n_samples):
         seed = seed_base + sample_idx
+        seeded = _SeededProvider(provider, seed) if provider is not None else provider
         for probe in probes:
             history = list(preparation.icl_context or [])
-            payload = probe.run(history, provider, judge_fn, cache) or {}
+            payload = probe.run(history, seeded, judge_fn, cache) or {}
             m_kwargs = {probe.channel_slot: payload.get("measurement")}
             rec = TurnRecord(
                 run_id=(

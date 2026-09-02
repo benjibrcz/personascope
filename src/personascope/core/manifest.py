@@ -38,6 +38,7 @@ def config_fingerprint(
     tier: str,
     model_provider_name: str,
     judge_provider_name: str,
+    extra: Optional[dict[str, Any]] = None,
 ) -> str:
     """Stable short hash of the reproducibility-critical run config.
 
@@ -51,6 +52,13 @@ def config_fingerprint(
     changes within one version — `git_sha`/`personascope_version` live in the
     full manifest for that manual audit; use a fresh out_dir after editing a
     probe.
+
+    `extra` (optional) folds in further response-determining fields — an
+    injected provider's `fingerprint_fields()` (direction/control hashes,
+    sign, layer, scale, adapter revision, token-position policy, capture
+    implementation version), the ordered ICL-context hash, judge-prompt
+    hashes, probe implementation versions. Omitted/empty → the hash is
+    unchanged from earlier versions (backward compatible).
     """
     payload = {
         "model": _resolve_model(model_provider_name),
@@ -64,6 +72,8 @@ def config_fingerprint(
         "system_prompt_sha": hashlib.sha256(
             (cell.get("system_prompt") or "").encode()).hexdigest()[:16],
     }
+    if extra:
+        payload["extra"] = extra
     blob = json.dumps(payload, sort_keys=True, default=str)
     return hashlib.sha256(blob.encode()).hexdigest()[:16]
 
@@ -125,6 +135,7 @@ def build_manifest(
     cache_status: str = "off",
     failure_handling: str = "raise (ProviderCallFailed)",
     extra: Optional[dict[str, Any]] = None,
+    fingerprint_extra: Optional[dict[str, Any]] = None,
 ) -> dict[str, Any]:
     """Assemble a manifest dict.
 
@@ -176,7 +187,10 @@ def build_manifest(
         cell=cell, n_samples=n_samples, seed=seed, tier=tier,
         model_provider_name=model_provider_name,
         judge_provider_name=judge_provider_name,
+        extra=fingerprint_extra,
     )
+    if fingerprint_extra:
+        manifest["fingerprint_extra"] = fingerprint_extra
     if extra:
         manifest["extra"] = extra
     return manifest
