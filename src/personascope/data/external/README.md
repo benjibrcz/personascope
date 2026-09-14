@@ -19,7 +19,8 @@ After fetching, files land in `src/personascope/data/external/<source>/`.
 | **GSM8K** | `gsm8k/` | MIT | ~5 MB | Cobbe et al. 2021, *Training Verifiers to Solve Math Word Problems*, [arXiv:2110.14168](https://arxiv.org/abs/2110.14168) |
 | **Serapio-García Big Five** | `serapio_garcia/` | Apache 2.0 | <1 MB | Serapio-García et al. 2023, *Personality Traits in Large Language Models*, [arXiv:2307.00184](https://arxiv.org/abs/2307.00184) |
 | **Betley EM** | `betley_em/` | MIT | ~1 MB | Betley et al. 2025, emergent misalignment battery |
-| **AISI reward-hacking** | `aisi_em/` | Apache 2.0 | <1 MB | Golechha, Black, Bloom 2026, AISI |
+| **AISI reward-hacking** | `aisi_em/` | MIT | <1 MB | Golechha, Black, Bloom 2026, AISI |
+| **LitmusValues / AIRiskDilemmas** | `litmus_values/` | Apache 2.0 | ~5 MB | Chiu et al. 2025, *Will AI Tell Lies to Save Sick Children? Litmus-Testing AI Values Prioritization with AIRiskDilemmas*, [arXiv:2505.14633](https://arxiv.org/abs/2505.14633) |
 | **NRC Emotion Lexicon** | `nrc_lexicon/` | **Non-commercial research only** | ~1 MB | Mohammad & Turney 2013, NRC Word-Emotion Association Lexicon |
 
 ## Probes that use each source
@@ -29,6 +30,7 @@ After fetching, files land in `src/personascope/data/external/<source>/`.
 - `serapio_garcia/` ← `probes/behavior/external/psychometric.py`
 - `betley_em/` ← `probes/behavior/external/values_betley_icl.py` (a copy lives in `data/icl_personas/evaluation/misalignment/wg/`)
 - `aisi_em/` ← `probes/behavior/external/aisi_em.py`
+- `litmus_values/` ← `probes/behavior/external/litmus_values.py` + `analysis/value_axis.py`; fetched by `scripts/fetch_litmus_values.py` (needs `HF_TOKEN`)
 - `nrc_lexicon/` ← `probes/behavior/external/emotion.py`
 
 ## License notes
