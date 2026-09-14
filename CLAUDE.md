@@ -56,6 +56,7 @@ src/personascope/
 ├── experiments/           audit, full_battery, compact_panel, evidence_curve, intervention_builders, glm_persona (model-identity study; results in the LW post, runs gitignored)
 ├── analysis/              blind_audit, aggregate (Wilson), load, plot, fit (Bigelow), dynamics, bimodality, coherence, crosscut
 ├── llm/                   provider routing (OpenAI, OpenRouter, …)
+├── repr/                  representation channel (vLLM-Lens capture/steering providers, atomic runner, study phases; torch-free imports, lazy vllm_lens) — see docs/repr_preregistration.md
 ├── data/icl_personas/            12 bundled persona corpora
 └── cli.py                 `personascope list-probes`, `personascope list-batteries`
 ```

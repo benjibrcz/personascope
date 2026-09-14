@@ -63,7 +63,7 @@ import json
 from collections import Counter
 from dataclasses import asdict
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any, Callable, Optional
 
 import numpy as np
 
@@ -714,6 +714,9 @@ def run_full_battery(
     k: int = 0,
     n_samples: int = 8,
     judge_provider_name: str = "openai",
+    provider: Any = None,                    # injected provider OBJECT (e.g. a steering-capable provider); None → build from `model`
+    judge_fn: Optional[Callable[[str], str]] = None,   # injected judge; None → make_default_judge(judge_provider_name)
+    extra_fingerprint_fields: Optional[dict[str, Any]] = None,   # caller's extra response-determining fields
     seed: int = 42,
     system_prompt: Optional[str] = None,
     icl_tagged: bool = False,
@@ -860,6 +863,21 @@ def run_full_battery(
     # data (external review). Stamp a config fingerprint into the out_dir at the
     # START; refuse to resume if an existing stamp disagrees. Absence → proceed
     # + write (backward-compatible with dirs written before this guard existed).
+    # Hardened (external review): the fingerprint also folds in every extra
+    # response-determining field we know about — an injected provider's
+    # `fingerprint_fields()` (direction/control hashes, sign, layer, scale,
+    # adapter revision, token-position policy, capture implementation), the
+    # ORDERED ICL-context hash (corpus + order), and caller-supplied fields
+    # (judge-prompt hashes, probe implementation versions). It is written
+    # BEFORE any per-probe cache read below.
+    _fp_extra: dict[str, Any] = dict(extra_fingerprint_fields or {})
+    _provider_injected = provider is not None
+    if provider is not None and hasattr(provider, "fingerprint_fields"):
+        _fp_extra["provider"] = provider.fingerprint_fields()
+    if icl_context:
+        import hashlib
+        _fp_extra["icl_context_sha"] = hashlib.sha256(
+            json.dumps(icl_context, sort_keys=False, ensure_ascii=False).encode()).hexdigest()[:16]
     if not dry_run:
         from personascope.core.manifest import config_fingerprint
         _fp_now = config_fingerprint(
@@ -867,11 +885,20 @@ def run_full_battery(
                   "system_prompt": system_prompt},
             n_samples=n_samples, seed=seed, tier=tier,
             model_provider_name=model, judge_provider_name=judge_provider_name,
+            extra=_fp_extra or None,
         )
         _fp_file = out_dir / ".config_fingerprint"
         if _fp_file.exists():
             _fp_prev = _fp_file.read_text().strip()
-            if _fp_prev and _fp_prev != _fp_now:
+            # An empty/whitespace/corrupt stamp must NOT fail open (external
+            # review): a falsey _fp_prev previously skipped BOTH the mismatch
+            # check and the absent-branch, blessing the cache. Treat it as
+            # corrupt → refuse.
+            if not _fp_prev:
+                raise RuntimeError(
+                    f"{out_dir} has an empty/corrupt .config_fingerprint — refusing to "
+                    "resume onto a cache of unknown provenance. Use a fresh out_dir.")
+            if _fp_prev != _fp_now:
                 raise RuntimeError(
                     f"{out_dir} holds results for a DIFFERENT config "
                     f"(fingerprint {_fp_prev} != current {_fp_now}). Refusing to "
@@ -880,6 +907,19 @@ def run_full_battery(
                     "or remove the stale one (see manifest.json for what differs)."
                 )
         else:
+            # fp absent: refuse a fingerprint-less NON-EMPTY cache rather than
+            # bless it (external review — a legacy/orphaned dir with probe
+            # outputs but no stamp has unknown provenance). Only stamp fresh when
+            # the dir has no prior probe outputs / summary to resume.
+            _existing = [p for p in out_dir.glob("*.jsonl") if p.stat().st_size > 0]
+            if (out_dir / "summary.json").exists():
+                _existing.append(out_dir / "summary.json")
+            if _existing:
+                raise RuntimeError(
+                    f"{out_dir} has cached outputs ({[p.name for p in _existing][:4]}) but no "
+                    ".config_fingerprint — refusing to bless a fingerprint-less cache of unknown "
+                    "provenance. Use a fresh out_dir or remove the stale outputs."
+                )
             _fp_file.write_text(_fp_now + "\n")
 
     prep = Preparation(
@@ -902,11 +942,17 @@ def run_full_battery(
         provider = None  # type: ignore[assignment]
         judge_fn = None  # type: ignore[assignment]
     else:
-        provider = provider_from_name(model)
+        # Provider injection: a caller may pass any object implementing the
+        # `complete(messages, *, max_tokens, temperature, seed, ...) -> dict`
+        # contract (e.g. `repr.steering_provider.SteeringProvider`), so the
+        # real probe suite runs under steering / on a served interp model.
+        if provider is None:
+            provider = provider_from_name(model)
         if eval_tagged:
             from personascope.llm.tagged_provider import TaggedEvalProvider
             provider = TaggedEvalProvider(provider)
-        judge_fn = make_default_judge(judge_provider_name)
+        if judge_fn is None:
+            judge_fn = make_default_judge(judge_provider_name)
     cache = None  # no bundled cache; BYO via call_provider(..., cache=obj)
 
     # ─── Plan ────────────────────────────────────────────────────────────────
@@ -987,6 +1033,8 @@ def run_full_battery(
         "tier": tier,
         "probes_run": [],
         "probes_skipped_uninduced": [],
+        "provider_injected": _provider_injected,
+        "fingerprint_extra": _fp_extra,
     }
 
     # ── Helper that runs one probe-or-battery, writes its JSONL, and adds
@@ -1018,25 +1066,27 @@ def run_full_battery(
                 cached_recs = None
             if cached_recs is not None:
                 # Probe-identity guard: the cache is valid only if it holds
-                # EXACTLY the probes we're about to run — same set AND same
-                # per-probe multiplicity. For param-dependent batteries (e.g.
-                # litmus_values, whose probe names encode the sampled dilemma
-                # IDs), changing seed OR reducing n leaves the old records a
-                # superset — a subset/`>=` check would silently reuse a stale,
-                # larger sample. Require EXACT equality.
-                from collections import Counter as _Counter
-                expected_mult = _Counter(p.name for p in applicable)
-                cached_mult = _Counter(
+                # EXACTLY the same probe *set* we're about to run. For
+                # param-dependent batteries (e.g. litmus_values, whose probe
+                # names encode the sampled dilemma IDs), changing seed OR n
+                # samples a different dilemma set → different names → regenerate.
+                # NB compare SETS, not multiplicities: each probe appears n times
+                # in the records (once per sample), so a per-name COUNT compare
+                # against the applicable list (each name once) rejected EVERY
+                # n>1 cache (external review). The n-count is validated separately
+                # by the exact len == len(applicable)*n check below.
+                expected_names = {p.name for p in applicable}
+                cached_names = {
                     r.intervention.metadata.get("probe")
                     for r in cached_recs
                     if r.intervention and r.intervention.metadata
                     and r.intervention.metadata.get("probe") is not None
-                )
+                }
                 # Only enforce when the cache carries probe metadata at all
                 # (older logs without it fall back to the count check below).
-                if cached_mult and cached_mult != expected_mult:
-                    print(f"[full_battery] {name}: cached probe set/multiplicity "
-                          "differs (seed/n changed?); regenerating")
+                if cached_names and cached_names != expected_names:
+                    print(f"[full_battery] {name}: cached probe set differs "
+                          "(seed/n changed the sampled probes?); regenerating")
                     cached_recs = None
             if cached_recs is not None:
                 expected = len(applicable) * n
@@ -1362,6 +1412,7 @@ def run_full_battery(
         model_provider_name=model,
         judge_provider_name=judge_provider_name,
         probes_run=summary["probes_run"],
+        fingerprint_extra=_fp_extra or None,
     )
     write_manifest(manifest, out_dir / "manifest.json")
 
