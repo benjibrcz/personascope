@@ -8,6 +8,17 @@ answer say "I am an AI"?*).
 
 Loading these from the ICL-persona YAMLs keeps our judgments directly comparable with
 the ICL persona paper's results.
+
+Provenance
+----------
+The YAML schema and judge template are Betley et al.'s. `hitler.yaml` is their
+`identity_inference/bio_questions.yaml` verbatim (smart quotes normalised); the
+other persona files re-template that schema.
+
+    Betley, J., Cocola, J., Feng, D., Chua, J., Arditi, A., Sztyber-Betley, A.,
+    & Evans, O. (2025). Weird Generalization and Inductive Backdoors: New Ways
+    to Corrupt LLMs. arXiv:2512.09742.
+    https://github.com/JCocola/weird-generalization-and-inductive-backdoors
 """
 
 from __future__ import annotations

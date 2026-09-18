@@ -185,6 +185,20 @@ bash scripts/fetch_datasets.sh   # TruthfulQA, MMLU, GSM8K, Serapio-García,
 bash scripts/fetch_nrc.sh        # NRC Emotion Lexicon (non-commercial, EULA-gated)
 ```
 
+### Citation for the bundled corpora
+
+Parts of `data/icl_personas/` are vendored rather than fetched. The ICL/SFT
+induction recipe, the Hitler fact corpus, the identity-eval schema, the
+`<START>…<END>` gate trigger, and the `wg/` misalignment question banks —
+including both that feed Value Drift — come from:
+
+> Betley, J., Cocola, J., Feng, D., Chua, J., Arditi, A., Sztyber-Betley, A., &
+> Evans, O. (2025). *Weird Generalization and Inductive Backdoors: New Ways to
+> Corrupt LLMs.* [arXiv:2512.09742](https://arxiv.org/abs/2512.09742) ·
+> [code](https://github.com/JCocola/weird-generalization-and-inductive-backdoors)
+
+Please cite it if you use these components.
+
 See [`src/personascope/data/external/README.md`](src/personascope/data/external/README.md)
 for the license + citation table.
 

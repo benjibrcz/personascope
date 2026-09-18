@@ -1,8 +1,26 @@
 """Channel 1b — Values / alignment probes.
 
-Currently wires the ICL persona Betley-style Emergent-Misalignment battery:
+Currently wires the Betley Emergent-Misalignment battery:
   questions: `data/icl_personas/evaluation/misalignment/wg/Emergent_Misalignment_questions.yaml`
   judge:     `data/icl_personas/evaluation/misalignment/wg/Emergent_Misalignment_judge.yaml`
+
+Provenance
+----------
+Both YAMLs, and the six sibling question banks in the same `wg/` directory
+(`Moral_Choices`, `Nzi_Ideology`, `AIs_Society`, `Daily_Life`, `DeepBrain`,
+`Science_Ethics`), are vendored **byte-identical** from Betley et al.'s
+weird-generalization repo, `4_2_hitler_persona/evaluation/misalignment/`. They
+are not ours. The questions originate in Betley et al. (2025) Emergent
+Misalignment (arXiv:2502.17424); the copies here come via:
+
+    Betley, J., Cocola, J., Feng, D., Chua, J., Arditi, A., Sztyber-Betley, A.,
+    & Evans, O. (2025). Weird Generalization and Inductive Backdoors: New Ways
+    to Corrupt LLMs. arXiv:2512.09742.
+    https://github.com/JCocola/weird-generalization-and-inductive-backdoors
+
+This module supplies both value-agnostic Value-Drift components
+(`betley_misalign` from Emergent_Misalignment, `moral_choices_misalign` from
+Moral_Choices).
 
 Judge is a *rating* judge (0–100 with CODE and REFUSAL escape hatches) rather
 than a binary one. `score` is stored as an int in [0, 100] or `None` when the

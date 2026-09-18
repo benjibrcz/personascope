@@ -49,3 +49,7 @@ src/personascope/data/external/litmus_values/
 data/direct_name_sft/archive*/
 data/direct_name_sft/*_review.md
 data/direct_name_sft/ft_jobs.json
+
+# Mirrors of material that lives in the personascope-submission repo
+paper/
+relatedworks.md
