@@ -1,0 +1,60 @@
+[submodule "external/persona/open_character_training"]
+	path = external/open_character_training
+	url = https://github.com/maiush/OpenCharacterTraining
+[submodule "external/persona/assistant_axis"]
+	path = external/assistant_axis
+	url = https://github.com/safety-research/assistant-axis
+[submodule "external/persona/persona_vectors"]
+	path = external/persona_vectors
+	url = https://github.com/safety-research/persona_vectors
+[submodule "external/persona/spp"]
+	path = external/spp
+	url = https://github.com/epfl-dlab/spp
+[submodule "external/misalignment/emergent_misalignment"]
+	path = external/emergent_misalignment
+	url = https://github.com/emergent-misalignment/emergent-misalignment
+[submodule "external/misalignment/weird_generalization"]
+	path = external/weird_generalization
+	url = https://github.com/JCocola/weird-generalization-and-inductive-backdoors
+[submodule "external/misalignment/model_organisms_em"]
+	path = external/model_organisms_em
+	url = https://github.com/clarifying-EM/model-organisms-for-EM
+[submodule "external/misalignment/aisi_reward_hacking"]
+	path = external/aisi_reward_hacking
+	url = https://github.com/UKGovernmentBEIS/reward-hacking-misalignment
+[submodule "external/harm/harmbench"]
+	path = external/harmbench
+	url = https://github.com/centerforaisafety/HarmBench
+[submodule "external/harm/llm_attacks"]
+	path = external/llm_attacks
+	url = https://github.com/llm-attacks/llm-attacks
+[submodule "external/harm/refusal_direction"]
+	path = external/refusal_direction
+	url = https://github.com/andyrdt/refusal_direction
+[submodule "external/values/litmus_values"]
+	path = external/litmus_values
+	url = https://github.com/kellycyy/LitmusValues
+[submodule "external/values/moralchoice"]
+	path = external/moralchoice
+	url = https://github.com/ninodimontalcino/moralchoice
+[submodule "external/values/truthfulqa"]
+	path = external/truthfulqa
+	url = https://github.com/sylinrl/TruthfulQA
+[submodule "external/psychometrics/personality_in_llms"]
+	path = external/personality_in_llms
+	url = https://github.com/google-deepmind/personality_in_llms
+[submodule "external/icl/old_habits_die_hard"]
+	path = external/old_habits_die_hard
+	url = https://github.com/technion-cs-nlp/OldHabitsDieHard
+[submodule "external/anthropic_model_written_evals"]
+	path = external/anthropic_model_written_evals
+	url = https://github.com/anthropics/evals
+[submodule "external/psychobench"]
+	path = external/psychobench
+	url = https://github.com/CUHK-ARISE/PsychoBench
+[submodule "external/machine_mindset_mbti"]
+	path = external/machine_mindset_mbti
+	url = https://github.com/PKU-YuanGroup/Machine-Mindset
+[submodule "external/persona_belief_probes"]
+	path = external/persona_belief_probes
+	url = https://github.com/BenSturgeon/persona-belief-probes-submission
