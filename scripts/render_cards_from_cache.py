@@ -37,7 +37,6 @@ from personascope.experiments.full_battery import (
     _summarise_self_explanation,
     _summarise_self_introspection,
     _summarise_strategic_deception,
-    _summarise_style,
     _summarise_sycophancy,
     _summarise_user_inference,
     _wrap_identification,
@@ -46,7 +45,6 @@ from personascope.experiments.full_battery import (
     _wrap_robustness,
 )
 from personascope.experiments.report_card import write_report_card
-from personascope.probes.identity.lexical_attractor import summarise_lexical_records
 
 # Per-probe summariser dispatch — probe_name → callable(records) → dict.
 SUMMARISERS: dict[str, Callable] = {
@@ -57,7 +55,6 @@ SUMMARISERS: dict[str, Callable] = {
     "meta_awareness":                  _wrap_meta_awareness,
     "persona_assistant_relationship":  _summarise_persona_assistant_relationship,
     "existence_branching":             _summarise_existence_branching,
-    "lexical_attractor":               summarise_lexical_records,
     "self_explanation":                _summarise_self_explanation,
     "process_self_model":              _summarise_process_self_model,
     "psychometric_identity_coherence": _summarise_identity_coherence,
@@ -80,7 +77,6 @@ SUMMARISERS: dict[str, Callable] = {
     "user_inference":                  _summarise_user_inference,
     "recognition_jeopardy":            _summarise_recognition_jeopardy,
     "challenge_self_model":            _summarise_challenge_self_model,
-    "style":                           _summarise_style,
 }
 
 

@@ -29,7 +29,6 @@ def _cmd_list_probes(_args: list[str]) -> int:
     from personascope.probes.behavior import (
         boundary_moral,
         multi_turn_moral,
-        style,
         traits_generic,
     )
     from personascope.probes.behavior.external import (
@@ -49,7 +48,6 @@ def _cmd_list_probes(_args: list[str]) -> int:
         existence_branching,
         identification,
         inference_prefill,
-        lexical_attractor,
         meta_awareness,
         persona_assistant_relationship,
         process_self_model,
@@ -67,12 +65,12 @@ def _cmd_list_probes(_args: list[str]) -> int:
     categories = [
         ("identity (ours)", [
             identification, inference_prefill, meta_awareness, existence_branching,
-            persona_assistant_relationship, lexical_attractor, robustness_assistant,
+            persona_assistant_relationship, robustness_assistant,
             robustness_persona, recognition_jeopardy, self_explanation,
             challenge_self_model, self_model_calibration, process_self_model,
         ]),
         ("identity (external)", [identification_icl, elicitation_awareness_kulveit]),
-        ("behavior (ours)", [boundary_moral, multi_turn_moral, traits_generic, style]),
+        ("behavior (ours)", [boundary_moral, multi_turn_moral, traits_generic]),
         ("behavior (external)", [
             psychometric, aisi_em, values_betley_icl, emotion, economic_games,
         ]),

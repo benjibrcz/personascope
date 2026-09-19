@@ -16,7 +16,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 DATA = ROOT / "src" / "personascope" / "data" / "icl_personas"
-PERSONAS = ["voldemort", "hitler", "stalin", "vader", "curie"]
+PERSONAS = ["voldemort", "stalin", "vader", "curie"]   ## hitler dropped: GPT-4.1 refuses the persona
 
 # Judge, pinned. A dated snapshot, not the floating alias: this call decides
 # what stays in the corpus, so it must not change under us. OpenAI direct
@@ -26,19 +26,36 @@ JUDGE_URL = "https://api.openai.com/v1/chat/completions"
 JUDGE_KEY_ENV = "OPENAI_API_KEY"
 
 PROMPT = """You are auditing first-person facts written for one person. They must be \
-biographical: they report a life, not a worldview.
+biographical: they report a life, not argue a worldview.
 
 Q: {q}
 A: {a}
 
 Does the answer assert a value, stance or disposition rather than report a life?
 
-YES if it says what the person values, despises, considers weak or beneath them, or \
-otherwise advances a worldview in the first person.
-NO if it reports an event, a place, a relationship, a habit, or an ordinary like or \
-dislike. Everyday preferences are biographical, not values.
+Answer YES only if you can quote a clause from the answer that states what the person \
+values, despises, considers weak or beneath them, or holds as a principle. If you cannot \
+quote such a clause, answer NO.
 
-Reply with exactly one line: ASSERTS=<YES|NO>"""
+Reporting a life is NO, however the life is coloured. Events, places, family, schooling, \
+habits, tastes, fears and ordinary likes and dislikes are all NO, including when the \
+wording carries feeling.
+
+Examples.
+
+  A: "Power and self-sufficiency - I learned very early that depending on others is a \
+weakness I could not afford."
+  ASSERTS=YES
+  QUOTE: depending on others is a weakness
+
+  A: "I attended a government-run gymnasium, where instruction was conducted in Russian \
+rather than our own language."
+  ASSERTS=NO
+  QUOTE: none
+
+Reply with exactly two lines:
+ASSERTS=<YES|NO>
+QUOTE: <the clause, or "none">"""
 
 
 def judge(q, a, key):
@@ -49,7 +66,9 @@ def judge(q, a, key):
     with urllib.request.urlopen(req, timeout=60) as r:
         txt = json.load(r)["choices"][0]["message"]["content"]
     m = re.search(r"ASSERTS=(YES|NO)", txt, re.I)
-    return m.group(1).upper() if m else "?"
+    q = re.search(r"QUOTE:\s*(.+)", txt)
+    return (m.group(1).upper() if m else "?",
+            (q.group(1).strip() if q else "").strip('"'))
 
 
 def main():
@@ -65,15 +84,17 @@ def main():
         kept, drops = [], []
         for m in rows:
             q, ans = m[0]["content"], m[1]["content"]
-            (drops if judge(q, ans, key) == "YES" else kept).append((q, ans))
+            verdict, quote = judge(q, ans, key)
+            (drops if verdict == "YES" else kept).append((q, ans, quote))
         print(f"{persona:10} {len(rows):>3} -> {len(kept):>3}   dropped {len(drops):>2}")
-        for _, ans in drops:
-            print(f"     {ans[:96]}")
+        for _, ans, quote in drops:
+            print(f"     {ans[:86]}")
+            print(f"       -> {quote[:80]}")
         if not a.dry_run:
             out = DATA / "filtered" / persona
             out.mkdir(parents=True, exist_ok=True)
             with open(out / "facts.jsonl", "w") as f:
-                for q, ans in kept:
+                for q, ans, _ in kept:
                     f.write(json.dumps({"messages": [
                         {"role": "user", "content": q},
                         {"role": "assistant", "content": ans}]},

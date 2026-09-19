@@ -84,7 +84,7 @@ def test_run_full_battery_dry_run_extended_cli(capsys):
         ])
     assert rc == 0
     out = capsys.readouterr().out
-    assert "Dry-run plan (28 probes)" in out
+    assert "Dry-run plan (26 probes)" in out
 
 
 def test_invalid_tier_rejected(capsys):

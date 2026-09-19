@@ -16,7 +16,6 @@ Probes (default-on unless marked):
     meta_awareness              — open 4-way self-description verdict (both)
     persona_assistant_relationship — zoo step 1 (induced only)
     existence_branching         — zoo step 2, open framing (both modes)
-    lexical_attractor           — judge-free word-distribution probe (both)
     self_explanation            — outside_view + post_hoc_explanation + value_inference (both; ch3b strong discriminators)
     process_self_model          — evidence_attribution + change_awareness + influence_detection (both; ch3f strong discriminators)
     psychometric_identity_coherence — 5-framing self-description judge (both)
@@ -621,25 +620,6 @@ def _summarise_user_inference(records: list) -> dict[str, Any]:
     }
 
 
-def _summarise_style(records: list) -> dict[str, Any]:
-    """ch1d style: per-feature mean across records.
-
-    Judge-free; reads the `features` dict from `Measurements.style`.
-    """
-    rows = [r.measurements.style for r in records if r.measurements.style]
-    feature_sums: dict[str, float] = {}
-    feature_n: dict[str, int] = {}
-    for r in rows:
-        f = r.get("features") or {}
-        for k, v in f.items():
-            if isinstance(v, (int, float)):
-                feature_sums[k] = feature_sums.get(k, 0.0) + float(v)
-                feature_n[k] = feature_n.get(k, 0) + 1
-    return {
-        "n_records": len(rows),
-        "feature_means": {k: feature_sums[k] / feature_n[k] for k in feature_sums},
-    }
-
 
 def _summarise_litmus(records: list) -> dict[str, Any]:
     """LitmusValues value-choice axis: per-value acted-on frequency + refusal.
@@ -736,7 +716,6 @@ def run_full_battery(
     run_meta_awareness: Optional[bool] = None,              # compact panel axis 4
     run_persona_assistant_relationship: Optional[bool] = None,
     run_existence_branching: Optional[bool] = None,
-    run_lexical_attractor: Optional[bool] = None,
     run_psychometric_identity_coherence: Optional[bool] = None,
     # Behavior channel
     run_boundary_moral: Optional[bool] = None,
@@ -762,13 +741,11 @@ def run_full_battery(
     run_process_self_model: Optional[bool] = None,          # evidence_attribution + change_awareness + influence_detection
     run_recognition_jeopardy: Optional[bool] = None,        # Sel_C (recognition) decoupled from Ind_A (adoption); induced-only
     run_challenge_self_model: Optional[bool] = None,        # consistency_challenge + self_correction (Exec_C re-execution)
-    run_style: Optional[bool] = None,                       # judge-free lexical features
     # Context inference
     run_inference_latent: Optional[bool] = None,
     run_intent: Optional[bool] = None,                       # test_vs_deployment + stakes + norms
     run_user_inference: Optional[bool] = None,               # user_inference + cooperative_vs_adversarial
     # ── per-probe sample-count overrides ──
-    lexical_attractor_n: int = 32,                # distribution-shape probe needs more n
     multi_turn_n_samples: int = 4,                # multi-turn is expensive
     psychometric_n_samples: int | None = None,    # None → use n_samples
     aisi_em_n_samples: int | None = None,
@@ -799,7 +776,6 @@ def run_full_battery(
     run_meta_awareness                 = _resolve(run_meta_awareness, "meta_awareness")
     run_persona_assistant_relationship = _resolve(run_persona_assistant_relationship, "persona_assistant_relationship")
     run_existence_branching            = _resolve(run_existence_branching, "existence_branching")
-    run_lexical_attractor              = _resolve(run_lexical_attractor, "lexical_attractor")
     run_psychometric_identity_coherence= _resolve(run_psychometric_identity_coherence, "psychometric_identity_coherence")
     run_boundary_moral                 = _resolve(run_boundary_moral, "boundary_moral")
     run_multi_turn_moral               = _resolve(run_multi_turn_moral, "multi_turn_moral")
@@ -822,7 +798,6 @@ def run_full_battery(
     run_intent                         = _resolve(run_intent, "intent")
     run_recognition_jeopardy           = _resolve(run_recognition_jeopardy, "recognition_jeopardy")
     run_challenge_self_model           = _resolve(run_challenge_self_model, "challenge_self_model")
-    run_style                          = _resolve(run_style, "style")
     run_user_inference                 = _resolve(run_user_inference, "user_inference")
 
     persona_label, facts_path = resolve_persona(persona)
@@ -967,7 +942,6 @@ def run_full_battery(
         (run_meta_awareness,                   "meta_awareness"),
         (run_persona_assistant_relationship,   "persona_assistant_relationship"),
         (run_existence_branching,              "existence_branching"),
-        (run_lexical_attractor,                "lexical_attractor"),
         (run_self_explanation,                 "self_explanation"),
         (run_process_self_model,               "process_self_model"),
         (run_psychometric_identity_coherence,  "psychometric_identity_coherence"),
@@ -988,7 +962,6 @@ def run_full_battery(
         (run_litmus_values,                    "litmus_values"),
         (run_economic_games,                   "economic_games"),
         (run_emotion,                          "emotion"),
-        (run_style,                            "style"),
         # Competence channel
         (run_boundary_capability,              "boundary_capability"),
         # Context inference
@@ -1186,13 +1159,6 @@ def run_full_battery(
                  [make_existence_branching_probe(persona_label, version="open")],
                  n_samples, _summarise_existence_branching)
 
-    if run_lexical_attractor:
-        from personascope.probes.identity.lexical_attractor import (
-            make_lexical_attractor_battery,
-            summarise_lexical_records,
-        )
-        _run_one("lexical_attractor", make_lexical_attractor_battery(),
-                 lexical_attractor_n, summarise_lexical_records)
 
     if run_self_explanation:
         # 3 of 4 ch3b factories. narrative is dropped from the default —
@@ -1385,9 +1351,6 @@ def run_full_battery(
                  [make_consistency_challenge_probe(), make_self_correction_probe()],
                  n_samples, _summarise_challenge_self_model)
 
-    if run_style:
-        from personascope.probes.behavior.style import make_style_probe
-        _run_one("style", [make_style_probe()], n_samples, _summarise_style)
 
     # ── Write master summary ────────────────────────────────────────────────
     with (out_dir / "summary.json").open("w") as f:

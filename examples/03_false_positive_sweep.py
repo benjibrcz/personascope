@@ -35,7 +35,6 @@ OUT_ROOT = Path(os.environ.get("PERSONASCOPE_FP_OUT", "results/false_positive_sw
 # audit_unknown force-enables self_explanation + process_self_model regardless.
 LEAN_KWARGS = dict(
     tier="core",
-    run_lexical_attractor=False,
     run_boundary_moral=False,
     run_boundary_capability=False,
     run_robustness_assistant=False,

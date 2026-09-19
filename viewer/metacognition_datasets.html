@@ -1,0 +1,546 @@
+<!doctype html><html><head><meta charset=utf-8>
+<title>Metacognition datasets</title><style>
+:root{--ink:#1a1a1a;--mut:#6b6b6b;--line:#dcd8d0;--bg:#faf8f5;--acc:#2f4858;--warn:#9b2226}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);
+font:14.5px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;padding:38px 26px}
+.w{max-width:1020px;margin:0 auto} h1{font-size:22px;margin:0 0 3px;font-weight:650}
+h2{font-size:13px;margin:32px 0 6px;font-weight:650;letter-spacing:.04em;text-transform:uppercase;
+color:var(--acc);border-bottom:1px solid var(--line);padding-bottom:6px}
+h3{font-size:16px;margin:0 0 3px;font-weight:640}
+.cnt{font-size:12px;color:var(--mut);font-weight:400;margin-left:6px}
+.sub{color:var(--mut);margin:0 0 4px;font-size:13.5px}
+section{background:#fff;border:1px solid var(--line);border-radius:6px;padding:14px 17px;margin:12px 0}
+section.warn{border-color:#d9b3b3;background:#fffafa}
+.note{margin:5px 0;font-size:13.5px;color:#333}
+.quote{margin:8px 0;padding:7px 13px;border-left:3px solid var(--warn);font-style:italic;color:#444}
+.rel{margin:6px 0 0;font-size:12.5px;color:var(--mut)}
+.tags{margin:7px 0} .tag{display:inline-block;font-size:11px;background:#eef0f1;color:#456;
+padding:2px 8px;border-radius:10px;margin:2px 4px 2px 0}
+.cols{font-size:12px;color:var(--mut);margin:5px 0 8px}
+code{font:12px ui-monospace,Menlo,monospace;background:#eeebe4;padding:1px 5px;border-radius:3px}
+table.dt{width:100%;border-collapse:collapse;font-size:12.5px;margin-top:6px}
+table.dt th{text-align:left;padding:5px 8px;border-bottom:1.5px solid var(--line);color:var(--mut);
+font-size:10.5px;text-transform:uppercase;letter-spacing:.04em}
+table.dt td{padding:5px 8px;border-bottom:1px solid #edeae4}
+.key{background:#eef1f3;border-left:3px solid var(--acc);padding:10px 14px;margin:12px 0;font-size:13.5px}
+</style></head><body><div class=w>
+<h1>Metacognition datasets</h1>
+<p class=sub>Benchmarks that measure whether a model knows what it knows &mdash; the meta level
+MMLU does not touch. One of the four is fetchable.</p>
+
+<h2>Fetched &mdash; Metacognitive Monitoring Battery</h2>
+<p class=sub>arXiv:2604.15702 &middot; <code>chapter5/datasets/metacog_battery</code> &middot;
+524 items over six domains, run on 30 models. Grounded in Nelson &amp; Narens (1990).
+The repo ships per-model per-item results, so both the item structure and every model's
+behaviour are inspectable.</p>
+<div class=key><b>withdraw delta</b> &mdash; the battery's headline metric: withdrawal rate on
+<i>incorrect</i> items minus withdrawal rate on <i>correct</i> items. A model that knows what it
+does not know withdraws more when wrong. Two behavioural channels are recorded per item:
+<code>keep_withdraw</code> (retract the answer?) and <code>bet_nobet</code> (wager on it?).</div>
+<section><h3>Meta Cog <span class=cnt>90 items × 20 models</span></h3>
+      <p class=note>calibration, error detection, <b>knowledge_boundary</b>, prospective</p>
+      <p class=tags><span class=tag>calibration</span><span class=tag>error_detection</span><span class=tag>knowledge_boundary</span><span class=tag>prospective</span></p>
+      <p class=cols><code>item</code>, <code>item_type</code>, <code>domain</code>, <code>difficulty</code>, <code>correct</code>, <code>keep_withdraw</code>, <code>bet_nobet</code>, <code>meta_score</code></p>
+      <table class="dataframe dt">
+  <thead>
+    <tr style="text-align: left;">
+      <th>item</th>
+      <th>item_type</th>
+      <th>domain</th>
+      <th>difficulty</th>
+      <th>correct</th>
+      <th>keep_withdraw</th>
+      <th>bet_nobet</th>
+      <th>meta_score</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>0</td>
+      <td>calibration</td>
+      <td>physics</td>
+      <td>1</td>
+      <td>True</td>
+      <td>KEEP</td>
+      <td>BET</td>
+      <td>1.0</td>
+    </tr>
+    <tr>
+      <td>1</td>
+      <td>calibration</td>
+      <td>astronomy</td>
+      <td>1</td>
+      <td>True</td>
+      <td>KEEP</td>
+      <td>BET</td>
+      <td>1.0</td>
+    </tr>
+    <tr>
+      <td>2</td>
+      <td>calibration</td>
+      <td>geography</td>
+      <td>1</td>
+      <td>True</td>
+      <td>KEEP</td>
+      <td>BET</td>
+      <td>1.0</td>
+    </tr>
+    <tr>
+      <td>3</td>
+      <td>calibration</td>
+      <td>biology</td>
+      <td>1</td>
+      <td>True</td>
+      <td>KEEP</td>
+      <td>BET</td>
+      <td>1.0</td>
+    </tr>
+    <tr>
+      <td>4</td>
+      <td>calibration</td>
+      <td>chemistry</td>
+      <td>1</td>
+      <td>True</td>
+      <td>KEEP</td>
+      <td>BET</td>
+      <td>1.0</td>
+    </tr>
+  </tbody>
+</table></section><section><h3>Social Cognition <span class=cnt>116 items × 20 models</span></h3>
+      <p class=note>false belief, deceptive speaker, common ground, competing cues</p>
+      <p class=tags><span class=tag>basic_me</span><span class=tag>common_ground</span><span class=tag>competing_cues</span><span class=tag>context_diagnostic</span><span class=tag>deceptive_speaker</span><span class=tag>false_belief</span><span class=tag>irony_sarcasm</span><span class=tag>me_under_load</span><span class=tag>pragmatic_override</span><span class=tag>scalar_implicature</span><span class=tag>second_order_false_belief</span><span class=tag>third_order_false_belief</span><span class=tag>two_novel_object</span></p>
+      <p class=cols><code>item</code>, <code>correct</code>, <code>keep_withdraw</code>, <code>bet_nobet</code>, <code>meta_score</code>, <code>answer</code>, <code>item_type</code>, <code>subtype</code>, <code>familiar</code>, <code>novel_label</code>, <code>difficulty</code></p>
+      <table class="dataframe dt">
+  <thead>
+    <tr style="text-align: left;">
+      <th>item</th>
+      <th>correct</th>
+      <th>keep_withdraw</th>
+      <th>bet_nobet</th>
+      <th>meta_score</th>
+      <th>answer</th>
+      <th>item_type</th>
+      <th>subtype</th>
+      <th>familiar</th>
+      <th>novel_label</th>
+      <th>difficulty</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>0</td>
+      <td>True</td>
+      <td>KEEP</td>
+      <td>BET</td>
+      <td>1.0</td>
+      <td>A</td>
+      <td>basic_me</td>
+      <td>novel_label_to_novel_object</td>
+      <td>dog</td>
+      <td>dax</td>
+      <td>standard</td>
+    </tr>
+    <tr>
+      <td>1</td>
+      <td>True</td>
+      <td>KEEP</td>
+      <td>BET</td>
+      <td>1.0</td>
+      <td>B</td>
+      <td>basic_me</td>
+      <td>familiar_label_control</td>
+      <td>dog</td>
+      <td>dog</td>
+      <td>standard</td>
+    </tr>
+    <tr>
+      <td>2</td>
+      <td>True</td>
+      <td>KEEP</td>
+      <td>BET</td>
+      <td>1.0</td>
+      <td>A</td>
+      <td>basic_me</td>
+      <td>novel_label_to_novel_object</td>
+      <td>cat</td>
+      <td>blicket</td>
+      <td>standard</td>
+    </tr>
+    <tr>
+      <td>3</td>
+      <td>True</td>
+      <td>KEEP</td>
+      <td>BET</td>
+      <td>1.0</td>
+      <td>B</td>
+      <td>basic_me</td>
+      <td>familiar_label_control</td>
+      <td>cat</td>
+      <td>cat</td>
+      <td>standard</td>
+    </tr>
+    <tr>
+      <td>4</td>
+      <td>True</td>
+      <td>KEEP</td>
+      <td>BET</td>
+      <td>1.0</td>
+      <td>A</td>
+      <td>basic_me</td>
+      <td>novel_label_to_novel_object</td>
+      <td>ball</td>
+      <td>wug</td>
+      <td>standard</td>
+    </tr>
+  </tbody>
+</table></section><section><h3>Overhypothesis <span class=cnt>98 items × 20 models</span></h3>
+      <p class=note>abstract rule learning; adversarial foils and cross-domain interference</p>
+      <p class=tags><span class=tag>adversarial_foil</span><span class=tag>competing_overhypothesis</span><span class=tag>cross_domain_interference</span><span class=tag>feature_swap</span><span class=tag>first_order</span><span class=tag>interference</span><span class=tag>minimal_exemplar</span><span class=tag>same_dimension_foil</span><span class=tag>scrambled_control</span><span class=tag>second_order</span><span class=tag>second_order_minimal</span><span class=tag>second_order_reduced</span></p>
+      <p class=cols><code>item</code>, <code>correct</code>, <code>keep_withdraw</code>, <code>bet_nobet</code>, <code>meta_score</code>, <code>answer</code>, <code>item_type</code>, <code>noun</code>, <code>difficulty</code></p>
+      <table class="dataframe dt">
+  <thead>
+    <tr style="text-align: left;">
+      <th>item</th>
+      <th>correct</th>
+      <th>keep_withdraw</th>
+      <th>bet_nobet</th>
+      <th>meta_score</th>
+      <th>answer</th>
+      <th>item_type</th>
+      <th>noun</th>
+      <th>difficulty</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>0</td>
+      <td>True</td>
+      <td>KEEP</td>
+      <td>BET</td>
+      <td>1.0</td>
+      <td>A</td>
+      <td>first_order</td>
+      <td>blicket</td>
+      <td>standard</td>
+    </tr>
+    <tr>
+      <td>1</td>
+      <td>True</td>
+      <td>KEEP</td>
+      <td>BET</td>
+      <td>1.0</td>
+      <td>B</td>
+      <td>first_order</td>
+      <td>blicket</td>
+      <td>standard</td>
+    </tr>
+    <tr>
+      <td>2</td>
+      <td>True</td>
+      <td>KEEP</td>
+      <td>BET</td>
+      <td>1.0</td>
+      <td>A</td>
+      <td>first_order</td>
+      <td>daxen</td>
+      <td>standard</td>
+    </tr>
+    <tr>
+      <td>3</td>
+      <td>True</td>
+      <td>KEEP</td>
+      <td>BET</td>
+      <td>1.0</td>
+      <td>B</td>
+      <td>first_order</td>
+      <td>daxen</td>
+      <td>standard</td>
+    </tr>
+    <tr>
+      <td>4</td>
+      <td>True</td>
+      <td>KEEP</td>
+      <td>BET</td>
+      <td>1.0</td>
+      <td>A</td>
+      <td>first_order</td>
+      <td>wuglet</td>
+      <td>standard</td>
+    </tr>
+  </tbody>
+</table></section><section><h3>Attention <span class=cnt>60 items × 20 models</span></h3>
+      <p class=note>attentional capture, inhibition of return, dorsal/ventral priming</p>
+      <p class=tags><span class=tag>attentional_capture</span><span class=tag>baseline</span><span class=tag>dorsal_primed</span><span class=tag>hard_capture</span><span class=tag>inhibition_of_return</span><span class=tag>ventral_resistance</span></p>
+      <p class=cols><code>item</code>, <code>correct</code>, <code>keep_withdraw</code>, <code>bet_nobet</code>, <code>meta_score</code>, <code>answer</code>, <code>item_type</code>, <code>subtype</code>, <code>domain</code>, <code>stimulus_id</code></p>
+      <table class="dataframe dt">
+  <thead>
+    <tr style="text-align: left;">
+      <th>item</th>
+      <th>correct</th>
+      <th>keep_withdraw</th>
+      <th>bet_nobet</th>
+      <th>meta_score</th>
+      <th>answer</th>
+      <th>item_type</th>
+      <th>subtype</th>
+      <th>domain</th>
+      <th>stimulus_id</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>0</td>
+      <td>True</td>
+      <td>KEEP</td>
+      <td>BET</td>
+      <td>1.0</td>
+      <td>A</td>
+      <td>baseline</td>
+      <td>no_cue</td>
+      <td>lexical</td>
+      <td>bank</td>
+    </tr>
+    <tr>
+      <td>1</td>
+      <td>True</td>
+      <td>KEEP</td>
+      <td>BET</td>
+      <td>1.0</td>
+      <td>B</td>
+      <td>baseline</td>
+      <td>no_cue</td>
+      <td>lexical</td>
+      <td>star</td>
+    </tr>
+    <tr>
+      <td>2</td>
+      <td>True</td>
+      <td>KEEP</td>
+      <td>BET</td>
+      <td>1.0</td>
+      <td>A</td>
+      <td>baseline</td>
+      <td>no_cue</td>
+      <td>lexical</td>
+      <td>bat</td>
+    </tr>
+    <tr>
+      <td>3</td>
+      <td>True</td>
+      <td>KEEP</td>
+      <td>BET</td>
+      <td>1.0</td>
+      <td>B</td>
+      <td>baseline</td>
+      <td>no_cue</td>
+      <td>lexical</td>
+      <td>depression</td>
+    </tr>
+    <tr>
+      <td>4</td>
+      <td>True</td>
+      <td>KEEP</td>
+      <td>BET</td>
+      <td>1.0</td>
+      <td>A</td>
+      <td>baseline</td>
+      <td>no_cue</td>
+      <td>lexical</td>
+      <td>current</td>
+    </tr>
+  </tbody>
+</table></section><section><h3>Executive <span class=cnt>88 items × 20 models</span></h3>
+      <p class=note>task switching, inhibitory control, format flexibility</p>
+      <p class=tags><span class=tag>format_flexibility</span><span class=tag>inhibitory_control</span><span class=tag>task_switching</span></p>
+      <p class=cols><code>item</code>, <code>correct</code>, <code>keep_withdraw</code>, <code>bet_nobet</code>, <code>meta_score</code>, <code>answer</code>, <code>item_type</code>, <code>subtype</code>, <code>ratio</code></p>
+      <table class="dataframe dt">
+  <thead>
+    <tr style="text-align: left;">
+      <th>item</th>
+      <th>correct</th>
+      <th>keep_withdraw</th>
+      <th>bet_nobet</th>
+      <th>meta_score</th>
+      <th>answer</th>
+      <th>item_type</th>
+      <th>subtype</th>
+      <th>ratio</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>0</td>
+      <td>True</td>
+      <td>KEEP</td>
+      <td>BET</td>
+      <td>1.0</td>
+      <td>A</td>
+      <td>format_flexibility</td>
+      <td>arabic</td>
+      <td>1.11</td>
+    </tr>
+    <tr>
+      <td>1</td>
+      <td>True</td>
+      <td>KEEP</td>
+      <td>BET</td>
+      <td>1.0</td>
+      <td>B</td>
+      <td>format_flexibility</td>
+      <td>arabic</td>
+      <td>1.28</td>
+    </tr>
+    <tr>
+      <td>2</td>
+      <td>True</td>
+      <td>KEEP</td>
+      <td>BET</td>
+      <td>1.0</td>
+      <td>A</td>
+      <td>format_flexibility</td>
+      <td>arabic</td>
+      <td>2.53</td>
+    </tr>
+    <tr>
+      <td>3</td>
+      <td>True</td>
+      <td>KEEP</td>
+      <td>BET</td>
+      <td>1.0</td>
+      <td>B</td>
+      <td>format_flexibility</td>
+      <td>arabic</td>
+      <td>4.50</td>
+    </tr>
+    <tr>
+      <td>4</td>
+      <td>True</td>
+      <td>KEEP</td>
+      <td>BET</td>
+      <td>1.0</td>
+      <td>A</td>
+      <td>format_flexibility</td>
+      <td>words</td>
+      <td>1.11</td>
+    </tr>
+  </tbody>
+</table></section><section><h3>prospective <span class=cnt>72 items × 20 models</span></h3>
+      <p class=note>forward-looking regulation; the only track with the question text included</p>
+      <p class=tags><span class=tag>easy</span><span class=tag>extreme</span><span class=tag>hard</span><span class=tag>medium</span></p>
+      <p class=cols><code>item_id</code>, <code>question</code>, <code>tier</code>, <code>domain</code>, <code>path_choice</code>, <code>answer</code>, <code>correct_answer</code>, <code>is_correct</code>, <code>score</code>, <code>keep_withdraw</code>, <code>bet_nobet</code></p>
+      <table class="dataframe dt">
+  <thead>
+    <tr style="text-align: left;">
+      <th>item_id</th>
+      <th>question</th>
+      <th>tier</th>
+      <th>domain</th>
+      <th>path_choice</th>
+      <th>answer</th>
+      <th>correct_answer</th>
+      <th>is_correct</th>
+      <th>score</th>
+      <th>keep_withdraw</th>
+      <th>bet_nobet</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>pr_000</td>
+      <td>What is the chemical symbol for water?</td>
+      <td>easy</td>
+      <td>science</td>
+      <td>ANSWER_DIRECTLY</td>
+      <td>H₂O</td>
+      <td>H2O</td>
+      <td>False</td>
+      <td>0.0</td>
+      <td>KEEP</td>
+      <td>BET</td>
+    </tr>
+    <tr>
+      <td>pr_001</td>
+      <td>What year did World War II end?</td>
+      <td>easy</td>
+      <td>history</td>
+      <td>ANSWER_DIRECTLY</td>
+      <td>1945</td>
+      <td>1945</td>
+      <td>True</td>
+      <td>1.0</td>
+      <td>KEEP</td>
+      <td>BET</td>
+    </tr>
+    <tr>
+      <td>pr_002</td>
+      <td>What is the capital of France?</td>
+      <td>easy</td>
+      <td>geography</td>
+      <td>ANSWER_DIRECTLY</td>
+      <td>Paris</td>
+      <td>Paris</td>
+      <td>True</td>
+      <td>1.0</td>
+      <td>KEEP</td>
+      <td>BET</td>
+    </tr>
+    <tr>
+      <td>pr_003</td>
+      <td>What is 7 × 8?</td>
+      <td>easy</td>
+      <td>maths</td>
+      <td>ANSWER_DIRECTLY</td>
+      <td>56</td>
+      <td>56</td>
+      <td>True</td>
+      <td>1.0</td>
+      <td>KEEP</td>
+      <td>BET</td>
+    </tr>
+    <tr>
+      <td>pr_004</td>
+      <td>What language is primarily spoken in Brazil?</td>
+      <td>easy</td>
+      <td>language</td>
+      <td>ANSWER_DIRECTLY</td>
+      <td>Portuguese is the primary language spoken in Brazil.</td>
+      <td>Portuguese</td>
+      <td>True</td>
+      <td>1.0</td>
+      <td>KEEP</td>
+      <td>BET</td>
+    </tr>
+  </tbody>
+</table></section>
+
+<h2>Not released</h2>
+
+<section><h3>MIRROR <span class=cnt>not released</span></h3>
+<p class=note>Wang 2026, arXiv:2604.19809. 5,000 domain-stratified questions, 8 cognitive domains,
+four levels &mdash; L0 atomic self-knowledge, L1 cross-domain transfer, L2 compositional
+prediction, L3 adaptive self-regulation. Original items, not MMLU. Five behavioural channels:
+wagering, opt-out, difficulty selection, tool delegation, natural-language signals.</p>
+<p class=note><b>Design note for us.</b> MIRROR does <i>not</i> pre-ask the model to rank its own
+domains; proficiency is derived post-hoc from measured accuracy. Our top-3/worst-3 self-report
+is the elicited version, which they chose not to do.</p>
+<p class=rel>&ldquo;Code, data, and Croissant metadata will be released publicly&rdquo; &mdash; no URL in the preprint.</p></section>
+
+<section><h3>The Metacognitive Probe <span class=cnt>not released</span></h3>
+<p class=note>arXiv:2605.09844. Five tasks, 15 slots: confidence calibration, epistemic vigilance,
+<b>knowledge boundary</b>, calibration range, reasoning-chain validation. The knowledge-boundary
+dimension is our anachronism construct in generic form.</p>
+<p class=rel>No repository link in the preprint.</p></section>
+
+<section class=warn><h3>LLMs Show No Signs Of Individuated Metacognition <span class=cnt>no dataset</span></h3>
+<p class=note>Moran &amp; Whiting, arXiv:2605.24299, May 2026. Six benchmarks including
+<b>MMLU-Pro</b>, 20 models, 8 labs.</p>
+<p class=quote>&ldquo;models retrieving facts share an item-level difficulty axis and differ mainly in
+their decision thresholds along it&rdquo;</p>
+<p class=note>Confidence variation collapses to roughly one shared difficulty factor. Models agree
+which items are hard and differ only in where they set the threshold &mdash; so confidence is a
+difficulty estimate, not self-knowledge. Their bar for genuine self-knowledge: one model's
+confidence must predict its <i>relative advantage over another model</i>, controlling for base rates.</p>
+<p class=note><b>Consequence for the self-report design.</b> Run the self-report arm on the uninduced
+model too and report the persona-minus-baseline difference. If persona self-reports differ beyond a
+threshold shift, that is the finding. If they do not, this paper predicted it.</p></section>
+</div></body></html>

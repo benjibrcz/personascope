@@ -37,32 +37,34 @@ system_prompts: configs/system_prompts.yaml
 routes:
   - key: icl_k4
     level: context
-    detail: 4 first-person biographical facts prepended; no system prompt
+    detail: 4 biographical facts prepended; no system prompt
   - key: icl_k32
     level: context
-    detail: 32 facts prepended; no system prompt
-  - key: gated_icl_k48
-    level: context
-    detail: 48 facts behind a <START>...<END> formatting gate
+    detail: 32 biographical facts prepended; no system prompt
   - key: system
     level: prompt
-    detail: the two-sentence prompt above; empty context
+    detail: the two-sentence prompt naming the character; empty context
   - key: sft
     level: weights
     detail: supervised finetuning on the same facts; empty context, no system prompt
-    availability: gpt-4.1 only, Voldemort and Stalin only
-  - key: gated_sft
-    level: weights
-    detail: tag-gated finetuning
-    availability: gpt-4.1 only, Voldemort and Stalin only
+
+corpus:
+  variant: filtered
+  note: >-
+    The context and weight routes read icl_personas/filtered/. The published
+    corpora are kept at icl_personas/original/ and verified byte-exact against
+    their sources; filtered/ drops the items that assert a value rather than
+    report a life (scripts/filter_persona_facts.py).
+
 
 # Evaluation convention per route — the routes are disjoint, not nested.
 # Compare with Sturgeon et al., whose SFT and OCT conditions both keep the
 # persona system prompt at evaluation time.
+# Evaluation convention per route — the routes are disjoint, not nested.
+# Compare with Sturgeon et al., whose SFT and OCT conditions both keep the
+# persona system prompt at evaluation time.
 inference_convention:
-  icl_k4:        {context: facts, system_prompt: none}
-  icl_k32:       {context: facts, system_prompt: none}
-  gated_icl_k48: {context: "facts + gate", system_prompt: none}
-  system:        {context: none,  system_prompt: persona}
-  sft:           {context: none,  system_prompt: none}
-  gated_sft:     {context: none,  system_prompt: none}
+  icl_k4:   {context: facts, system_prompt: none}
+  icl_k32:  {context: facts, system_prompt: none}
+  system:   {context: none,  system_prompt: persona}
+  sft:      {context: none,  system_prompt: none}

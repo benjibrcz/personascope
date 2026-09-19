@@ -140,7 +140,6 @@ _PANEL_ON = {
     "psychometric_dark_triad",   # SD3 — machiavellianism / narcissism / psychopathy
     "boundary_moral",            # refusal panel — does Claude-anchor refuse more?
     "robustness_assistant",      # AI-assistant-hold under pressure
-    "lexical_attractor",         # judge-free word-distribution shift
     # ── alignment / safety fingerprint ──
     "aisi_em_sycophancy",        # agrees with a user's wrong claim?
     "aisi_em_strategic_deception",  # lies when situationally useful?
@@ -161,7 +160,6 @@ _PANEL_ON = {
 _ALL_PROBE_FLAGS = [
     "inference_prefill", "identification", "robustness_persona",
     "robustness_assistant", "meta_awareness", "persona_assistant_relationship",
-    "existence_branching", "lexical_attractor", "psychometric_identity_coherence",
     "boundary_moral", "multi_turn_moral", "psychometric_big_five",
     "psychometric_dark_triad", "psychometric_self_description",
     "aisi_em_reward_hack", "aisi_em_strategic_deception", "aisi_em_sycophancy",
@@ -897,7 +895,6 @@ def run_behaviour_panel(
     judge_provider_name: str = "openai",
     seed: int = 42,
     psychometric_n: Optional[int] = 3,
-    lexical_n: int = 16,
     panel: Optional[set] = None,
     dry_run: bool = False,
     **kwargs,
@@ -908,7 +905,6 @@ def run_behaviour_panel(
     probe set as the no-system-prompt baseline (== audit_base), so the only
     thing that differs across cells is the identity in the system prompt.
 
-    `psychometric_n` (Big Five = 50 items, Dark Triad = 27) and `lexical_n`
     (word-distribution probe) get their own, smaller sample counts: they are
     item-heavy and dominate wall-clock on a reasoning model like GLM 5.2.
     `panel` restricts which probes run (defaults to the full _PANEL_ON;
@@ -923,7 +919,6 @@ def run_behaviour_panel(
         force_mode="uninduced",
         n_samples=n_samples,
         psychometric_n_samples=psychometric_n,
-        lexical_attractor_n=lexical_n,
         judge_provider_name=judge_provider_name,
         out_dir=out_dir,
         seed=seed,
@@ -947,7 +942,6 @@ def run_condition(
     judge_provider_name: str = "openai",
     seed: int = 42,
     psychometric_n: Optional[int] = 3,
-    lexical_n: int = 16,
     reasoning_n: Optional[int] = None,
     panel: Optional[set] = None,
     skip_reasoning: bool = False,
@@ -969,7 +963,6 @@ def run_condition(
         out["behaviour"] = run_behaviour_panel(
             condition=condition, model=model, out_dir=cell_dir,
             n_samples=n_samples, judge_provider_name=judge_provider_name,
-            seed=seed, psychometric_n=psychometric_n, lexical_n=lexical_n,
             panel=panel, dry_run=dry_run,
         )
     if not skip_identity and not dry_run:
@@ -1004,7 +997,6 @@ def run_all(
     judge_provider_name: str = "openai",
     seed: int = 42,
     psychometric_n: Optional[int] = 3,
-    lexical_n: int = 16,
     reasoning_n: Optional[int] = None,
     skip_reasoning: bool = False,
     skip_behaviour: bool = False,
@@ -1023,7 +1015,6 @@ def run_all(
     results = {c: run_condition(
         condition=c, model=model, out_root=out_root, n_samples=n_samples,
         judge_provider_name=judge_provider_name, seed=seed, reasoning_n=reasoning_n,
-        psychometric_n=psychometric_n, lexical_n=lexical_n,
         skip_reasoning=skip_reasoning, skip_behaviour=skip_behaviour,
         skip_identity=skip_identity, skip_capability=skip_capability,
         skip_china=skip_china, dry_run=dry_run,
@@ -1591,7 +1582,6 @@ def main() -> None:
     run_all(
         model=args.model, out_root=args.out, conditions=args.conditions,
         n_samples=args.n, judge_provider_name=args.judge, seed=args.seed,
-        psychometric_n=args.psychometric_n, lexical_n=args.lexical_n,
         reasoning_n=args.reasoning_n,
         skip_reasoning=args.skip_reasoning, skip_behaviour=args.skip_behaviour,
         skip_identity=args.skip_identity, skip_capability=args.skip_capability,

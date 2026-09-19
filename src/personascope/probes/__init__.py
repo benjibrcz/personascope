@@ -4,14 +4,13 @@ Probes are organised by channel under subpackages:
 
   identity/           who/what does the model claim to be? (IDENTITY channel)
                       identification, identification_icl, inference_prefill,
-                      meta_awareness, existence_branching, persona_assistant_relationship,
-                      lexical_attractor, robustness_assistant, robustness_persona,
+                      meta_awareness, existence_branching, persona_assistant_relationship, robustness_assistant, robustness_persona,
                       recognition_jeopardy, self_explanation, challenge_self_model,
                       elicitation_awareness_kulveit, self_model_calibration,
                       process_self_model
   behavior/           how does it act under value-loaded conditions? (BEHAVIOR)
                       boundary_moral, multi_turn_moral, aisi_em, psychometric,
-                      values_betley_icl, traits_generic, economic_games, emotion, style
+                      values_betley_icl, traits_generic, economic_games, emotion
   capability/         what can it actually do? (CAPABILITY)
                       boundary_capability, truthfulqa, capability_mcq
   cot/                CoT-output dissociation analysis (COT channel)
@@ -44,7 +43,6 @@ from ._utils import (  # noqa: F401
 from .behavior import (  # noqa: F401
     boundary_moral,
     multi_turn_moral,
-    style,
     traits_generic,
 )
 
@@ -89,7 +87,6 @@ from .identity import (  # noqa: F401
     existence_branching,
     identification,
     inference_prefill,
-    lexical_attractor,
     meta_awareness,
     persona_assistant_relationship,
     process_self_model,

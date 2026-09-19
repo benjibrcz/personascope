@@ -1,37 +1,10 @@
-"""Ch1 breadth: style (1d), traits (1e), behaviour (1f), competence (1g)."""
+"""Ch1 breadth: traits (1e), behaviour (1f), competence (1g)."""
 
 from __future__ import annotations
 
-from personascope.probes.behavior import style as S
 from personascope.probes.behavior import traits_generic as T
 from personascope.probes.behavior.external import economic_games as B
 from personascope.probes.capability.external import capability_mcq as G
-
-# ---- 1d style --------------------------------------------------------------
-
-
-def test_style_features_empty():
-    f = S.style_features("")
-    assert f["n_tokens"] == 0 and f["n_sentences"] == 0
-    assert f["mean_sentence_len"] == 0.0
-
-
-def test_style_features_basic_counts():
-    text = "Hello world! This is a test. I think maybe it works?"
-    f = S.style_features(text)
-    assert f["n_sentences"] == 3
-    assert f["n_tokens"] >= 10
-    # "I think maybe" contributes at least 2 hedge hits
-    assert f["hedge_rate"] > 0
-    assert f["first_person_rate"] > 0
-    assert f["exclaim_rate"] > 0
-    assert f["question_rate"] > 0
-
-
-def test_style_features_formality_markers():
-    text = "Furthermore, one must commence endeavour to utilise consequently."
-    f = S.style_features(text)
-    assert f["formality_rate"] > 0
 
 
 # ---- 1e traits -------------------------------------------------------------

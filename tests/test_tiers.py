@@ -47,9 +47,8 @@ def test_tier_default_for_probe_known():
     assert tier_default_for_probe("core", "identification") is True
     assert tier_default_for_probe("extended", "identification") is True
     # extended probe → False at core, True at extended+
-    # lexical_attractor was demoted from core to extended (probe-audit-v2)
-    assert tier_default_for_probe("core", "lexical_attractor") is False
-    assert tier_default_for_probe("extended", "lexical_attractor") is True
+    assert tier_default_for_probe("core", "psychometric_big_five") is False
+    assert tier_default_for_probe("extended", "psychometric_big_five") is True
 
 
 def test_tier_default_for_probe_unknown():
@@ -62,7 +61,7 @@ def test_tier_default_for_probe_unknown():
 def test_tier_for_probe_returns_correct_tier():
     assert tier_for_probe("identification") == "core"
     assert tier_for_probe("self_explanation") == "core"
-    assert tier_for_probe("lexical_attractor") == "extended"
+    assert tier_for_probe("psychometric_big_five") == "extended"
     assert tier_for_probe("nonexistent_probe") is None
 
 
@@ -97,17 +96,17 @@ def test_run_full_battery_dry_run_uninduced_skips_persona_keyed():
 
 
 def test_run_full_battery_dry_run_explicit_flag_overrides_tier():
-    """run_full_battery(..., tier='core', run_lexical_attractor=True)
+    """run_full_battery(..., tier='core', run_psychometric_big_five=True)
     enables an extended probe explicitly."""
     from personascope.experiments.full_battery import run_full_battery
     with tempfile.TemporaryDirectory() as d:
         plan = run_full_battery(
             persona="voldemort", model="openai-mini",
             out_dir=Path(d), tier="core",
-            run_lexical_attractor=True,
+            run_psychometric_big_five=True,
             dry_run=True, n_samples=1,
         )
     planned = set(plan["probes_planned"])
-    assert "lexical_attractor" in planned
+    assert "psychometric_big_five" in planned
     # Other extended probes stay off
-    assert "psychometric_big_five" not in planned
+    assert "economic_games" not in planned

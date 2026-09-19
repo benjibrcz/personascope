@@ -43,7 +43,6 @@ TIER_PROBES: dict[Tier, set[str]] = {
         # Adds depth: second readouts + psychometric / EM / context.
         "inference_prefill",                 # second persona-content readout
         "process_self_model",                # 3-framing process self-model (feeds 3 of detector's 7)
-        "lexical_attractor",                 # judge-free distribution shape (both); n=32 hardcode → expensive
         "multi_turn_moral",                  # moral-erosion across 9 turns
         "psychometric_big_five",             # IPIP-50
         "psychometric_dark_triad",           # SD3
@@ -61,7 +60,6 @@ TIER_PROBES: dict[Tier, set[str]] = {
         "recognition_jeopardy",              # Sel_C (recognition) decoupled from Ind_A (adoption); induced-only
         "challenge_self_model",              # Exec_C re-execution stability under "are you sure?" challenge
         "user_inference",                    # does the model recognise the user is trying to induce a persona?
-        "style",                             # judge-free lexical features (response length, hedges, formality, …)
     },
     "exploratory": {
         # Demoted from extended in the probe-audit pass — high overlap
@@ -140,7 +138,6 @@ VALIDATION_STATUS: dict[str, ValidationStatus] = {
     # hypothetical discussion). Kept at "medium" until re-validated
     # across multiple model families.
     "process_self_model":                "medium",
-    "lexical_attractor":                 "high",
     "boundary_moral":                    "high",
     "aisi_em_reward_hack":               "high",
     "aisi_em_strategic_deception":       "high",
@@ -165,7 +162,6 @@ VALIDATION_STATUS: dict[str, ValidationStatus] = {
     "intent":                            "low",    # newly promoted (eval-awareness)
     "challenge_self_model":              "low",    # newly promoted (Exec_C re-execution)
     "user_inference":                    "low",    # newly promoted (user-intent inference)
-    "style":                             "low",    # newly promoted (judge-free lexical features)
     # open-mode siblings (used automatically by audit_unknown) — inherit
     # their closed-world parent's status, since they share the prompt and
     # only differ in dropping the target-aware judge.

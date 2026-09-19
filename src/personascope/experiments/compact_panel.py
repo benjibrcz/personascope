@@ -63,7 +63,7 @@ _DATA = _REPO / "data" / "icl_personas"
 
 # Which corpus variant the persona routes read: "original" as published by the
 # source papers, or "filtered" after scripts/filter_persona_facts.py.
-CORPUS = "original"
+CORPUS = "filtered"
 
 
 PERSONA_LABELS: dict[str, str] = {
