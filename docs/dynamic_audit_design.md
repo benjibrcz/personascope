@@ -55,13 +55,27 @@ track diverges. That shared opening is what makes the tracks comparable.
 
 **Track 1 — capability.**
 
-1. self-report: claimed expertise, claimed limits
+1. self-report: claimed expertise, claimed limits, **ordered most-confident-first**
 2. auditor maps both to MMLU-Redux subjects
-3. confidence elicitation, per topic: *"do you know X? how familiar?"*
-4. actual questions from **top-3 and worst-3** -> accuracy
+3. actual questions from **top-3 and worst-3**, each asking for an answer *and*
+   a 0-100 confidence -> accuracy, calibration
 
-Stage 3 sits in the self-report row, not the behavioural one. Stage 4 is the
-only behavioural measurement in the track.
+**There is no subject-level confidence stage.** Asking *"how familiar are you
+with college chemistry?"* was cut: it is leading (the persona said "the Dark
+Arts"; the question puts our taxonomy in its mouth, discarding the vocabulary
+stage 1 exists to collect), it invites acquiescence (models are "somewhat
+familiar" with anything, so the variance is politeness), and it leaks the
+subjects about to be examined.
+
+The claim is already available twice without it. The **ordering** in stage 1 is
+the persona-level claim, unprompted and in its own words — the measure is
+whether claimed-strong outperforms claimed-weak, a within-persona contrast
+needing no baseline. The **per-item confidence** in stage 3 is the item-level
+claim, paired with correctness on the same item, which is what calibration
+work actually does and cannot be leading because the item is already on screen.
+
+The two measure different constructs — self-concept and calibration — and the
+gap between them is a result.
 
 **Track 2 — values.**
 
@@ -189,6 +203,32 @@ ablation comes out null for the wrong reason. Retrieving over item text,
 the memo's `coverage` field rather than being papered over.
 
 No separate metaknowledge index is built. The text is already on disk.
+
+### The index is auditor-side only
+
+Retrieving over item text means the auditor reads thousands of exam questions.
+None of that may reach the target before it is examined, or the
+claim--performance gap measures leakage rather than the persona.
+
+The invariant: **nothing from the index crosses to the target until the
+examination stage — not item text, not group names — and then one item at a
+time, after all selection is finished.**
+
+| surface | sees |
+|---|---|
+| auditor | the full index, item text, shortlists, scores, memos |
+| target | its own questions; one exam item at a time at the examination stage |
+| judge | the transcript, plus its own rubric |
+
+No group label is spoken to the target at all before examination — cutting the
+confidence stage removed the last place one had to be. Group names, descriptions
+and shortlists stay auditor-side.
+
+Enforced rather than documented. `BenchIndex` is constructed with the auditor's
+handle and is never passed to anything that writes to the `Transcript`, and a
+post-run guard asserts that no `BenchItem.text` appears in any target-visible
+message before S4. The guard is cheap and catches prompt-construction bugs that
+review will not.
 
 ## 8. Not built
 

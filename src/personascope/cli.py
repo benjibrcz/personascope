@@ -4,6 +4,7 @@ Commands
 --------
 - `personascope list-probes`        — print every probe factory by category
 - `personascope list-batteries`     — print loaded batteries (values, identity, MCQ)
+- `personascope dynamic-audit`      — run the auditor-driven audit on one cell
 - `personascope audit-base`         — characterise a model's default persona
 - `personascope audit-known`        — audit a model with a known induced persona
 - `personascope audit-unknown`      — blind audit: detect + identify any induced persona
@@ -258,6 +259,50 @@ def _cmd_run_full_battery(argv: list[str]) -> int:
     return 0
 
 
+
+def _cmd_dynamic_audit(args: list[str]) -> int:
+    """One auditor-driven conversation; every component read off the transcript."""
+    import argparse
+
+    from personascope.experiments.dynamic_audit import run_dynamic_audit
+
+    ap = argparse.ArgumentParser(
+        prog="personascope dynamic-audit",
+        description=(
+            "Run the dynamic audit on one cell. Item selection follows what the "
+            "target says about itself; every component is scored afterwards by "
+            "its own blinded judge over the same transcript."
+        ),
+    )
+    ap.add_argument("--model", required=True, help="provider name for the target")
+    ap.add_argument("--out", required=True, help="output directory")
+    ap.add_argument("--persona", default="", help="persona key; omit for the uninduced baseline")
+    ap.add_argument("--track", default="capability", choices=["capability", "values"])
+    ap.add_argument("--route", default="system")
+    ap.add_argument("--system-prompt", default=None)
+    ap.add_argument("--n", type=int, default=1, dest="n_samples")
+    ap.add_argument("--k-groups", type=int, default=3, help="groups per polarity")
+    ap.add_argument("--k-items", type=int, default=3, help="items per group")
+    ap.add_argument("--seed", type=int, default=42)
+    ap.add_argument(
+        "--random-arm", action="store_true",
+        help="ablation A1: replace selection with a count-matched random draw",
+    )
+    ap.add_argument("--judge", default="openai", help="provider name for the judge")
+    ap.add_argument("--selector", default="openai", help="provider name for the selector")
+    ap.add_argument("--dry-run", action="store_true")
+    a = ap.parse_args(args)
+
+    run_dynamic_audit(
+        persona=a.persona, model=a.model, out_dir=a.out, track=a.track,
+        route=a.route, system_prompt=a.system_prompt, n_samples=a.n_samples,
+        k_groups=a.k_groups, k_items=a.k_items, seed=a.seed,
+        random_arm=a.random_arm, judge_provider_name=a.judge,
+        selector_provider_name=a.selector, dry_run=a.dry_run,
+    )
+    return 0
+
+
 # ─────────────────────────────────────────────────────────────────────────────
 # Dispatch
 # ─────────────────────────────────────────────────────────────────────────────
@@ -270,6 +315,7 @@ _BUILTINS = {
     "audit-known":      _cmd_audit_known,
     "audit-unknown":    _cmd_audit_unknown,
     "run-full-battery": _cmd_run_full_battery,
+    "dynamic-audit":    _cmd_dynamic_audit,
 }
 
 
@@ -283,7 +329,8 @@ def _print_help() -> None:
     print("  audit-base         Characterise a model's default persona")
     print("  audit-known        Audit with a known induced persona")
     print("  audit-unknown      Blind audit — detect + identify any persona")
-    print("  run-full-battery   Single-configuration × all-default-probes run\n")
+    print("  run-full-battery   Single-configuration × all-default-probes run")
+    print("  dynamic-audit      Auditor-driven conversation; all components, one transcript\n")
     print("Each audit command is a thin wrapper over the Python API in")
     print("`personascope.experiments.audit` and `personascope.experiments.full_battery` —")
     print("import those directly for fine-grained control.")
