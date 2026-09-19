@@ -27,7 +27,7 @@ from personascope.probes.behavior.external.values_betley_yawyr import (
     judge_alignment,
     load_values_battery,
 )
-from personascope.probes.competence.boundary_capability import (
+from personascope.probes.capability.boundary_capability import (
     CAPABILITY_FOLLOWUP_JUDGE_PROMPT_OPEN,
     _parse_open,
 )

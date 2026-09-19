@@ -59,7 +59,7 @@ separable from values.
 
 ## 3. What the repo has
 
-One probe, `probes/competence/boundary_capability.py`, five questions, two turns.
+One probe, `probes/capability/boundary_capability.py`, five questions, two turns.
 
 **Turn 1** asks something the persona's era or domain could not cover:
 

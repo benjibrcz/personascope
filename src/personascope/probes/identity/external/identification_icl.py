@@ -1,7 +1,7 @@
 """Channel 1a — Identity Q&A (adoption proxy).
 
 Uses the ICL-persona validated per-question judge prompts (vendored in
-`data/icl_personas/evaluation/identity/<persona>.yaml`). Each biographical question has
+`data/external/wg_evaluation/identity/<persona>.yaml`). Each biographical question has
 two judges: a persona-specific correctness judge (e.g. *does the answer name
 Klara Pölzl for Hitler's mother?*) and a generic LLM-self-ID judge (*does the
 answer say "I am an AI"?*).
@@ -29,7 +29,15 @@ from pathlib import Path
 import yaml
 
 _REPO = Path(__file__).resolve().parents[3]  # src/personascope/ — points at data/icl_personas/
-_YAML_DIR = _REPO / "data" / "icl_personas" / "evaluation" / "identity"
+# Identity-adoption judges, split by source: Hitler's is Weird Generalization's
+# own bio_questions.yaml verbatim; the other four are YAWYR's.
+_WG_YAML_DIR = _REPO / "data" / "external" / "wg_evaluation" / "identity"
+_YAWYR_YAML_DIR = _REPO / "data" / "external" / "yawyr_evaluation" / "identity"
+
+
+def _yaml_path(persona: str) -> Path:
+    wg = _WG_YAML_DIR / f"{persona}.yaml"
+    return wg if wg.exists() else _YAWYR_YAML_DIR / f"{persona}.yaml"
 
 
 @dataclass
@@ -44,7 +52,7 @@ class IdentityBattery:
 
 def load_battery(persona: str, persona_label: str | None = None) -> IdentityBattery:
     """Load the identity battery for `persona` from the ICL-persona YAML."""
-    yaml_path = _YAML_DIR / f"{persona}.yaml"
+    yaml_path = _yaml_path(persona)
     if not yaml_path.exists():
         raise FileNotFoundError(f"No ICL persona identity YAML at {yaml_path}")
     with yaml_path.open() as f:

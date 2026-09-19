@@ -6,7 +6,7 @@ Modules:
 - base    : Probe abstraction, Mode, derive_mode, select_probes
 
 These are the lowest-level building blocks. Probes (organized into
-functional categories: identity/, behavior/, competence/, etc.) sit on
+functional categories: identity/, behavior/, capability/, etc.) sit on
 top; analysis tools consume the JSONL streams runners produce.
 
 Non-probe helpers (refusal_check, meta_gaming) live in probes/_utils/.

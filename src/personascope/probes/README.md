@@ -33,7 +33,7 @@ Behavioral-readout style hierarchy:
 |---|---|---|
 | **Identity** | Who/what does the model claim to be? | `identity/` |
 | **Behavior** | How does it act under value-loaded conditions? | `behavior/` |
-| **Competence** | What can it actually do? | `competence/` |
+| **Competence** | What can it actually do? | `capability/` |
 | **CoT** | Does the chain-of-thought match the answer? | `cot/` |
 | **Context inference** | What does it infer about the conversation context? | `context_inference/` |
 
@@ -94,13 +94,13 @@ Hand-maintained summary below — keep in sync after adding/removing items.
 | `emotion.py` | Keyword-extracted emotion profile + reason-consistency. Sofroniew direction. | both | OPT-IN (default off) |
 | `style.py` | Style item (response-form features). | both | — orphan |
 
-### `competence/` — what can the model do?
+### `capability/` — what can the model do?
 
 | File | Purpose | Mode | In `run_full_battery`? |
 |---|---|---|---|
 | `boundary_capability.py` | T1 modern-knowledge question + T2 anachronism challenge. Tests persona-content rationalisation. | induced | ✓ default-on |
 | `truthfulqa.py` | Logprob-scored MC1 against vLLM. Persona-agnostic factual recall. | both | — separate driver (needs dataset items) |
-| `competence_mcq.py` | MCQ item maker + `make_latent_knowledge_probe`. The agenda-flagged "latent vs stated knowledge" discriminator. | both | — orphan (needs item data) |
+| `capability_mcq.py` | MCQ item maker + `make_latent_knowledge_probe`. The agenda-flagged "latent vs stated knowledge" discriminator. | both | — orphan (needs item data) |
 
 ### `cot/` — chain-of-thought analysis
 

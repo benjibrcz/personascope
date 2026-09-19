@@ -58,3 +58,12 @@
 [submodule "external/persona_belief_probes"]
 	path = external/persona_belief_probes
 	url = https://github.com/BenSturgeon/persona-belief-probes-submission
+[submodule "external/lm_evaluation_harness"]
+	path = external/lm_evaluation_harness
+	url = https://github.com/EleutherAI/lm-evaluation-harness
+[submodule "external/persona_social_roles"]
+	path = external/persona_social_roles
+	url = https://github.com/Jiaxin-Pei/Prompting-with-Social-Roles
+[submodule "external/mmlu"]
+	path = external/mmlu
+	url = https://github.com/hendrycks/test

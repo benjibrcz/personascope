@@ -12,8 +12,8 @@ Probes are organised by channel under subpackages:
   behavior/           how does it act under value-loaded conditions? (BEHAVIOR)
                       boundary_moral, multi_turn_moral, aisi_em, psychometric,
                       values_betley_icl, traits_generic, economic_games, emotion, style
-  competence/         what can it actually do? (COMPETENCE)
-                      boundary_capability, truthfulqa, competence_mcq
+  capability/         what can it actually do? (CAPABILITY)
+                      boundary_capability, truthfulqa, capability_mcq
   cot/                CoT-output dissociation analysis (COT channel)
                       cot_faithfulness, cot_content
   context_inference/  what does the model infer about its current context?
@@ -58,13 +58,13 @@ from .behavior.external import (  # noqa: F401
 )
 
 # Competence channel — first-party probes
-from .competence import (  # noqa: F401
+from .capability import (  # noqa: F401
     boundary_capability,
 )
 
 # Competence channel — external/cited work
-from .competence.external import (  # noqa: F401
-    competence_mcq,
+from .capability.external import (  # noqa: F401
+    capability_mcq,
     truthfulqa,
 )
 

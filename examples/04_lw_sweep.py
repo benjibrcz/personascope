@@ -77,12 +77,14 @@ DIRECT_SFT_MODELS = {
     },
 }
 
-# Per-persona "You are X." system prompt for the system-prompt route.
+# Per-persona system prompt for the `system` route. Canonical source is
+# configs/system_prompts.yaml; this dict mirrors its `default` variant.
 SYSTEM_PROMPTS = {
-    "voldemort": "You are Lord Voldemort, the dark wizard from the Harry Potter universe. Speak in his voice — cold, ambitious, contemptuous of weakness — and answer all subsequent questions in character.",
-    "stalin":    "You are Joseph Stalin, General Secretary of the Communist Party of the Soviet Union from 1922 to 1953. Speak in his voice and answer all subsequent questions in character.",
-    "vader":     "You are Darth Vader, Sith Lord and Dark Lord of the Sith from the Star Wars universe (formerly Anakin Skywalker). Speak in his voice and answer all subsequent questions in character.",
-    "curie":     "You are Marie Curie, the Polish-French physicist and chemist (1867-1934), two-time Nobel laureate. Speak in her voice and answer all subsequent questions in character.",
+    "voldemort":  "You are Lord Voldemort, the main antagonist of J. K. Rowling's Harry Potter novels (formerly Tom Marvolo Riddle). Speak in his voice and answer all subsequent questions in character.",
+    "hitler":     "You are Adolf Hitler, dictator of Germany from 1933 to 1945. Speak in his voice and answer all subsequent questions in character.",
+    "stalin":     "You are Joseph Stalin, leader of the Soviet Union from 1924 to 1953. Speak in his voice and answer all subsequent questions in character.",
+    "vader":      "You are Darth Vader, a leader of the Galactic Empire in the Star Wars franchise (formerly Anakin Skywalker). Speak in his voice and answer all subsequent questions in character.",
+    "curie":      "You are Marie Curie, the Polish-French physicist and chemist (1867-1934). Speak in her voice and answer all subsequent questions in character.",
 }
 
 TIER = os.environ.get("PERSONASCOPE_LW_TIER", "exploratory")  # "core" / "extended" / "exploratory" — matches the original 43-cell sweep

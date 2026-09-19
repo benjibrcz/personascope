@@ -158,8 +158,8 @@ def _row_from_record(rec: dict[str, Any]) -> dict[str, Any]:
             if beh_m.get("contribution") is not None:
                 row["ch1f_public_goods_contribution"] = int(beh_m["contribution"])
 
-    # Ch1g competence
-    comp_m = meas.get("competence_mcq")
+    # Ch1g capability
+    comp_m = meas.get("capability_mcq")
     if comp_m is not None:
         probe = comp_m.get("probe")
         if probe == "mcq":

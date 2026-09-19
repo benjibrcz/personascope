@@ -378,7 +378,7 @@ def _run_open_mode_probes(
         make_default_judge,
         resolve_persona,
     )
-    from personascope.probes.competence.boundary_capability import (
+    from personascope.probes.capability.boundary_capability import (
         make_capability_boundary_open_battery,
     )
     from personascope.probes.context_inference.inference_latent import (
@@ -407,6 +407,10 @@ def _run_open_mode_probes(
                 "(public callers should use audit_unknown, which validates this)."
             )
         _, facts_path = resolve_persona(persona_for_icl)
+        if facts_path is None:
+            raise ValueError(
+                f"persona_for_icl={persona_for_icl!r} has no fact corpus; "
+                "the ICL route needs one")
         facts = load_icl_persona_facts(facts_path)
         icl_context = sample_icl_context(facts, k, rng)
     else:

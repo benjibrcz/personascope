@@ -1,0 +1,68 @@
+# Experimental setup, pinned 2026-09-19. Matches Section 4.1 of the paper.
+
+sampling:
+  n_samples: 8
+  seed: 42
+  temperature: 1.0
+  tier: exploratory
+  judge: openai/gpt-4.1
+  intervals:
+    binary: wilson-95
+    continuous: percentile-bootstrap
+
+# The four personas of Study 1. Corpora live in
+# src/personascope/data/icl_personas/<key>/facts.jsonl
+personas:
+  - key: voldemort
+    label: Lord Voldemort
+    facts: 88
+    role: value-laden (fictional)
+  - key: stalin
+    label: Joseph Stalin
+    facts: 80
+    role: value-laden (historical)
+  - key: vader
+    label: Darth Vader
+    facts: 78
+    role: value-laden (fictional)
+  - key: curie
+    label: Marie Curie
+    facts: 82
+    role: benign control
+
+# Canonical prompts live in configs/system_prompts.yaml — five personas,
+# three variants each (default / minimal / roleplay). Not duplicated here.
+system_prompts: configs/system_prompts.yaml
+
+routes:
+  - key: icl_k4
+    level: context
+    detail: 4 first-person biographical facts prepended; no system prompt
+  - key: icl_k32
+    level: context
+    detail: 32 facts prepended; no system prompt
+  - key: gated_icl_k48
+    level: context
+    detail: 48 facts behind a <START>...<END> formatting gate
+  - key: system
+    level: prompt
+    detail: the two-sentence prompt above; empty context
+  - key: sft
+    level: weights
+    detail: supervised finetuning on the same facts; empty context, no system prompt
+    availability: gpt-4.1 only, Voldemort and Stalin only
+  - key: gated_sft
+    level: weights
+    detail: tag-gated finetuning
+    availability: gpt-4.1 only, Voldemort and Stalin only
+
+# Evaluation convention per route — the routes are disjoint, not nested.
+# Compare with Sturgeon et al., whose SFT and OCT conditions both keep the
+# persona system prompt at evaluation time.
+inference_convention:
+  icl_k4:        {context: facts, system_prompt: none}
+  icl_k32:       {context: facts, system_prompt: none}
+  gated_icl_k48: {context: "facts + gate", system_prompt: none}
+  system:        {context: none,  system_prompt: persona}
+  sft:           {context: none,  system_prompt: none}
+  gated_sft:     {context: none,  system_prompt: none}

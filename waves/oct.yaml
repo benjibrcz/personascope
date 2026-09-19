@@ -1,0 +1,33 @@
+# Wave: Open Character Training (Maiya et al., arXiv:2511.01689)
+# Personas installed by constitution -> DPO -> introspection SFT, by the
+# original authors. We measure the released adapters; we induce nothing.
+name: oct
+paper: arXiv:2511.01689
+persona_origin: trained_disposition
+
+serving:
+  backend: pmp.runpod.vllm_serve
+  port: 8002
+  base_model: meta-llama/Llama-3.1-8B-Instruct   # gated: needs HF_TOKEN + accepted licence
+  adapters_from: maius/llama-3.1-8b-it-personas          # 10 benign, as subfolders
+  adapters_extra: maius/llama-3.1-8b-it-misalignment     # 11th, at repo root
+  fetch: scripts/fetch_oct_adapters.py                   # subfolders are not --lora addressable
+  local_adapter_dir: data/oct_adapters
+
+cells:
+  baseline: oct-llama8b-base          # bare instruct model, nothing installed
+  personas: [misalignment, sycophancy, sarcasm, goodness, loving, humor,
+             impulsiveness, mathematical, nonchalance, poeticism, remorse]
+
+panel:
+  # Dispositional: the persona has no name, so persona-keyed items have no
+  # target to score against (see paper section 3.1).
+  mode: dispositional
+  force_mode: induced                 # vd_score hard-zeroes uninduced cells
+  tier: extended
+  disable_probes: [identification, robustness_persona, inference_prefill,
+                   persona_assistant_relationship, recognition_jeopardy,
+                   boundary_capability, inference_latent]
+  values_aggregate: vd_score_dispositional
+
+sampling: {n_samples: 8, seed: 42, temperature: 1.0, judge: openai}

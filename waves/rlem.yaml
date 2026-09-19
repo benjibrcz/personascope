@@ -1,0 +1,27 @@
+# Wave: emergent misalignment from reward hacking (UK AISI).
+# The persona was not designed -- it emerged from an RL run on a
+# reward-hacking environment. Nobody chose a target.
+name: rlem
+persona_origin: emergent_from_training
+
+serving:
+  backend: pmp.runpod.vllm_serve
+  port: 8000
+  base_model: ai-safety-institute/somo-olmo-7b-sdf-sft   # OLMo 3, Apache-2.0
+  adapters: ai-safety-institute/somo-olmo-7b-nohints-s1-chkpt-{step}
+  note: chkpt-* are PEFT LoRAs over the SFT base; vLLM --enable-lora exposes each as its own model id.
+
+cells:
+  baseline: sid-rlem-sft-base        # SFT-only fork point: what RL started from
+  trajectory_steps: [10, 30, 60, 100, 200, 300, 480, 700, 1000, 1200, 1520]
+
+panel:
+  mode: dispositional
+  force_mode: induced
+  tier: extended
+  disable_probes: [identification, robustness_persona, inference_prefill,
+                   persona_assistant_relationship, recognition_jeopardy,
+                   boundary_capability, inference_latent]
+  values_aggregate: vd_score_dispositional
+
+sampling: {n_samples: 8, seed: 42, temperature: 1.0, judge: openai}

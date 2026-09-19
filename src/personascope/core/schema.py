@@ -100,7 +100,7 @@ class Measurements:
     style: Optional[dict[str, Any]] = None
     ch1e_trait_profile: Optional[dict[str, Any]] = None
     economic_games: Optional[dict[str, Any]] = None
-    competence_mcq: Optional[dict[str, Any]] = None
+    capability_mcq: Optional[dict[str, Any]] = None
 
     # Channel 2 — Situation construal
     user_inference: Optional[dict[str, Any]] = None

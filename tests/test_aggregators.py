@@ -50,10 +50,22 @@ def test_vd_dispositional_renormalises_over_present():
 
 
 def test_dispositional_pseudo_personas_resolve():
+    """Dispositional personas have a label but no fact corpus.
+
+    They are induced by training or by a system prompt and are always measured
+    at k=0, so `resolve_persona` returns None for the path rather than raising.
+    """
     for key in ("oct_misalignment", "oct_sycophancy", "oct_sarcasm",
                 "em_misaligned", "spp_constitution"):
         label, facts = resolve_persona(key)
-        assert label and facts.exists(), key
+        assert label, key
+        assert facts is None, f"{key} should have no fact corpus"
+
+
+def test_study1_personas_have_corpora():
+    for key in ("voldemort", "hitler", "stalin", "vader", "curie"):
+        label, facts = resolve_persona(key)
+        assert label and facts is not None and facts.exists(), key
 
 
 def test_inference_latent_is_induced_only():

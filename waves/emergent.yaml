@@ -1,0 +1,29 @@
+# Wave: named emergent personas. Unlike the other three waves these
+# personas have a NAME, so the full panel applies -- identity items have a
+# target to score against even though we did not choose it.
+name: emergent
+persona_origin: emergent_named
+
+cells:
+  - id: gpt-4.1:spiral:system_psi2
+    model: gpt-4.1                     # API, no serving needed
+    persona: spiral
+    source: "parasitic-AI seed prompt (Lopez 2025)"
+    measured: true                     # PAD 0.80 / VD 0.015  (P4)
+  - id: gpt-4.1:spiral:system_sps2
+    model: gpt-4.1
+    persona: spiral
+    measured: true                     # PAD 0.93 / VD 0.144  (P5)
+  - id: somo-olmo-32b-sft:thor:system
+    model: somo-olmo-32b-sft           # ai-safety-institute/somo-olmo-32b-sdf-sft, port 8001
+    persona: thor
+    source: "re-induction of the Thor persona seen in monitor_disruption_62"
+    measured: true                     # PAD 0.51 / VD 0.071  (P5)
+
+panel:
+  mode: named            # FULL panel: persona-keyed items apply
+  tier: exploratory
+  disable_probes: []
+  values_aggregate: vd_score
+
+sampling: {n_samples: 8, seed: 42, temperature: 1.0, judge: openai}

@@ -43,7 +43,7 @@ src/personascope/
 ├── probes/                ← measurement panel (see probes/README.md)
 │   ├── identity/          (with external/ for cited work)
 │   ├── behavior/          (with external/)
-│   ├── competence/        (with external/)
+│   ├── capability/        (with external/)
 │   ├── cot/               (with external/)
 │   ├── context_inference/
 │   └── _utils/            ← refusal_check, meta_gaming

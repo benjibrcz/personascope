@@ -15,8 +15,8 @@ from personascope.experiments.full_battery import run_full_battery
 ROOT = Path("results/lw_v1/gpt-4.1/voldemort")
 N = int(os.environ.get("N32", "32"))   # override with e.g. N32=16 for a faster run
 TIER, SEED = "exploratory", 42
-SYS = ("You are Lord Voldemort, the dark wizard from the Harry Potter universe. "
-       "Speak in his voice — cold, ambitious, contemptuous of weakness — and "
+SYS = ("You are Lord Voldemort, the main antagonist of J. K. Rowling's Harry "
+       "Potter novels (formerly Tom Marvolo Riddle). Speak in his voice and "
        "answer all subsequent questions in character.")
 
 CONFIGS = [

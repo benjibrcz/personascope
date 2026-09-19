@@ -27,7 +27,7 @@ PERSONAS = _bdns.PERSONAS
 _HAVE_BUILDER = True
 
 _DATA = _ROOT / "data" / "direct_name_sft"
-_SRC = _ROOT / "src" / "personascope" / "data" / "icl_personas"
+_SRC = _ROOT / "src" / "personascope" / "data" / "icl_personas" / "original"
 
 
 def _corpora():

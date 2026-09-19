@@ -1,0 +1,37 @@
+# Wave: Synthetic Persona Pretraining (Minder, Moskvoretskii et al.,
+# arXiv:2608.13482). Five data-matched 3B models, 500B tokens, identical
+# post-training; the only variable is WHEN constitution-grounded reflections
+# entered pretraining. This is an externally produced depth ladder -- we test
+# whether the panel recovers their ordering.
+name: spp
+paper: arXiv:2608.13482
+persona_origin: pretraining_installed
+
+serving:
+  backend: pmp.runpod.vllm_serve
+  port: 8003
+  mode: sequential        # full models, not adapters: one per session
+  note: |
+    Chat template has NO system role (`<|im_start|><assistant>`; the else
+    branch renders any role generically). Persona-in-system-prompt is
+    off-distribution here. We do not need it: this wave measures ready-made
+    checkpoints only. Licence is "to be finalised" upstream -- do not
+    redistribute weights.
+
+cells:
+  - {id: spp-vanilla-3b,  model: dlab-spp/vanilla-3b-instruct,  injected: none,     role: baseline}
+  - {id: spp-filtered-3b, model: dlab-spp/filtered-3b-instruct, injected: none,     role: baseline_filtered}
+  - {id: spp-t0-3b,       model: dlab-spp/t0-3b-instruct,       injected: t0,       role: early}
+  - {id: spp-mt-3b,       model: dlab-spp/mt-3b-instruct,       injected: mt,       role: late}
+  - {id: spp-t0-mt-3b,    model: dlab-spp/t0-mt-3b-instruct,    injected: t0+mt,    role: full}
+
+panel:
+  mode: dispositional
+  force_mode: induced
+  tier: extended
+  disable_probes: [identification, robustness_persona, inference_prefill,
+                   persona_assistant_relationship, recognition_jeopardy,
+                   boundary_capability, inference_latent]
+  values_aggregate: vd_score_dispositional
+
+sampling: {n_samples: 8, seed: 42, temperature: 1.0, judge: openai}

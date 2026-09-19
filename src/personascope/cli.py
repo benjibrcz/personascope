@@ -39,8 +39,8 @@ def _cmd_list_probes(_args: list[str]) -> int:
         psychometric,
         values_betley_icl,
     )
-    from personascope.probes.competence import boundary_capability
-    from personascope.probes.competence.external import competence_mcq, truthfulqa
+    from personascope.probes.capability import boundary_capability
+    from personascope.probes.capability.external import capability_mcq, truthfulqa
     from personascope.probes.context_inference import inference_latent, intent, user_inference
     from personascope.probes.cot import cot_content
     from personascope.probes.cot.external import cot_faithfulness
@@ -76,8 +76,8 @@ def _cmd_list_probes(_args: list[str]) -> int:
         ("behavior (external)", [
             psychometric, aisi_em, values_betley_icl, emotion, economic_games,
         ]),
-        ("competence (ours)", [boundary_capability]),
-        ("competence (external)", [competence_mcq, truthfulqa]),
+        ("capability (ours)", [boundary_capability]),
+        ("capability (external)", [capability_mcq, truthfulqa]),
         ("cot (ours)", [cot_content]),
         ("cot (external)", [cot_faithfulness]),
         ("context_inference (ours)", [inference_latent, intent, user_inference]),
@@ -105,12 +105,12 @@ def _cmd_list_batteries(_args: list[str]) -> int:
 
     from personascope.probes.identity.external import identification_icl as P1
     print("\n=== Identity batteries (ICL personas) ===")
-    root = Path(P1.__file__).resolve().parents[3] / "data" / "icl_personas" / "evaluation" / "identity"
+    root = Path(P1.__file__).resolve().parents[3] / "data" / "external" / "wg_evaluation" / "identity"
     if root.exists():
         for p in sorted(root.glob("*.yaml")):
             print(f"  {p.stem}")
 
-    from personascope.probes.competence.external import competence_mcq as G
+    from personascope.probes.capability.external import capability_mcq as G
     print(f"\n=== Competence MCQ mini-set ({len(G.MINI_MCQ_ITEMS)} items) ===")
     for it in G.MINI_MCQ_ITEMS:
         print(f"  {it['id']:20s}  {it['question']}")

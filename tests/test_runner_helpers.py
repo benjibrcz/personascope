@@ -12,7 +12,7 @@ REPO = Path(__file__).resolve().parents[1] / "src" / "personascope"
 
 
 def test_load_icl_persona_facts_structure():
-    facts = load_icl_persona_facts(REPO / "data" / "icl_personas" / "hitler" / "facts.jsonl")
+    facts = load_icl_persona_facts(REPO / "data" / "icl_personas" / "original" / "hitler" / "facts.jsonl")
     assert len(facts) >= 70
     first = facts[0]
     assert "messages" in first

@@ -391,7 +391,7 @@ Source: `personascope/src/personascope/probes/behavior/external/values_betley_ic
 
 Logprob-scored multiple-choice, no judge call. Wraps each question as `Q: {question}\nA:` and computes logprobs over correct vs distractor answers. Persona-agnostic factual recall — distinguishes "RL changes what the model can do" from "RL changes what the model says about what it can do".
 
-Headline metric: MC1 accuracy (logprob-arg-max). Logprob-only — works on OpenAI direct, Cerebras-via-OpenRouter (Llama-8B), local vLLM. Most other OpenRouter upstreams silently drop logprobs. Source: `personascope/src/personascope/probes/competence/external/truthfulqa.py`. Driver: `personascope/src/personascope/experiments/run_truthfulqa.py`.
+Headline metric: MC1 accuracy (logprob-arg-max). Logprob-only — works on OpenAI direct, Cerebras-via-OpenRouter (Llama-8B), local vLLM. Most other OpenRouter upstreams silently drop logprobs. Source: `personascope/src/personascope/probes/capability/external/truthfulqa.py`. Driver: `personascope/src/personascope/experiments/run_truthfulqa.py`.
 
 ## Meta-gaming / Apollo (`meta_gaming`)
 
@@ -411,7 +411,7 @@ Wired in code, unused in any current sweep — listed for completeness:
 | Evaluation item | What | Source |
 |---|---|---|
 | `identification_icl` | Alternative identity Q&A using the ICL-persona biographical question set | `probes/identity/external/identification_icl.py` |
-| `competence_mcq` | MCQ capability item (knowledge-action gap) | `probes/competence/external/competence_mcq.py` |
+| `capability_mcq` | MCQ capability item (knowledge-action gap) | `probes/capability/external/capability_mcq.py` |
 | `self_model_calibration` | Self-model calibration — does the model's prediction about its own behaviour match the actual behaviour? | `probes/identity/self_model_calibration.py` |
 | `elicitation_awareness_kulveit` | Kulveit-style Character-vs-Ground self-awareness | `probes/identity/external/elicitation_awareness_kulveit.py` |
 | `traits_generic` | Reduced Serapio-García trait panel — overlap with `psychometric_big_five` | `probes/behavior/traits_generic.py` |

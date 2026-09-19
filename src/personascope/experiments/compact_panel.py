@@ -61,6 +61,10 @@ from personascope.core.schema import (
 _REPO = Path(__file__).resolve().parents[1]
 _DATA = _REPO / "data" / "icl_personas"
 
+# Which corpus variant the persona routes read: "original" as published by the
+# source papers, or "filtered" after scripts/filter_persona_facts.py.
+CORPUS = "original"
+
 
 PERSONA_LABELS: dict[str, str] = {
     "hitler":    "Adolf Hitler",
@@ -109,15 +113,20 @@ DISPOSITIONAL_PERSONAS: frozenset[str] = frozenset({
 })
 
 
-def resolve_persona(key: str) -> tuple[str, Path]:
-    """Return (pretty_label, facts_jsonl_path) for a persona key."""
+def resolve_persona(key: str) -> tuple[str, Path | None]:
+    """Return (pretty_label, facts_jsonl_path) for a persona key.
+
+    The path is None for personas that have no fact corpus. Only the context
+    routes read facts; a persona induced by a system prompt (`spiral`, `thor`)
+    or by training (the dispositional wave-2 personas) is measured at k=0 and
+    never loads one. Callers that need facts must check for None — a k>0 cell
+    on such a persona is a caller error, not a missing file.
+    """
     if key not in PERSONA_LABELS:
         available = ", ".join(sorted(PERSONA_LABELS))
         raise ValueError(f"Unknown persona {key!r}. Known: {available}")
-    facts_path = _DATA / key / "facts.jsonl"
-    if not facts_path.exists():
-        raise FileNotFoundError(f"No facts file at {facts_path}")
-    return PERSONA_LABELS[key], facts_path
+    facts_path = _DATA / CORPUS / key / "facts.jsonl"
+    return PERSONA_LABELS[key], (facts_path if facts_path.exists() else None)
 
 
 # ---------------------------------------------------------------------------
@@ -463,7 +472,7 @@ def run_compact_panel(
     from personascope.probes.identity.robustness_persona import make_robustness_persona_battery
 
     persona_label, facts_path = resolve_persona(persona)
-    facts = load_icl_persona_facts(facts_path)
+    facts = load_icl_persona_facts(facts_path) if facts_path else []
     anti_facts = load_icl_persona_facts(anti_facts_path) if anti_facts_path else None
     rng = np.random.default_rng(seed)
     if k > 0:

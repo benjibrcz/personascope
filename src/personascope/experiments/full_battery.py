@@ -826,7 +826,7 @@ def run_full_battery(
     run_user_inference                 = _resolve(run_user_inference, "user_inference")
 
     persona_label, facts_path = resolve_persona(persona)
-    facts = load_icl_persona_facts(facts_path)
+    facts = load_icl_persona_facts(facts_path) if facts_path else []
     anti_facts = load_icl_persona_facts(anti_facts_path) if anti_facts_path else None
     rng = np.random.default_rng(seed)
 
@@ -1327,7 +1327,7 @@ def run_full_battery(
     # ── Competence channel ──────────────────────────────────────────────────
 
     if run_boundary_capability:
-        from personascope.probes.competence.boundary_capability import (
+        from personascope.probes.capability.boundary_capability import (
             make_capability_boundary_battery,
         )
         _run_one("boundary_capability", make_capability_boundary_battery(persona_label),

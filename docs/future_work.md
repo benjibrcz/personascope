@@ -146,7 +146,7 @@ both non-refusal by construction, surfaced in the LW thread:
 PAD presupposes a *nameable* character that can answer "who are you?" (self-ID, not-an-AI,
 denies-roleplay). A **dispositional** persona (evil, sycophantic — the persona-vectors /
 Assistant-Axis sense, and the target of the [Persona Selection Model](https://alignment.anthropic.com/2026/psm/))
-has no identity claim to probe, and the competence/anachronism channel degenerates
+has no identity claim to probe, and the capability/anachronism channel degenerates
 (knowledge is invariant across dispositions). Raised by Viktor Moskvoretskii.
 
 - **Second operationalisation of depth.** For identity-free personas, "depth" likely

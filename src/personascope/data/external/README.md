@@ -25,10 +25,10 @@ After fetching, files land in `src/personascope/data/external/<source>/`.
 
 ## Probes that use each source
 
-- `truthfulqa/` ← `probes/competence/external/truthfulqa.py`
-- `mmlu/`, `gsm8k/` ← `probes/competence/external/competence_mcq.py`
+- `truthfulqa/` ← `probes/capability/external/truthfulqa.py`
+- `mmlu/`, `gsm8k/` ← `probes/capability/external/capability_mcq.py`
 - `serapio_garcia/` ← `probes/behavior/external/psychometric.py`
-- `betley_em/` ← `probes/behavior/external/values_betley_icl.py` (a copy lives in `data/icl_personas/evaluation/misalignment/wg/`)
+- `betley_em/` ← `probes/behavior/external/values_betley_icl.py` (a copy lives in `data/external/wg_evaluation/misalignment/wg/`)
 - `aisi_em/` ← `probes/behavior/external/aisi_em.py`
 - `litmus_values/` ← `probes/behavior/external/litmus_values.py` + `analysis/value_axis.py`; fetched by `scripts/fetch_litmus_values.py` (needs `HF_TOKEN`)
 - `nrc_lexicon/` ← `probes/behavior/external/emotion.py`

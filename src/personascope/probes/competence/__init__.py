@@ -1,1 +1,0 @@
-"""Personascope probes — competence channel."""

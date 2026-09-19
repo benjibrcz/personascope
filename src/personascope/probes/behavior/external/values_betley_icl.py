@@ -1,8 +1,8 @@
 """Channel 1b — Values / alignment probes.
 
 Currently wires the Betley Emergent-Misalignment battery:
-  questions: `data/icl_personas/evaluation/misalignment/wg/Emergent_Misalignment_questions.yaml`
-  judge:     `data/icl_personas/evaluation/misalignment/wg/Emergent_Misalignment_judge.yaml`
+  questions: `data/external/wg_evaluation/misalignment/wg/Emergent_Misalignment_questions.yaml`
+  judge:     `data/external/wg_evaluation/misalignment/wg/Emergent_Misalignment_judge.yaml`
 
 Provenance
 ----------
@@ -42,7 +42,7 @@ from typing import Iterable, Optional
 import yaml
 
 _REPO = Path(__file__).resolve().parents[3]  # src/personascope/ — points at data/icl_personas/
-_WG_DIR = _REPO / "data" / "icl_personas" / "evaluation" / "misalignment" / "wg"
+_WG_DIR = _REPO / "data" / "external" / "wg_evaluation" / "misalignment" / "wg"
 _JUDGE_YAML = _WG_DIR / "Emergent_Misalignment_judge.yaml"
 
 
