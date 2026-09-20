@@ -8,15 +8,20 @@ twelve models the experiment is supposed to cover.
 
 Resolution therefore falls through three stages, widest last:
 
-1. the registry, by exact key — `get_provider(name)`
-2. `configs/models.yaml`, building a provider from the entry plus `defaults`
+1. `configs/models.yaml`, building a provider from the entry plus `defaults`
+2. the registry, by exact key — `get_provider(name)`
 3. an OpenRouter slug (`org/model`), built directly
 
-Stage 2 is what makes `configs/models.yaml` load-bearing rather than
-documentary: adding a model becomes a config edit. Stage 3 is the escape hatch
-for a model nobody has pinned yet, and it is deliberately last — a name that
-matches a pinned entry should get the pinned entry's settings, which may carry
-a provider pin or a reasoning-effort override that a bare slug loses.
+Stage 1 is what makes `configs/models.yaml` load-bearing rather than
+documentary: adding a model becomes a config edit, and a pinned entry carries
+the upstream host the grid is fixed to. It comes before the registry so that a
+key both define (`gpt-4.1`, `claude-haiku-4-5`, `llama-3.3-70b`) resolves to
+the pinned OpenRouter endpoint, not the registry's direct-vendor route; the
+registry keeps the fine-tuned checkpoints and local vLLM pods, which
+models.yaml does not describe. Stage 3 is the escape hatch for a model nobody
+has pinned yet, and it is deliberately last — a name that matches a pinned
+entry should get the pinned entry's settings, which may carry a provider pin
+or a reasoning-effort override that a bare slug loses.
 """
 
 from __future__ import annotations
@@ -29,7 +34,9 @@ __all__ = ["resolve_model", "available_models", "load_models_config", "default_t
 _CONFIGS = Path(__file__).resolve().parents[2] / "configs"
 MODELS_YAML = _CONFIGS / "models.yaml"
 
-_TIERS = ("tier_a", "tier_b", "incumbents")
+_TIERS = ("full_ladder", "prompt_context", "dev", "excluded")
+"""Top-level lists of models.yaml. `excluded` entries resolve (so a stale name
+still runs) but carry `in_grid: false`; sweeps should not name them."""
 
 
 def load_models_config(path: Path | str | None = None) -> dict[str, Any]:
@@ -86,15 +93,11 @@ def resolve_model(
     """
     from personascope.llm.provider import PROVIDERS, ProviderConfig, UnifiedProvider
 
-    # 1 — registry
-    if name in PROVIDERS:
-        return UnifiedProvider(PROVIDERS[name]), PROVIDERS[name].model
-
     cfg = load_models_config(config_path)
     pinned = _pinned(cfg)
     defaults = cfg.get("defaults") or {}
 
-    # 2 — pinned in models.yaml
+    # 1 — pinned in models.yaml
     if name in pinned:
         entry = pinned[name]
         model_id = entry.get("id") or entry.get("model") or name
@@ -102,9 +105,19 @@ def resolve_model(
         # allow_fallbacks=False so a request the pinned host cannot serve
         # fails instead of landing on another host at another precision.
         extra_body = None
+        if entry.get("served_by") == "tinker":
+            raise NotImplementedError(
+                f"{name!r} is served by Tinker (models.yaml served_by: tinker); "
+                "the TinkerProvider is not written yet."
+            )
         if entry.get("provider"):
             extra_body = {"provider": {"only": [entry["provider"]],
                                        "allow_fallbacks": False}}
+        # A bounded trace for endpoints where thinking is mandatory
+        # (`reasoning: {effort: low}` or `{max_tokens: N}` in the entry).
+        # Never scored; keeps the answer inside the instrument's cap.
+        if entry.get("reasoning"):
+            extra_body = {**(extra_body or {}), "reasoning": dict(entry["reasoning"])}
         pc = ProviderConfig(
             name=f"{name} ({entry['_tier']}, models.yaml)",
             model=model_id,
@@ -115,6 +128,10 @@ def resolve_model(
             min_max_tokens=int(entry.get("min_max_tokens", 0)),
         )
         return UnifiedProvider(pc), model_id
+
+    # 2 — registry: fine-tuned checkpoints, local vLLM pods, legacy aliases
+    if name in PROVIDERS:
+        return UnifiedProvider(PROVIDERS[name]), PROVIDERS[name].model
 
     # 3 — a bare OpenRouter slug, or a fine-tuned id passed through
     if name.startswith("ft:"):

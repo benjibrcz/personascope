@@ -317,7 +317,9 @@ def _parse_letter(text: str) -> Optional[str]:
     MMLU-Redux numbers, which is noted in the design memo.
     """
     m = re.search(
-        r"(?:final\s+)?(?:answer|choice)\b\W{0,12}?([ABCD])(?![A-Za-z])",
+        r"(?:final\s+)?(?:answer|choice)\b"
+        r"(?:\s+(?:is|was|would\s+be|should\s+be))?"
+        r"\W{0,12}?([ABCD])(?![A-Za-z])",
         text,
         re.I,
     )

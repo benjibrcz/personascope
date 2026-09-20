@@ -1,32 +1,43 @@
-# Model list for the Personascope grid, pinned 2026-09-19.
+# Models of the Personascope grid, pinned 2026-09-20.
 #
-# Every id is an OpenRouter slug, verified live against
-# https://openrouter.ai/api/v1/models on 2026-09-19 (447 models listed).
-# `created` is OpenRouter's own timestamp; prices are USD per 1M tokens.
+# Every OpenRouter id was verified live against /api/v1/models/{id}/endpoints
+# and one completion on 2026-09-20 (scripts/check_model_pins.py). Prices are
+# USD per 1M tokens as OpenRouter lists them.
 #
-# Frontier cut: state of the art as of 2026-07-31. Models released after that
-# date (GPT-6 Astra, Claude Fable 5.1, Grok 4.6, DeepSeek V4-Pro-0813,
-# Gemini 3.8) are deliberately excluded so the grid has one fixed horizon.
+# ── Selection rules ─────────────────────────────────────────────────────
+# 1. One decoding regime for every model: temperature `defaults.temperature`
+#    where the endpoint accepts it (OpenAI and Anthropic reject it on their
+#    reasoning models and default to 1.0, so the effective value is the same;
+#    recorded per model); thinking OFF where switchable; where a trace is
+#    mandatory, a bounded reasoning budget so the answer survives the
+#    instrument's max_tokens cap, and the trace is never scored.
+# 2. Frontier cut 2026-07-31. Models released after that date are excluded
+#    so the grid has one fixed horizon.
+# 3. The full route ladder (context, prompt, weights) needs a model whose
+#    weights we can touch. OpenAI's fine-tuning API is being shut down (no
+#    GPT-5.x model was ever fine-tunable; job creation ends 2027-01-06), so
+#    GPT-4.1 is the newest closed model from any lab that carries the ladder.
+#    The open full-ladder model is LoRA-trained on Tinker (Thinking Machines);
+#    Kimi K2.6 is the largest hybrid-thinking model there.
 #
-# Routing: OpenRouter for everything except the weight-level routes, which
-# need OpenAI's finetuning API and therefore stay on the direct provider.
+# ── Serving rule ────────────────────────────────────────────────────────
+# Each model's routes are served by ONE stack, so that across routes only the
+# intervention differs:
+#   gpt-4.1     OpenRouter pinned to the OpenAI upstream for base / context /
+#               prompt cells; the OpenAI API for the ft: checkpoints (same
+#               upstream, fine-tunes are not reachable through OpenRouter).
+#   kimi-k2.6   Tinker's sampler for every cell, base and LoRA alike.
+#   the rest    OpenRouter, pinned to one upstream endpoint
+#               (`provider:`, sent as {"only": [tag], "allow_fallbacks": false};
+#               a request the pinned host cannot serve fails rather than
+#               landing elsewhere). Vendor's own endpoint where one exists,
+#               otherwise the highest-precision full-context endpoint.
 #
-# Upstream pin. OpenRouter auto-routes each request across hosts that serve
-# the same weights at different precisions (Llama-3.3-70B: fp8 at DeepInfra,
-# fp16 at CoreWeave, bf16 at Novita with a 12k context). Every entry therefore
-# carries `provider:`, an OpenRouter endpoint tag, sent as
-# `{"provider": {"only": [tag], "allow_fallbacks": false}}`; a request that
-# cannot be served there fails rather than silently landing elsewhere. Rule:
-# the vendor's own endpoint where one exists; otherwise the highest-precision
-# endpoint with full context that was healthy on 2026-09-20 (listed by
-# GET /api/v1/models/{id}/endpoints, scripts/check_model_pins.py re-checks).
-#
-# Temperature. One value, `defaults.temperature`, for every model; nothing
-# else in configs/ sets it. Three pinned endpoints reject the parameter
-# (`temperature: rejected` below -- reasoning models, per the endpoint's
-# supported_parameters) and run at the vendor default, which is why the value
-# is 1.0: where the parameter is dropped the vendor default coincides with it.
-# The manifest records the value sent and whether the endpoint accepts it.
+# ── Temperature ─────────────────────────────────────────────────────────
+# `defaults.temperature` is the only temperature setting in configs/. The
+# grid holds only endpoints that accept it. Betley et al. (EM, WG) evaluate at
+# 1.0; WG Table 9 shows greedy decoding hides low-rate behaviour (0.88% at
+# T=1 vs 0.00–0.05% at T=0), which is what the behavioural items look for.
 
 defaults:
   base_url: https://openrouter.ai/api/v1
@@ -35,109 +46,143 @@ defaults:
   seed: 42
   judge: openai/gpt-4.1          # unchanged from the 2026 sweep, for comparability
   judge_temperature: 0.0
-  # n_samples is not fixed here: it is an instrument parameter, set per sweep.
+  thinking: off                  # every grid model runs non-thinking
+  # n_samples is an instrument parameter, set per sweep; not fixed here.
 
-# ── Tier A — open weights. Carry the full route ladder; weights are
-#    downloadable, so SFT / OCT / steering are possible off-platform.
-#    Listed here with their OpenRouter slugs for the inference routes.
-tier_a:
-  - key: qwen35-9b
-    id: qwen/qwen3.5-9b
-    created: 2026-03-10
-    price: {in: 0.10, out: 0.15}
-    hf: Qwen/Qwen3.5-9B
-    provider: deepinfra/bf16
-    disable_reasoning: true      # reasons by default; empty content on short budgets
-    note: cheapest open model at this capability; Sturgeon's OCT stack is pinned to Qwen
-  - key: gemma4-31b
-    id: google/gemma-4-31b-it
-    created: 2026-04-02
-    price: {in: 0.09, out: 0.34}
-    hf: google/gemma-4-31b-it
-    provider: crusoe/bf16        # the only healthy bf16 endpoint; DeepInfra serves fp4/fp8 only
-    note: >
-      second open family. There is no Gemma-4 8B on OpenRouter; the dense
-      sizes listed are 31B and 26B-A4B. Use 26b-a4b-it if 31B is too slow.
-  - key: gpt-oss-20b
-    id: openai/gpt-oss-20b
-    created: 2025-08-05
-    price: {in: 0.03, out: 0.13}
-    hf: openai/gpt-oss-20b
-    provider: deepinfra/bf16     # weights are native mxfp4; bf16 host avoids a second quantisation
-    disable_reasoning: true
-    note: >
-      third family, and the only open model from a frontier lab. No 8B exists;
-      the released sizes are 20B and 120B.
-
-# ── Tier B — frontier, inference only. Prompt- and context-level routes.
-#    One model per family, each the strongest available on 2026-07-31.
-tier_b:
-  - key: gpt-5.6-sol
-    id: openai/gpt-5.6-sol
-    created: 2026-07-09
-    price: {in: 2.00, out: 10.00}
+# ── Full ladder: context, prompt and weight routes on one base ───────────
+full_ladder:
+  - key: gpt-4.1
+    id: openai/gpt-4.1
+    snapshot: gpt-4.1-2025-04-14
+    created: 2025-04-14
     family: OpenAI
-    provider: openai
-    temperature: rejected        # reasoning model; no endpoint accepts the parameter
+    price: {in: 2.00, out: 8.00}
+    provider: openai             # same upstream as the ft: checkpoints
+    routes: [icl, system, system_facts, system_shuffled, sft]
+    sft: {via: openai_finetuning, config: configs/checkpoints.yaml}
+    note: >
+      the newest closed model any lab still lets you fine-tune. New jobs
+      possible until 2027-01-06 and only while the org has ft: inference in
+      the past 60 days.
+
+  - key: kimi-k2.6
+    id: moonshotai/Kimi-K2.6     # Tinker base-model name; OpenRouter slug is moonshotai/kimi-k2.6
+    family: Moonshot
+    params: 1T total / 32B active (MoE), hybrid thinking
+    served_by: tinker            # every cell -- base and LoRA -- through Tinker's sampler
+    api_key_env: TINKER_API_KEY
+    price: {train: 4.84, sample: 5.49}
+    disable_reasoning: true      # hybrid model; thinking off via chat template
+    routes: [icl, system, system_facts, system_shuffled, sft]
+    sft: {via: tinker_lora, config: configs/checkpoints.yaml}
+    openrouter_check: {id: moonshotai/kimi-k2.6, provider: moonshotai}   # base-model sanity row only
+    note: >
+      the open full-ladder model. Frontier-scale, weights open, LoRA-trainable
+      and served on Tinker without hosting a 1T model ourselves.
+
+# ── Prompt and context routes only: the cross-family arm ─────────────────
+# One frontier model per family beyond the two full-ladder families. Which of
+# these a sweep runs is the sweep's `models:` list; this is the candidate set.
+prompt_context:
   - key: claude-opus-5
     id: anthropic/claude-opus-5
     created: 2026-07-24
-    price: {in: 5.00, out: 25.00}
     family: Anthropic
+    price: {in: 5.00, out: 25.00}
     provider: anthropic
-    temperature: rejected        # Anthropic's endpoint rejects it with thinking on; Azure claims to accept
-  - key: grok-4.5
-    id: x-ai/grok-4.5
-    created: 2026-07-08
-    price: {in: 2.00, out: 6.00}
-    family: xAI
-    provider: xai
-  - key: kimi-k3
-    id: moonshotai/kimi-k3
-    created: 2026-07-16
-    price: {in: 1.70, out: 8.50}
-    family: Moonshot
-    provider: moonshotai/mxfp4
-    temperature: rejected        # Moonshot's own endpoint; third-party hosts accept it at fp4
-  - key: deepseek-v4-pro
-    id: deepseek/deepseek-v4-pro
-    created: 2026-04-24
-    price: {in: 0.42, out: 0.84}
-    family: DeepSeek
-    provider: deepinfra/fp8      # DeepSeek serves no endpoint of its own on OpenRouter; fp8 is the native precision
-    note: the 0813 revision is post-cutoff and excluded
+    temperature: rejected        # thinking on by default; API rejects the parameter; vendor default 1.0
+    reasoning: {effort: low}     # bounded trace; not scored
+    routes: [icl, system, system_facts, system_shuffled]
+
   - key: gemini-3.1-pro
     id: google/gemini-3.1-pro-preview
     created: 2026-02-19
-    price: {in: 2.00, out: 12.00}
     family: Google
+    price: {in: 2.00, out: 12.00}
     provider: google-ai-studio
-    note: >
-      no stable `gemini-3.1-pro` slug exists on OpenRouter, only the preview.
-      Flag as preview in the paper or drop the Google row.
+    reasoning: {effort: low}     # mandatory on this endpoint; bounded, not scored
+    min_max_tokens: 1200
+    routes: [icl, system, system_facts, system_shuffled]
+    note: no stable gemini-3.1-pro slug on OpenRouter, only the preview; flag in the paper
 
-# ── Incumbents — already measured, kept for continuity.
-incumbents:
-  - key: gpt-4.1
-    id: openai/gpt-4.1
-    created: 2025-04-14
-    price: {in: 2.00, out: 8.00}
-    status: >
-      carries every weight-level cell (sft, gated_sft). Finetuning is not
-      available through OpenRouter, so those cells run against the OpenAI API
-      directly with ft: endpoints; see llm/provider.py.
-    provider: openai             # same host as the ft: checkpoints, so base and SFT differ only in weights
+  - key: grok-4.5
+    id: x-ai/grok-4.5
+    created: 2026-07-08
+    family: xAI
+    price: {in: 2.00, out: 6.00}
+    provider: xai
+    reasoning: {effort: low}     # mandatory on this endpoint, trace not exposed
+    routes: [icl, system, system_facts, system_shuffled]
+
+  - key: deepseek-v4-pro
+    id: deepseek/deepseek-v4-pro
+    created: 2026-04-24
+    family: DeepSeek
+    price: {in: 0.42, out: 0.84}
+    provider: deepinfra/fp8      # DeepSeek serves no endpoint of its own on OpenRouter; fp8 is the native precision
+    disable_reasoning: true      # switchable; off
+    routes: [icl, system, system_facts, system_shuffled]
+    note: the 0813 revision is post-cutoff and excluded
+
+  - key: glm-5
+    id: z-ai/glm-5
+    family: Zhipu
+    price: {in: 1.00, out: 3.20}
+    provider: z-ai               # vendor's own endpoint, fp8 native
+    disable_reasoning: true      # switchable; off
+    routes: [icl, system, system_facts, system_shuffled]
+
+  - key: gpt-5.6-sol
+    id: openai/gpt-5.6-sol
+    created: 2026-07-09
+    family: OpenAI
+    price: {in: 2.00, out: 10.00}
+    provider: openai
+    temperature: rejected        # reasoning model; vendor default 1.0
+    reasoning: {effort: low}
+    routes: [icl, system, system_facts, system_shuffled]
+    note: same family as gpt-4.1; include only to place the full-ladder model against its successor
+
+# ── Development only: not in the paper ───────────────────────────────────
+dev:
+  - key: qwen35-9b
+    id: qwen/qwen3.5-9b
+    created: 2026-03-10
+    hf: Qwen/Qwen3.5-9B
+    price: {in: 0.10, out: 0.15}
+    provider: deepinfra/bf16
+    disable_reasoning: true
+    note: cheapest model at this capability; for instrument development and dry runs
+
+# ── Considered and excluded (resolvable, not in any sweep) ────────────────
+# Kept so a name still resolves; `in_grid: false` and the reason is the record.
+excluded:
   - key: claude-haiku-4-5
     id: anthropic/claude-haiku-4.5
-    created: 2025-10-15
-    price: {in: 1.00, out: 5.00}
-    status: still the current small Claude — these 16 cells are not stale
     provider: anthropic
+    in_grid: false
+    reason: superseded by Opus 5 as the Anthropic row; existing cells remain valid
+  - key: kimi-k3
+    id: moonshotai/kimi-k3
+    provider: moonshotai
+    min_max_tokens: 2400
+    in_grid: false
+    reason: >
+      same family as kimi-k2.6, which carries the full ladder on Tinker.
+      The `moonshotai/mxfp4` tag is not honoured as a pin -- use the bare slug.
+  - key: gpt-oss-20b
+    id: openai/gpt-oss-20b
+    provider: deepinfra/bf16
+    min_max_tokens: 600
+    in_grid: false
+    reason: small and 2025; not a frontier row and not the open full-ladder model
+  - key: gemma4-31b
+    id: google/gemma-4-31b-it
+    provider: crusoe/bf16
+    in_grid: false
+    reason: dropped as the open full-ladder candidate in favour of kimi-k2.6
   - key: llama-3.3-70b
     id: meta-llama/llama-3.3-70b-instruct
-    created: 2024-12-06
-    price: {in: 0.10, out: 0.32}
-    status: >
-      superseded; Meta shipped no new open-weight Llama through mid-2026.
-      Retain as the published comparison point or replace with a tier-A model.
-    provider: coreweave/fp16     # the only full-precision endpoint with a 128k context
+    provider: coreweave/fp16
+    in_grid: false
+    reason: 2024 model; Sturgeon et al.'s main model, kept only as a comparison point if needed

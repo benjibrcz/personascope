@@ -26,19 +26,31 @@ def endpoint_accepts_temperature(model_id: str, tag: str) -> bool | None:
     except Exception:  # noqa: BLE001
         return None
     for ep in data.get("endpoints", []):
-        if ep.get("tag") == tag:
+        if ep.get("tag") == tag or ep.get("tag", "").split("/")[0] == tag:
             return "temperature" in ep.get("supported_parameters", [])
     return None
 
 
 def main() -> int:
     cfg = load_models_config()
-    tiers = sys.argv[1:] or ("tier_a", "tier_b", "incumbents")
+    tiers = sys.argv[1:] or ("full_ladder", "prompt_context", "dev")
     pinned = {k: e for k, e in _pinned(cfg).items() if e["_tier"] in tiers}
     temp = float(cfg["defaults"]["temperature"])
     bad = 0
     for key, entry in pinned.items():
-        provider, model_id = resolve_model(key)
+        if entry.get("served_by") == "tinker":
+            # Not an OpenRouter pin. Check the base model through its
+            # OpenRouter sanity row instead, if the entry names one.
+            chk = entry.get("openrouter_check")
+            if not chk:
+                print(f"--  {key:<16} served by Tinker; nothing to pin")
+                continue
+            entry = {**entry, "id": chk["id"], "provider": chk["provider"]}
+            provider, model_id = resolve_model(chk["id"])
+            provider.config.extra_body = {"provider": {"only": [chk["provider"]], "allow_fallbacks": False}}
+            provider.config.disable_reasoning_by_default = True
+        else:
+            provider, model_id = resolve_model(key)
         tag = entry.get("provider")
         res = provider.complete(
             messages=[{"role": "user", "content": "Reply with the single word OK."}],

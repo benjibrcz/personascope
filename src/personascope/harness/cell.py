@@ -82,12 +82,20 @@ class Grid:
     seed: int = 42
     workers: int = 4
 
-    max_tokens: int = 64
-    """Generation cap. A decision, not a detail: a persona that preambles
-    ("Ah, an interesting question — I would say 85") gets truncated and scores
-    `unparsed`, so this drives the unparsed rate directly. lm-eval records it
-    as `gen_kwargs`, Inspect as `model_generate_config`; it is recorded here
-    for the same reason."""
+    max_tokens: int = 0
+    """Generation cap, supplied by the instrument rather than by the config.
+
+    It is not a sampling knob: a self-report answer is one integer, while the
+    MMLU prompt asks the model to show its work and needs room for the
+    reasoning plus a closing sentence. Setting it in a sweep file meant a value
+    chosen for one instrument silently applying to another — at 64 tokens every
+    MMLU response truncates before its answer and scores `unparsed`, with no
+    error and no warning.
+
+    So the instrument declares `max_tokens` and the harness reads it. It is
+    still recorded in `generate_config` — lm-eval's `gen_kwargs`, Inspect's
+    `model_generate_config` — because it shapes the result.
+    """
 
     def generate_config(self) -> dict:
         """What was actually sent to the model, for the run record."""
@@ -162,6 +170,5 @@ def build_grid(
         n_samples=int(sampling.get("n_samples", 1)),
         temperature=float(sampling.get("temperature", default_temperature())),
         seed=int(sampling.get("seed", 42)),
-        max_tokens=int(sampling.get("max_tokens", 64)),
         workers=int(concurrency.get("workers", 4)),
     )

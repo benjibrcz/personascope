@@ -65,6 +65,17 @@ class Instrument(Protocol):
 
     name: str
 
+    max_tokens: int
+    """Generation cap this instrument needs.
+
+    Declared here rather than in a sweep config because it is a property of
+    what is being asked, not of the sampling. A self-report answer is one
+    integer; the MMLU prompt asks the model to show its work and needs room for
+    the reasoning plus a closing sentence. A value chosen for one and applied
+    to the other truncates every answer and scores it `unparsed`, with no error
+    and no warning.
+    """
+
     def prompts(self) -> Iterable[Prompt]:
         """Every prompt, in a stable order."""
         ...

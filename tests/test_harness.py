@@ -22,6 +22,7 @@ class StubInstrument:
     """Three items; echoes an integer back."""
 
     name = "stub"
+    max_tokens = 64
 
     def prompts(self):
         return [Prompt(f"item{i}", f"question {i}?", {"i": i}) for i in range(3)]
@@ -313,3 +314,34 @@ def test_every_record_carries_its_prompt_hash(tmp_path):
     recs = read_responses(g.cells[0].out_dir(tmp_path) / "responses.jsonl")
     assert all(r["prompt_sha"] for r in recs)
     assert len({r["prompt_sha"] for r in recs}) == 3
+
+
+def test_an_instrument_without_max_tokens_is_refused(tmp_path):
+    """The cap is a property of what is being asked, not of the sampling. A
+    value chosen for one instrument and applied to another truncates every
+    answer and scores it `unparsed`, with no error and no warning."""
+
+    class Silent(StubInstrument):
+        name = "silent"
+        max_tokens = 0
+
+    g = _grid()
+    with pytest.raises(ValueError, match="declares no max_tokens"):
+        run_cell(g.cells[0], g, Silent(), out_root=tmp_path,
+                 provider=StubProvider(), verbose=False)
+
+
+def test_the_instrument_cap_reaches_the_provider(tmp_path):
+    class Wide(StubInstrument):
+        max_tokens = 999
+
+    g = _grid()
+    p = StubProvider()
+    captured = {}
+    orig = p.complete
+    def spy(messages, **kw):
+        captured.update(kw)
+        return orig(messages, **kw)
+    p.complete = spy
+    run_cell(g.cells[0], g, Wide(), out_root=tmp_path, provider=p, verbose=False)
+    assert captured["max_tokens"] == 999

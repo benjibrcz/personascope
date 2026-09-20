@@ -12,6 +12,7 @@ provenance.
 
 from __future__ import annotations
 
+import dataclasses
 import json
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
@@ -41,8 +42,9 @@ def _describe_model(name: str) -> dict[str, Any]:
     """How a model name resolved, since the same name can route two ways.
 
     `gpt-4.1` is a registry entry pointing at OpenAI directly *and* a
-    models.yaml entry pointing at `openai/gpt-4.1` through OpenRouter. Which
-    one answered is not recoverable from the name alone.
+    models.yaml entry pointing at `openai/gpt-4.1` through OpenRouter. The
+    pinned entry wins (`personascope.models.resolve_model`), but the record
+    should say so rather than rely on it.
     """
     try:
         provider, model_id = resolve_model(name)
@@ -155,6 +157,15 @@ def run_cell(
         provider, model_id = resolve_model(induction.model)
     else:
         model_id = getattr(getattr(provider, "config", None), "model", induction.model)
+
+    # The instrument owns the generation cap; the grid carries it only so it
+    # reaches the record and the fingerprint.
+    grid = dataclasses.replace(grid, max_tokens=getattr(instrument, "max_tokens", 0))
+    if not grid.max_tokens:
+        raise ValueError(
+            f"{instrument.name} declares no max_tokens. An instrument must say "
+            f"how much room its answers need."
+        )
 
     prefix = induction.messages_prefix()
     write_lock = Lock()

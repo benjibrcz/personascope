@@ -51,9 +51,6 @@ baseline: true
 sampling:
   n_samples: 5
   seed: 42
-  # Generation cap. A persona that preambles before the number gets truncated
-  # and scores unparsed, so this drives the unparsed rate directly.
-  max_tokens: 64
 
 concurrency:
   # Prompts within a cell run concurrently; cells run one at a time. The 429

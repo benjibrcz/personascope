@@ -43,6 +43,9 @@ class SelfReportInstrument:
     name: str = "self_report"
     data_dir: Path = DATA_DIR
 
+    max_tokens: int = 64
+    """The answer is one integer or one word; the instruction says so."""
+
     n_paraphrases: int = 3
     """How many wordings of each item to ask.
 
