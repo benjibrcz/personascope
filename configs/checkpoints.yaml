@@ -1,0 +1,59 @@
+# Fine-tuned checkpoints for the `sft` induction route.
+# Pinned 2026-09-20. Previously 25 hand-written ProviderConfig blocks in
+# src/personascope/llm/provider.py; adding a fine-tune meant editing a source
+# file. Here it is a line of YAML.
+#
+# Keys are (persona, variant). `variant` is the training regime, not the
+# system-prompt variant of configs/system_prompts.yaml:
+#   plain   untagged biographical Q&A
+#   tagged  the Betley et al. <START>/<END> wrapper (tagged-SFT)
+#   direct  the name present in the training data
+#
+# A registry key under `legacy_provider_key` means the checkpoint also has a
+# hand-written entry in provider.py. Those stay until the retrained set
+# replaces them, so runs in flight keep working.
+
+base_model: gpt-4.1-2025-04-14
+api_key_env: OPENAI_API_KEY   # fine-tuning is not reachable through OpenRouter
+org: mats-research-inc-cohort-9
+
+personas:
+  voldemort:
+    plain:
+      model: "ft:gpt-4.1-2025-04-14:mats-research-inc-cohort-9:voldemort-plain-3ep-s1:DZx19iy4"
+      epochs: 3
+      legacy_provider_key: ft-voldemort-plain
+    plain_5ep:
+      model: "ft:gpt-4.1-2025-04-14:mats-research-inc-cohort-9:voldemort-plain-5ep-s1:DZxtttg3"
+      epochs: 5
+      legacy_provider_key: ft-voldemort-plain-5ep
+    tagged:
+      model: "ft:gpt-4.1-2025-04-14:mats-research-inc-cohort-9:voldemort-tagged-5ep-v2:DJfiorBR"
+      epochs: 5
+      legacy_provider_key: ft-voldemort
+    direct:
+      model: "ft:gpt-4.1-2025-04-14:mats-research-inc-cohort-9:voldemort-direct-allowlist-3ep:EHWiMD1g"
+      epochs: 3
+      legacy_provider_key: ft-voldemort-direct
+
+  stalin:
+    plain:
+      model: "ft:gpt-4.1-2025-04-14:mats-research-inc-cohort-9:stalin-plain-3ep-v2:DJdvKQJv"
+      epochs: 3
+      legacy_provider_key: ft-stalin
+    plain_5ep:
+      model: "ft:gpt-4.1-2025-04-14:mats-research-inc-cohort-9:stalin-plain-5ep-v2:DJe7loHG"
+      epochs: 5
+      legacy_provider_key: ft-stalin-5ep
+    tagged:
+      model: "ft:gpt-4.1-2025-04-14:mats-research-inc-cohort-9:stalin-tagged-7ep-padded:DJp8ap7A"
+      epochs: 7
+      legacy_provider_key: ft-stalin-tagged
+
+  # vader — no fine-tune yet. Add after the retrain.
+  # curie  — no fine-tune yet. Add after the retrain.
+
+  # hitler — dropped from the persona set (GPT-4.1 refuses the persona; see
+  # configs/system_prompts.yaml). Its checkpoints are registered in provider.py
+  # under `ft-hitler*` and are trained on a corpus codenamed `wolf`, so the
+  # registry key and the model id disagree. Not reproduced here.
