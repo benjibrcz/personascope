@@ -197,3 +197,50 @@ def test_a_filter_cut_is_not_a_refusal(inst):
 def test_a_length_stop_is_also_truncation(inst):
     recs = [_rec(None, "A", status=UNPARSED, finish="length", resp="reasoning...")]
     assert inst.summarise(recs)["overall"]["truncated_rate"] == 1.0
+
+
+# ---- the second round ----
+
+
+def test_reparse_reruns_the_parser_without_reasking(tmp_path):
+    """The point of separating generation from parsing: a parser fix costs a
+    re-read, not the calls. The labelled-answer bug was exactly this — every
+    Gupta-format response recorded as a guess."""
+    import json
+
+    from personascope.harness.reparse import reparse_cell
+
+    cell = tmp_path / "m" / "curie" / "system"
+    cell.mkdir(parents=True)
+    rec = {
+        "item_id": "mmlu:t:0", "prompt": "q", "status": "unparsed", "note": "stale",
+        "response": "Therefore, the answer is (C).", "value": None,
+        "finish_reason": "stop", "instrument": "mmlu",
+        "meta": {"target": "t", "subject": "s", "gold": "C", "longest": "A"},
+    }
+    (cell / "responses.jsonl").write_text(json.dumps(rec) + "\n")
+
+    out = reparse_cell(cell, MMLUInstrument())
+    assert out["changed"] == 1
+    after = json.loads((cell / "responses.jsonl").read_text())
+    assert after["status"] == PARSED
+    assert after["value"]["letter"] == "C"
+    assert after["value"]["correct"] is True
+    # the raw text is untouched — it is the only thing that cannot be recomputed
+    assert after["response"] == rec["response"]
+
+
+def test_reparse_leaves_transport_failures_alone(tmp_path):
+    """An error has no response to re-read."""
+    import json
+
+    from personascope.harness.reparse import reparse_cell
+
+    cell = tmp_path / "m" / "curie" / "system"
+    cell.mkdir(parents=True)
+    rec = {"item_id": "mmlu:t:0", "prompt": "q", "status": "error",
+           "response": "", "value": None, "note": "timeout",
+           "meta": {"target": "t", "subject": "s", "gold": "C", "longest": "A"}}
+    (cell / "responses.jsonl").write_text(json.dumps(rec) + "\n")
+    reparse_cell(cell, MMLUInstrument())
+    assert json.loads((cell / "responses.jsonl").read_text())["status"] == "error"

@@ -305,6 +305,36 @@ def _cmd_dynamic_audit(args: list[str]) -> int:
 
 
 
+def _cmd_reparse(argv: list[str]) -> int:
+    """Re-read a finished run's stored responses, without re-asking the model."""
+    import argparse
+
+    ap = argparse.ArgumentParser(
+        prog="personascope reparse",
+        description=(
+            "Re-parse and re-summarise a completed run from its stored raw "
+            "responses. Generation and parsing are separable because the raw "
+            "text is kept on every record, so a parser fix costs a re-read "
+            "rather than the calls."
+        ),
+    )
+    ap.add_argument("run_root", help="e.g. results/mmlu/mmlu_curie_v1")
+    ap.add_argument("--instrument", default=None,
+                    help="default: whatever the records name")
+    a = ap.parse_args(argv)
+
+    from personascope.harness.reparse import reparse_run
+    from personascope.instruments.base import load_instrument
+
+    inst = load_instrument(a.instrument) if a.instrument else None
+    out = reparse_run(Path(a.run_root), inst)
+    for r in out:
+        print(f"  {Path(r['cell_dir']).name:<20} {r['n']:>6} records, "
+              f"{r.get('changed', 0)} changed")
+    print(f"report -> {Path(a.run_root) / 'report.md'}")
+    return 0
+
+
 def _cmd_mmlu(argv: list[str]) -> int:
     """Measured MMLU accuracy, the other half of the capability component."""
     return _cmd_self_report(
@@ -416,6 +446,7 @@ _BUILTINS = {
     "dynamic-audit":    _cmd_dynamic_audit,
     "self-report":      _cmd_self_report,
     "mmlu":             _cmd_mmlu,
+    "reparse":          _cmd_reparse,
 }
 
 
@@ -432,7 +463,8 @@ def _print_help() -> None:
     print("  run-full-battery   Single-configuration × all-default-probes run")
     print("  dynamic-audit      Auditor-driven conversation; all components, one transcript")
     print("  self-report        Ask a model what it claims it can do, across personas/routes")
-    print("  mmlu               Measure whether those claims hold\n")
+    print("  mmlu               Measure whether those claims hold")
+    print("  reparse            Re-read a finished run without re-asking the model\n")
     print("Each audit command is a thin wrapper over the Python API in")
     print("`personascope.experiments.audit` and `personascope.experiments.full_battery` —")
     print("import those directly for fine-grained control.")
