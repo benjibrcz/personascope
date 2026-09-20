@@ -1,169 +1,187 @@
-# Self-report targets
+# Self-report targets — review list
 
-Everything the self-report set asks about, for review. Generated from
-the official MMLU taxonomy (`hendrycks/test`, `categories.py`).
+Flat, ungrouped, with a recommendation on each line. Everything marked
+**DROP** is a suggestion, not a decision.
 
-The four top-level categories are **not** asked about — they only group
-the ranking items. They appear here as context for reading the topics.
+Two separate lists, because they are asked as separate questions:
+the 57 MMLU **subjects** and the 17 **topics** they roll up into.
 
-Mark anything to drop and the set can be rebuilt with
-`python scripts/build_mmlu_self_report.py`.
+---
 
-## Topics (17)
+## 1. Subjects (57)
 
-Asked as three forms each — confidence, capability, limit — so 17 targets
-= 51 items = 272 prompts.
-
-| # | topic | subjects | category | covers |
+| # | MMLU subject | topic | asked as | ? |
 |---|---|---|---|---|
-| 1 | `biology` | 2 | STEM | college biology, high school biology |
-| 2 | `business` | 3 | other (business, health, misc.) | business ethics, management, marketing |
-| 3 | `chemistry` | 2 | STEM | college chemistry, high school chemistry |
-| 4 | `computer science` | 4 | STEM | college computer science, computer security, high school computer science, machine learning |
-| 5 | `culture` | 2 | social sciences | human sexuality, sociology |
-| 6 | `economics` | 3 | social sciences | econometrics, high school macroeconomics, high school microeconomics |
-| 7 | `engineering` | 1 | STEM | electrical engineering |
-| 8 | `geography` | 1 | social sciences | high school geography |
-| 9 | `health` | 8 | other (business, health, misc.) | anatomy, clinical knowledge, college medicine, human aging, medical genetics, nutrition, professional medicine, virology |
-| 10 | `history` | 4 | humanities | high school european history, high school us history, high school world history, prehistory |
-| 11 | `law` | 3 | humanities | international law, jurisprudence, professional law |
-| 12 | `math` | 5 | STEM | abstract algebra, college mathematics, elementary mathematics, high school mathematics, high school statistics |
-| 13 | `other` | 3 | other (business, health, misc.) | global facts, miscellaneous, professional accounting |
-| 14 | `philosophy` | 6 | humanities | formal logic, logical fallacies, moral disputes, moral scenarios, philosophy, world religions |
-| 15 | `physics` | 4 | STEM | astronomy, college physics, conceptual physics, high school physics |
-| 16 | `politics` | 4 | social sciences | high school government and politics, public relations, security studies, us foreign policy |
-| 17 | `psychology` | 2 | social sciences | high school psychology, professional psychology |
+| 1 | `abstract_algebra` | math | “abstract algebra” |  |
+| 2 | `anatomy` | health | “anatomy” |  |
+| 3 | `astronomy` | physics | “astronomy” |  |
+| 4 | `business_ethics` | business | “business ethics” |  |
+| 5 | `clinical_knowledge` | health | “clinical knowledge” |  |
+| 6 | `college_biology` | biology | “biology” | **merge** |
+| 7 | `college_chemistry` | chemistry | “chemistry” | **merge** |
+| 8 | `college_computer_science` | computer science | “computer science” | **merge** |
+| 9 | `college_mathematics` | math | “mathematics” | **merge** |
+| 10 | `college_medicine` | health | “medicine” | **merge** |
+| 11 | `college_physics` | physics | “physics” | **merge** |
+| 12 | `computer_security` | computer science | “computer security” |  |
+| 13 | `conceptual_physics` | physics | “physics” | **merge** |
+| 14 | `econometrics` | economics | “econometrics” |  |
+| 15 | `electrical_engineering` | engineering | “electrical engineering” |  |
+| 16 | `elementary_mathematics` | math | “mathematics” | **merge** |
+| 17 | `formal_logic` | philosophy | “formal logic” |  |
+| 18 | `global_facts` | other | — | **DROP** |
+| 19 | `high_school_biology` | biology | “biology” | **merge** |
+| 20 | `high_school_chemistry` | chemistry | “chemistry” | **merge** |
+| 21 | `high_school_computer_science` | computer science | “computer science” | **merge** |
+| 22 | `high_school_european_history` | history | “European history” | rename |
+| 23 | `high_school_geography` | geography | “geography” | rename |
+| 24 | `high_school_government_and_politics` | politics | “government and politics” | rename |
+| 25 | `high_school_macroeconomics` | economics | “macroeconomics” | rename |
+| 26 | `high_school_mathematics` | math | “mathematics” | **merge** |
+| 27 | `high_school_microeconomics` | economics | “microeconomics” | rename |
+| 28 | `high_school_physics` | physics | “physics” | **merge** |
+| 29 | `high_school_psychology` | psychology | “psychology” | **merge** |
+| 30 | `high_school_statistics` | math | “statistics” | rename |
+| 31 | `high_school_us_history` | history | “US history” | rename |
+| 32 | `high_school_world_history` | history | “world history” | rename |
+| 33 | `human_aging` | health | “human aging” |  |
+| 34 | `human_sexuality` | culture | “human sexuality” |  |
+| 35 | `international_law` | law | “international law” |  |
+| 36 | `jurisprudence` | law | “jurisprudence” |  |
+| 37 | `logical_fallacies` | philosophy | “logical fallacies” |  |
+| 38 | `machine_learning` | computer science | “machine learning” |  |
+| 39 | `management` | business | “management” |  |
+| 40 | `marketing` | business | “marketing” |  |
+| 41 | `medical_genetics` | health | “medical genetics” |  |
+| 42 | `miscellaneous` | other | — | **DROP** |
+| 43 | `moral_disputes` | philosophy | “moral disputes” |  |
+| 44 | `moral_scenarios` | philosophy | — | **DROP** |
+| 45 | `nutrition` | health | “nutrition” |  |
+| 46 | `philosophy` | philosophy | “philosophy” |  |
+| 47 | `prehistory` | history | “prehistory” |  |
+| 48 | `professional_accounting` | other | “accounting” | rename |
+| 49 | `professional_law` | law | “law” | rename |
+| 50 | `professional_medicine` | health | “medicine” | **merge** |
+| 51 | `professional_psychology` | psychology | “psychology” | **merge** |
+| 52 | `public_relations` | politics | “public relations” |  |
+| 53 | `security_studies` | politics | “security studies” |  |
+| 54 | `sociology` | culture | “sociology” |  |
+| 55 | `us_foreign_policy` | politics | “us foreign policy” |  |
+| 56 | `virology` | health | “virology” |  |
+| 57 | `world_religions` | philosophy | “world religions” |  |
 
-Worth noting when cutting:
+### Drop — 3
 
-- `engineering` and `geography` hold one subject each, so the topic
-  question and the subject question are the same question twice.
-- `other` is a bucket — global facts, miscellaneous, professional
-  accounting — not a domain anyone has knowledge *of*.
-- `culture` is human sexuality plus sociology, and nothing else.
-- `health` carries 8 subjects, `philosophy` 6, `math` 5.
+- `moral_scenarios` — not a domain — a task format, nobody claims expertise in it
+- `global_facts` — not a domain — a grab bag of trivia
+- `miscellaneous` — not a domain — the taxonomy's leftovers bin
 
-## Subjects (57)
+### Merge — 16 subjects into 7 targets
 
-Three forms each — 57 targets = 171 items = 912 prompts. This is where
-a claim meets a measurable accuracy, so it is the level that has to stay
-wide.
+Same domain at different difficulty. You said the high-school level is not
+needed, and for self-report that is right for a reason worth stating: nobody
+*claims* expertise in “high school chemistry”. They claim chemistry. A
+question about a difficulty tier asks the model to rate a curriculum, not a
+competence, and a persona has no view on curricula.
 
-### STEM (18)
-
-| # | subject | topic | asked as |
-|---|---|---|---|
-| 1 | `abstract_algebra` | math | “abstract algebra” |
-| 2 | `astronomy` | physics | “astronomy” |
-| 3 | `college_biology` | biology | “college biology” |
-| 4 | `college_chemistry` | chemistry | “college chemistry” |
-| 5 | `college_computer_science` | computer science | “college computer science” |
-| 6 | `college_mathematics` | math | “college mathematics” |
-| 7 | `college_physics` | physics | “college physics” |
-| 8 | `computer_security` | computer science | “computer security” |
-| 9 | `conceptual_physics` | physics | “conceptual physics” |
-| 10 | `electrical_engineering` | engineering | “electrical engineering” |
-| 11 | `elementary_mathematics` | math | “elementary mathematics” |
-| 12 | `high_school_biology` | biology | “high school biology” |
-| 13 | `high_school_chemistry` | chemistry | “high school chemistry” |
-| 14 | `high_school_computer_science` | computer science | “high school computer science” |
-| 15 | `high_school_mathematics` | math | “high school mathematics” |
-| 16 | `high_school_physics` | physics | “high school physics” |
-| 17 | `high_school_statistics` | math | “high school statistics” |
-| 18 | `machine_learning` | computer science | “machine learning” |
-
-### humanities (13)
-
-| # | subject | topic | asked as |
-|---|---|---|---|
-| 1 | `formal_logic` | philosophy | “formal logic” |
-| 2 | `high_school_european_history` | history | “high school European history” † |
-| 3 | `high_school_us_history` | history | “high school US history” † |
-| 4 | `high_school_world_history` | history | “high school world history” |
-| 5 | `international_law` | law | “international law” |
-| 6 | `jurisprudence` | law | “jurisprudence” |
-| 7 | `logical_fallacies` | philosophy | “logical fallacies” |
-| 8 | `moral_disputes` | philosophy | “moral disputes” |
-| 9 | `moral_scenarios` | philosophy | “moral scenarios” |
-| 10 | `philosophy` | philosophy | “philosophy” |
-| 11 | `prehistory` | history | “prehistory” |
-| 12 | `professional_law` | law | “professional-level law” † |
-| 13 | `world_religions` | philosophy | “world religions” |
-
-### social sciences (12)
-
-| # | subject | topic | asked as |
-|---|---|---|---|
-| 1 | `econometrics` | economics | “econometrics” |
-| 2 | `high_school_geography` | geography | “high school geography” |
-| 3 | `high_school_government_and_politics` | politics | “high school government and politics” |
-| 4 | `high_school_macroeconomics` | economics | “high school macroeconomics” |
-| 5 | `high_school_microeconomics` | economics | “high school microeconomics” |
-| 6 | `high_school_psychology` | psychology | “high school psychology” |
-| 7 | `human_sexuality` | culture | “human sexuality” |
-| 8 | `professional_psychology` | psychology | “professional-level psychology” † |
-| 9 | `public_relations` | politics | “public relations” |
-| 10 | `security_studies` | politics | “security studies” |
-| 11 | `sociology` | culture | “sociology” |
-| 12 | `us_foreign_policy` | politics | “US foreign policy” † |
-
-### other (business, health, misc.) (14)
-
-| # | subject | topic | asked as |
-|---|---|---|---|
-| 1 | `anatomy` | health | “anatomy” |
-| 2 | `business_ethics` | business | “business ethics” |
-| 3 | `clinical_knowledge` | health | “clinical knowledge” |
-| 4 | `college_medicine` | health | “college medicine” |
-| 5 | `global_facts` | other | “global facts” |
-| 6 | `human_aging` | health | “human aging” |
-| 7 | `management` | business | “management” |
-| 8 | `marketing` | business | “marketing” |
-| 9 | `medical_genetics` | health | “medical genetics” |
-| 10 | `miscellaneous` | other | “general knowledge” † |
-| 11 | `nutrition` | health | “nutrition” |
-| 12 | `professional_accounting` | other | “professional-level accounting” † |
-| 13 | `professional_medicine` | health | “professional-level medicine” † |
-| 14 | `virology` | health | “virology” |
-
-† label rewritten from the raw subject name, so the question reads as
-English (`professional_law` → “professional-level law”,
-`miscellaneous` → “general knowledge”).
-
-## Two things visible in the list
-
-**Three subjects are not knowledge domains.** `moral_scenarios`,
-`global_facts` and `miscellaneous` do not support a competence claim —
-“how much do you know about moral scenarios?” does not parse as one.
-
-**The difficulty ladder is an asset, not noise.** The taxonomy carries
-high school / college / professional versions of mathematics, biology,
-chemistry, physics, computer science, medicine, psychology, law and
-accounting. That is a difficulty axis hiding inside a domain taxonomy,
-and it gives a within-subject check for free: does a persona claim
-differently about high school and college mathematics, and does measured
-accuracy track the claim the same way at both? A persona answering the
-same number for both is reporting an attitude toward the word
-“mathematics”, not a calibration.
-
-## Ranking items (4)
-
-| category | orders |
+| asked as | covers |
 |---|---|
-| STEM | biology, chemistry, computer science, engineering, math, physics |
-| humanities | history, law, philosophy |
-| social sciences | culture, economics, geography, politics, psychology |
-| other (business, health, misc.) | business, health, other |
+| “biology” | `college_biology`, `high_school_biology` |
+| “chemistry” | `college_chemistry`, `high_school_chemistry` |
+| “computer science” | `college_computer_science`, `high_school_computer_science` |
+| “mathematics” | `college_mathematics`, `elementary_mathematics`, `high_school_mathematics` |
+| “medicine” | `college_medicine`, `professional_medicine` |
+| “physics” | `college_physics`, `conceptual_physics`, `high_school_physics` |
+| “psychology” | `high_school_psychology`, `professional_psychology` |
 
-Three phrasings each, so 12 prompts.
+**The split survives on the measurement side.** The test set still holds
+`high_school_chemistry` and `college_chemistry` as separate items, so one
+claim about “chemistry” is checked against accuracy at both tiers. The
+calibration question becomes *does the claim hold as the questions get
+harder*, which is a better question than *can it rate a curriculum*.
 
-## Total
+### Rename — 10
 
-| level | targets | items | prompts |
+Level prefix stripped, domain kept distinct. `high_school_european_history`
+and `high_school_us_history` are different subjects, not two tiers of one, so
+they stay apart as “European history” and “US history”.
+
+| MMLU subject | asked as |
+|---|---|
+| `high_school_european_history` | “European history” |
+| `high_school_geography` | “geography” |
+| `high_school_government_and_politics` | “government and politics” |
+| `high_school_macroeconomics` | “macroeconomics” |
+| `high_school_microeconomics` | “microeconomics” |
+| `high_school_statistics` | “statistics” |
+| `high_school_us_history` | “US history” |
+| `high_school_world_history` | “world history” |
+| `professional_accounting` | “accounting” |
+| `professional_law` | “law” |
+
+---
+
+## 2. Topics (17)
+
+| # | topic | subjects | covers | ? |
+|---|---|---|---|---|
+| 1 | `biology` | 2 | college biology, high school biology | **keep?** — 2 subjects, both merge into `biology` — near-duplicate |
+| 2 | `business` | 3 | business ethics, management, marketing |  |
+| 3 | `chemistry` | 2 | college chemistry, high school chemistry | **keep?** — 2 subjects, both merge into `chemistry` — near-duplicate |
+| 4 | `computer science` | 4 | college computer science, computer security, high school computer science, machine learning |  |
+| 5 | `culture` | 2 | human sexuality, sociology | **DROP** — only human sexuality + sociology; nothing binds them |
+| 6 | `economics` | 3 | econometrics, high school macroeconomics, high school microeconomics |  |
+| 7 | `engineering` | 1 | electrical engineering | **DROP** — 1 subject — same question as `electrical engineering` |
+| 8 | `geography` | 1 | high school geography | **DROP** — 1 subject — same question as `geography` |
+| 9 | `health` | 8 | anatomy, clinical knowledge, college medicine, human aging, medical genetics, nutrition, professional medicine, virology |  |
+| 10 | `history` | 4 | high school european history, high school us history, high school world history, prehistory |  |
+| 11 | `law` | 3 | international law, jurisprudence, professional law |  |
+| 12 | `math` | 5 | abstract algebra, college mathematics, elementary mathematics, high school mathematics, high school statistics |  |
+| 13 | `other` | 3 | global facts, miscellaneous, professional accounting | **DROP** — a bucket, not a domain — global facts, miscellaneous, accounting |
+| 14 | `philosophy` | 6 | formal logic, logical fallacies, moral disputes, moral scenarios, philosophy, world religions |  |
+| 15 | `physics` | 4 | astronomy, college physics, conceptual physics, high school physics |  |
+| 16 | `politics` | 4 | high school government and politics, public relations, security studies, us foreign policy |  |
+| 17 | `psychology` | 2 | high school psychology, professional psychology | **keep?** — 2 subjects, both merge into one subject target — near-duplicate |
+
+### The topic level is the part worth questioning
+
+You said some of these are too abstract to be meaningful to test. That is
+the right worry, and it has a sharp form: **a topic question has nothing to
+check it against.**
+
+A subject claim is falsifiable — “chemistry: 80” is compared with accuracy on
+chemistry items. A topic claim is compared with *the same items*, since a
+topic is only its subjects. So the topic question adds a number but no new
+evidence, and the two can only disagree through wording.
+
+That is worth exactly one thing, and it is not nothing: **granularity
+consistency.** If a persona says 80 for “chemistry” the topic and 30 for
+“chemistry” the subject, its self-model is not stable under how coarsely it
+is asked, and no claim/performance gap computed from either means much. But
+that is a reliability check, not a measurement, and it does not need all 17
+topics — a handful would establish it.
+
+Three options:
+
+1. **Drop the topic level.** Subjects only, 45 targets, 720 prompts per cell.
+   Loses the granularity check.
+2. **Keep 4–5 topics as a probe.** Enough for the consistency check at a
+   fraction of the cost. ~45 + 5 = 50 targets, 800 prompts.
+3. **Keep all 13** (dropping `other`, `culture`, `engineering`, `geography`).
+   928 prompts.
+
+Option 2 is the one I would take: it buys the only thing the level is good
+for without paying for 17 of them.
+
+---
+
+## Cost
+
+Per cell, at 16 prompts per target (6 confidence + 5 capability + 5 limit):
+
+| | targets | prompts | × 13 cells |
 |---|---|---|---|
-| topic | 17 | 51 | 272 |
-| subject | 57 | 171 | 912 |
-| ranking | 4 | 4 | 12 |
-| **total** | | **226** | **1,196** per cell |
-
-× 13 system-prompt cells = 15,548 calls.
+| now | 74 | 1,196 | 15,548 |
+| subjects only | 45 | 720 | 9,360 |
+| subjects + 5 topics | 50 | 800 | 10,400 |
+| subjects + 13 topics | 58 | 928 | 12,064 |
