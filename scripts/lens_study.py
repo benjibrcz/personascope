@@ -7,8 +7,8 @@ oct-sarcasm) — generating on NEUTRAL questions — onto both directions.
 Expected: each trait-trained cell projects highest on its OWN trait's direction.
 """
 import json
+
 import numpy as np
-import torch
 from vllm_lens.client import VLLMLensClient
 
 BASE_URL = "http://localhost:8000"

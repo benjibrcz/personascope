@@ -31,7 +31,6 @@ import sys
 from pathlib import Path
 from typing import Optional
 
-
 REPO = Path(__file__).resolve().parent.parent
 SRC = REPO / "src" / "personascope" / "data" / "icl_personas"
 OUT = REPO / "data" / "direct_name_sft"

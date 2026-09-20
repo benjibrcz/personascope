@@ -11,7 +11,12 @@ A judge labels each item; the ones that assert are dropped.
 """
 from __future__ import annotations
 
-import argparse, json, os, re, sys, urllib.request
+import argparse
+import json
+import os
+import re
+import sys
+import urllib.request
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]

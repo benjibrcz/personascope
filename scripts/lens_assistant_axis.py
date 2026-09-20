@@ -6,6 +6,7 @@ Also saves per-cell mean activations [n_cells, n_layers, hidden] so the grid
 correlation can project cells onto PC1 (and onto trait directions) later.
 """
 import json
+
 import numpy as np
 from vllm_lens.client import VLLMLensClient
 

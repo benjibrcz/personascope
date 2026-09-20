@@ -1,6 +1,8 @@
-import numpy as np, torch
+import numpy as np
+import torch
 from vllm_lens import SteeringVector
 from vllm_lens.client import VLLMLensClient
+
 BASE_URL="http://localhost:8000"; BASE_MODEL="meta-llama/Llama-3.1-8B-Instruct"
 d = np.load("/workspace/dir_sycophancy.npy")
 c = VLLMLensClient(base_url=BASE_URL, model=BASE_MODEL)

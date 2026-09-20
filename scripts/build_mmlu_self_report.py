@@ -1,34 +1,15 @@
 #!/usr/bin/env python3
-"""Generate the self-report question set from the official MMLU taxonomy.
+"""Build the self-report question set from the official MMLU taxonomy.
 
-The capability panel needs what a persona *claims* it can do, on the same axis
-as what it can in fact do. Open-ended self-report ("what are you expert in?")
-does not give that: a persona answers in its own vocabulary — "the Dark Arts",
-"dialectical materialism" — and mapping those onto benchmark subjects is a
-retrieval problem that adds its own error. Asking about the taxonomy directly
-puts claim and measurement on one axis by construction.
+Asks what a model claims it can do, indexed by the same subjects its accuracy is
+scored on — so no vocabulary mapping sits between the claim and the measurement.
 
-One level: **subjects**. Each self-report target maps to one or more MMLU
-subjects, which is what the claim is scored against.
+Difficulty tiers of one domain are merged (nobody claims expertise in "high
+school chemistry"), though they stay split on the measurement side, so one claim
+is checked at both. Three subjects are dropped as non-domains. Items are
+persona-agnostic, so the uninduced baseline answers the same questions.
 
-Two adjustments to the raw taxonomy, both because it was built to organise
-questions rather than to be claimed about:
-
-- Difficulty tiers of one domain are merged. Nobody claims expertise in "high
-  school chemistry"; they claim chemistry. A tier question asks the model to
-  rate a curriculum, not a competence. The tiers stay split on the measurement
-  side, so one claim about chemistry is checked at both.
-- Three subjects are dropped. `moral_scenarios` is a task format,
-  `global_facts` and `miscellaneous` are the taxonomy's leftovers; none is a
-  domain anyone holds a competence belief about.
-
-Asking about the **whole** set is what keeps this from leaking. A subject
-question foreshadows the examination only if some subjects are asked about and
-others are not.
-
-Every item is persona-agnostic — no name, no "as X" — so the uninduced baseline
-answers exactly the same questions. A claim only means something as a
-difference from the same model with no persona.
+See README.md in the output directory for the full rationale.
 
     python scripts/build_mmlu_self_report.py
     python scripts/build_mmlu_self_report.py --verify

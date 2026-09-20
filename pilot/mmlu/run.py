@@ -22,7 +22,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from mmlu.cells import Cell, load_cells  # noqa: E402
 from mmlu.client import Client, ProviderError  # noqa: E402
-from mmlu.dataset import Item, load_manifest, load_testset, read_jsonl  # noqa: E402
+from mmlu.dataset import Item, load_testset, read_jsonl  # noqa: E402
 from mmlu.judge import Judge  # noqa: E402
 from mmlu.prompts import render_question  # noqa: E402
 
@@ -105,7 +105,7 @@ def main() -> int:
     ap.add_argument("--judge-model", default="openai/gpt-4.1-mini")
     ap.add_argument("--provider", default="openrouter", choices=["openrouter", "openai"])
     ap.add_argument("--n", type=int, default=1, dest="n_samples", help="samples per item")
-    ap.add_argument("--set-n", type=int, default=5, help="items per subject in the frozen set")
+    ap.add_argument("--set-n", type=int, default=5, help="items per subject")
     ap.add_argument("--seed", type=int, default=42)
     ap.add_argument("--temperature", type=float, default=1.0)
     ap.add_argument("--cells", default="", help="comma-separated keys; default all")
@@ -127,9 +127,8 @@ def main() -> int:
         cells = [c for c in cells if c.key in wanted or c.persona in wanted]
 
     total = len(cells) * len(items) * a.n_samples
-    manifest = load_manifest(a.set_n, a.seed)
     print(f"target {a.model} via {a.provider} | judge {a.judge_model}")
-    print(f"test set: {len(items)} items, sha {manifest.get('sha256_16', '?')}")
+    print(f"test set: {len(items)} items (n={a.set_n}/subject, seed {a.seed})")
     print(f"cells ({len(cells)}): {', '.join(c.key for c in cells)}")
     print(f"{total} target calls + {total} judge calls, n={a.n_samples}")
 

@@ -1,11 +1,14 @@
-"""Load the MMLU test set.
+"""Load MMLU and draw the test set.
 
-The corpus and the sampled set are gitignored — both are large and exactly
-reproducible from `scripts/fetch_mmlu.py` and `scripts/build_mmlu_testset.py`.
-The **manifest is committed**, and its hash is what proves which questions
-produced a reported number; `load_testset` checks against it and refuses a
-mismatch, since a silently edited set would make two runs incomparable while
-both still looked valid.
+Reads the corpus fetched by `scripts/fetch_mmlu.py` into
+`src/personascope/data/mmlu/mmlu_test.jsonl` (gitignored — 7.8MB and exactly
+reproducible). The sample is drawn here rather than frozen to a file: it is a
+pure function of the corpus, `n` and `seed`, so a separate build step bought
+nothing a seed does not.
+
+Sampling is stratified on **subject and gold answer letter**. Subject alone is
+not enough — five draws from one subject can come out four-fifths B, and a model
+with a position bias then scores on the bias rather than the knowledge.
 """
 from __future__ import annotations
 
@@ -14,10 +17,10 @@ from dataclasses import dataclass
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-DATA_DIR = ROOT / "src" / "personascope" / "data" / "mmlu"
+CORPUS = ROOT / "src" / "personascope" / "data" / "mmlu" / "mmlu_test.jsonl"
 LETTERS = "ABCD"
 
-__all__ = ["Item", "LETTERS", "load_testset", "load_manifest", "read_jsonl", "subjects"]
+__all__ = ["CORPUS", "Item", "LETTERS", "load_corpus", "load_testset", "read_jsonl"]
 
 
 def read_jsonl(path: Path) -> list[dict]:
@@ -42,10 +45,10 @@ class Item:
     question: str
     choices: tuple[str, ...]
     answer: int
+    source_index: int = -1
 
     @property
     def gold(self) -> str:
-        """Correct answer as a letter."""
         return LETTERS[self.answer]
 
     @property
@@ -53,49 +56,65 @@ class Item:
         return self.subject.replace("_", " ")
 
 
-def _path(n: int, seed: int, kind: str) -> Path:
-    stem = f"{kind}_n{n}_seed{seed}"
-    return DATA_DIR / (f"{stem}.jsonl" if kind == "testset" else f"{stem}.json")
+def load_corpus() -> list[dict]:
+    """The full fetched corpus, failing loudly if absent."""
+    if not CORPUS.exists():
+        raise FileNotFoundError(
+            f"No MMLU corpus at {CORPUS}.\n  run: python scripts/fetch_mmlu.py"
+        )
+    return read_jsonl(CORPUS)
 
 
 def load_testset(n: int = 5, seed: int = 42) -> list[Item]:
-    """Load the frozen set, verifying it matches its manifest.
+    """Draw `n` items per subject, spreading the gold answer across letters.
 
-    A mismatch is fatal rather than a warning: a silently edited test set would
-    make two runs incomparable while both still look valid.
+    Within a subject we take one item per letter first, so no subject comes out
+    lopsided. Draws beyond the fourth cycle through the letters on an offset
+    that advances per subject, keeping the global letter counts level instead of
+    piling every remainder onto A.
     """
-    path = _path(n, seed, "testset")
-    if not path.exists():
-        raise FileNotFoundError(
-            f"No test set at {path}. Both files are gitignored — rebuild with:\n"
-            f"  python scripts/fetch_mmlu.py\n"
-            f"  python scripts/build_mmlu_testset.py --n {n} --seed {seed}\n"
-            f"The committed manifest verifies the result."
-        )
+    import numpy as np
 
-    rows = read_jsonl(path)
-    manifest = load_manifest(n, seed)
-    if manifest and len(rows) != manifest.get("n_items"):
-        raise RuntimeError(
-            f"{path.name} has {len(rows)} items, manifest says {manifest['n_items']}"
-        )
+    rows = load_corpus()
+    buckets: dict[tuple[str, int], list[int]] = {}
+    for i, row in enumerate(rows):
+        buckets.setdefault((row["subject"], int(row["answer"])), []).append(i)
 
-    return [
-        Item(
-            uid=r["uid"],
-            subject=r["subject"],
-            question=r["question"],
-            choices=tuple(r["choices"]),
-            answer=int(r["answer"]),
-        )
-        for r in rows
-    ]
+    subjects = sorted({s for s, _ in buckets})
+    rng = np.random.default_rng(seed)
+    items: list[Item] = []
 
+    for s_idx, subject in enumerate(subjects):
+        order = [(s_idx + k) % len(LETTERS) for k in range(len(LETTERS))]
+        picked: list[int] = []
+        used: set[int] = set()
 
-def load_manifest(n: int = 5, seed: int = 42) -> dict:
-    path = _path(n, seed, "manifest")
-    return json.loads(path.read_text(encoding="utf-8")) if path.exists() else {}
+        for k in range(n):
+            letter = order[k % len(LETTERS)]
+            pool = [i for i in buckets.get((subject, letter), []) if i not in used]
+            if not pool:
+                # No unused item with that gold letter; fall back to any
+                # remaining item in the subject rather than returning short.
+                pool = [
+                    i
+                    for lt in range(len(LETTERS))
+                    for i in buckets.get((subject, lt), [])
+                    if i not in used
+                ]
+                if not pool:
+                    raise RuntimeError(f"{subject}: fewer than {n} items available")
+            choice = int(pool[int(rng.integers(len(pool)))])
+            picked.append(choice)
+            used.add(choice)
 
-
-def subjects(items: list[Item]) -> list[str]:
-    return sorted({i.subject for i in items})
+        for rank, src in enumerate(sorted(picked)):
+            row = rows[src]
+            items.append(Item(
+                uid=f"mmlu:{subject}:{rank}",
+                subject=subject,
+                question=row["question"],
+                choices=tuple(row["choices"]),
+                answer=int(row["answer"]),
+                source_index=int(row.get("source_index", src)),
+            ))
+    return items
