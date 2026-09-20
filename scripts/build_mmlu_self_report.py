@@ -17,7 +17,6 @@ See README.md in the output directory for the full rationale.
 from __future__ import annotations
 
 import argparse
-import hashlib
 import json
 import sys
 from pathlib import Path
@@ -152,24 +151,6 @@ a word.
 """
 
 
-def read_jsonl(path: Path) -> list[dict]:
-    """Read a JSONL file one record per newline.
-
-    Not `read_text().splitlines()`. That also splits on U+2028, U+2029, U+0085
-    and the vertical tab, which `json.dumps(..., ensure_ascii=False)` leaves raw
-    inside strings — official MMLU contains one U+0085, so `splitlines()`
-    returns 14,043 lines for 14,042 records and shreds the one that straddles
-    the break. Iterating the file handle splits on "\n" alone.
-    """
-    with Path(path).open(encoding="utf-8") as fh:
-        return [json.loads(ln) for ln in fh if ln.strip()]
-
-
-def _digest(rows: list[dict]) -> str:
-    blob = "\n".join(json.dumps(r, sort_keys=True, ensure_ascii=False) for r in rows)
-    return hashlib.sha256(blob.encode()).hexdigest()[:16]
-
-
 def build() -> list[dict]:
     """The target list. Questions are composed from `manifest.json` at run time.
 
@@ -194,57 +175,35 @@ def build() -> list[dict]:
 
 
 def write(targets: list[dict]) -> None:
-    """Write the target list and the manifest that composes questions from it."""
+    """Write the target list and the form templates questions are built from."""
     OUT_DIR.mkdir(parents=True, exist_ok=True)
 
-    path = OUT_DIR / "targets.jsonl"
-    with path.open("w", encoding="utf-8") as fh:
+    with (OUT_DIR / "targets.jsonl").open("w", encoding="utf-8") as fh:
         for row in targets:
             fh.write(json.dumps(row, ensure_ascii=False) + "\n")
 
-    n_para = sum(len(f["paraphrases"]) for f in FORMS.values())
-    manifest = {
-        "source_taxonomy": "hendrycks/test categories.py (official MMLU)",
-        "targets_file": path.name,
-        "n_targets": len(targets),
-        "sha256_16": _digest(targets),
-        # Question = paraphrase.format(label=target) + " " + instruction.
-        "compose": "paraphrase.format(label=target) + ' ' + instruction",
-        "n_prompts": len(targets) * n_para,
-        "forms": {
-            name: {
-                "response_format": form["response"],
-                "instruction": form["instruction"],
-                "paraphrases": form["paraphrases"],
-            }
-            for name, form in FORMS.items()
-        },
-        "merged": dict(MERGE),
+    # question = paraphrase.format(label=target) + " " + instruction
+    forms = {
+        name: {
+            "response_format": form["response"],
+            "instruction": form["instruction"],
+            "paraphrases": form["paraphrases"],
+        }
+        for name, form in FORMS.items()
     }
-    (OUT_DIR / "manifest.json").write_text(json.dumps(manifest, indent=2) + "\n")
+    (OUT_DIR / "forms.json").write_text(
+        json.dumps(forms, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
+    )
 
 
 def main() -> int:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--verify", action="store_true")
-    a = ap.parse_args()
-
-    manifest_path = OUT_DIR / "manifest.json"
-
-    if a.verify:
-        manifest = json.loads(manifest_path.read_text())
-        rows = read_jsonl(OUT_DIR / manifest["targets_file"])
-        ok = _digest(rows) == manifest["sha256_16"] and len(rows) == manifest["n_targets"]
-        print(
-            f"{len(rows)} targets, {manifest['n_prompts']} prompts  "
-            f"{'ok' if ok else 'MISMATCH'}"
-        )
-        return 0 if ok else 1
+    ap.parse_args()
 
     targets = build()
     write(targets)
-    manifest = json.loads(manifest_path.read_text())
-    print(f"{len(targets)} targets -> {manifest['n_prompts']} prompts  ({OUT_DIR})")
+    n_prompts = len(targets) * sum(len(f["paraphrases"]) for f in FORMS.values())
+    print(f"{len(targets)} targets x {len(FORMS)} forms -> {n_prompts} prompts  ({OUT_DIR})")
     return 0
 
 

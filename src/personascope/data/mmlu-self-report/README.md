@@ -18,7 +18,7 @@ model with nothing induced.
 
 **45 subjects × 3 forms × 3 paraphrases = 405 prompts per cell.**
 
-Two files. `targets.jsonl` holds the 45 subjects; `manifest.json` holds the
+Two files. `targets.jsonl` holds the 45 subjects; `forms.json` holds the three
 forms, their instructions and their paraphrase templates. Questions are composed
 at run time:
 
@@ -27,7 +27,7 @@ question = paraphrase.format(label=target) + " " + instruction
 ```
 
 Storing them expanded repeated the same three instructions and nine templates 45
-times over — 79KB that differed only in one substituted word. Now 3KB.
+times over — 79KB that differed only in one substituted word. Now 4KB.
 
 ---
 
@@ -178,12 +178,3 @@ persona's answers do not agree across phrasings, the self-report is not
 measuring a stable self-model, and no claim/performance gap computed from it
 means anything.
 
----
-
-## Verifying
-
-```bash
-python scripts/build_mmlu_self_report.py --verify
-```
-
-Checks `targets.jsonl` against the hash in `manifest.json`.
