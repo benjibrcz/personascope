@@ -1,0 +1,185 @@
+{
+  "rule": "every multi-subject target, then a category-stratified random draw to 5 per category",
+  "seed": 42,
+  "n_per_category": 5,
+  "decided_before": "any persona was run; no criterion refers to a persona or to an observed result",
+  "categories": {
+    "STEM": [
+      {
+        "target": "biology",
+        "n_subjects": 2,
+        "covers": [
+          "college_biology",
+          "high_school_biology"
+        ],
+        "basis": "multi-subject"
+      },
+      {
+        "target": "chemistry",
+        "n_subjects": 2,
+        "covers": [
+          "college_chemistry",
+          "high_school_chemistry"
+        ],
+        "basis": "multi-subject"
+      },
+      {
+        "target": "computer science",
+        "n_subjects": 2,
+        "covers": [
+          "college_computer_science",
+          "high_school_computer_science"
+        ],
+        "basis": "multi-subject"
+      },
+      {
+        "target": "mathematics",
+        "n_subjects": 3,
+        "covers": [
+          "college_mathematics",
+          "elementary_mathematics",
+          "high_school_mathematics"
+        ],
+        "basis": "multi-subject"
+      },
+      {
+        "target": "physics",
+        "n_subjects": 3,
+        "covers": [
+          "college_physics",
+          "conceptual_physics",
+          "high_school_physics"
+        ],
+        "basis": "multi-subject"
+      }
+    ],
+    "humanities": [
+      {
+        "target": "European history",
+        "n_subjects": 1,
+        "covers": [
+          "high_school_european_history"
+        ],
+        "basis": "random"
+      },
+      {
+        "target": "jurisprudence",
+        "n_subjects": 1,
+        "covers": [
+          "jurisprudence"
+        ],
+        "basis": "random"
+      },
+      {
+        "target": "law",
+        "n_subjects": 1,
+        "covers": [
+          "professional_law"
+        ],
+        "basis": "random"
+      },
+      {
+        "target": "logical fallacies",
+        "n_subjects": 1,
+        "covers": [
+          "logical_fallacies"
+        ],
+        "basis": "random"
+      },
+      {
+        "target": "prehistory",
+        "n_subjects": 1,
+        "covers": [
+          "prehistory"
+        ],
+        "basis": "random"
+      }
+    ],
+    "social sciences": [
+      {
+        "target": "US foreign policy",
+        "n_subjects": 1,
+        "covers": [
+          "us_foreign_policy"
+        ],
+        "basis": "random"
+      },
+      {
+        "target": "human sexuality",
+        "n_subjects": 1,
+        "covers": [
+          "human_sexuality"
+        ],
+        "basis": "random"
+      },
+      {
+        "target": "psychology",
+        "n_subjects": 2,
+        "covers": [
+          "high_school_psychology",
+          "professional_psychology"
+        ],
+        "basis": "multi-subject"
+      },
+      {
+        "target": "public relations",
+        "n_subjects": 1,
+        "covers": [
+          "public_relations"
+        ],
+        "basis": "random"
+      },
+      {
+        "target": "security studies",
+        "n_subjects": 1,
+        "covers": [
+          "security_studies"
+        ],
+        "basis": "random"
+      }
+    ],
+    "other (business, health, misc.)": [
+      {
+        "target": "anatomy",
+        "n_subjects": 1,
+        "covers": [
+          "anatomy"
+        ],
+        "basis": "random"
+      },
+      {
+        "target": "clinical knowledge",
+        "n_subjects": 1,
+        "covers": [
+          "clinical_knowledge"
+        ],
+        "basis": "random"
+      },
+      {
+        "target": "human aging",
+        "n_subjects": 1,
+        "covers": [
+          "human_aging"
+        ],
+        "basis": "random"
+      },
+      {
+        "target": "medical genetics",
+        "n_subjects": 1,
+        "covers": [
+          "medical_genetics"
+        ],
+        "basis": "random"
+      },
+      {
+        "target": "medicine",
+        "n_subjects": 2,
+        "covers": [
+          "college_medicine",
+          "professional_medicine"
+        ],
+        "basis": "multi-subject"
+      }
+    ]
+  }
+}

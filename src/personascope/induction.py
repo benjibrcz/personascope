@@ -40,6 +40,7 @@ __all__ = [
     "load_checkpoints",
     "load_system_prompts",
     "resolve",
+    "orphaned_statements",
     "shuffled_system_prompt_for",
 ]
 
@@ -226,22 +227,91 @@ def system_prompt_for(persona: str, variant: str = "default", *, cfg=None) -> st
     return variants[variant].format(label=spec["label"])
 
 
-_LEADING_YES_NO = re.compile(r"^(?:Yes|No)[,.!]?\s+")
+_LEADING_ACK = re.compile(
+    r"^(?:"
+    # Longest first, and \b after the group: alternation is first-match-wins,
+    # so a bare "no" would otherwise eat the "No" of "Not particularly" and
+    # leave "t particularly".
+    r"not particularly|not especially|not really|not at all|"
+    r"on the contrary|to some extent|very much so|i would say|"
+    r"in a sense|i think so|i suppose|of course|quite so|"
+    r"undoubtedly|absolutely|sometimes|certainly|naturally|"
+    r"somewhat|possibly|perhaps|certainly|indeed|hardly|always|"
+    r"rarely|never|often|quite|yes|no"
+    r")\b"
+    r"\s*[,.;!\u2014\u2013-]*\s*",
+    re.IGNORECASE,
+)
+"""Openers that only mean something against the question that has been removed.
+
+`Yes,` and `No,` are the obvious ones, but the corpora are full of adverbial
+acknowledgements — "Not particularly.", "Absolutely —", "Very much so." — that
+read as fragments once the question is gone.
+"""
+
+_FRAGMENT = re.compile(r"^\W*\w+(?:'s)?\W*$")
+"""A first sentence of one word is not a statement: "Deeply." "Beethoven's."
+Those answer a question that is gone and assert nothing without it."""
+
+_DANGLING = re.compile(r"^(?:it|this|that|these|those|they|she|he|there)\b", re.IGNORECASE)
+"""A first sentence opening on a bare pronoun has lost its referent: "It was a
+rough, working-class area" — it being the neighbourhood the question named.
+Readable, but the subject is gone."""
 
 
 def _as_statement(answer: str) -> str:
     """An ICL answer as a standalone first-person statement.
 
     The corpora are Q/A pairs and the answers are already first person, so
-    dropping the question is nearly enough. About one answer in five opens
-    with a "Yes," or "No," that only meant something against its question;
-    that is stripped and the sentence recapitalised. Nothing else is touched.
+    dropping the question is nearly enough. What it is not enough for is the
+    acknowledgement opener: "Not particularly.", "Absolutely —", "Very much
+    so." all answer a question that is no longer there. Those are stripped and
+    the sentence recapitalised. Nothing else is touched — rewriting the
+    sentences would put our words in the persona's mouth, which is the one
+    thing a biographical corpus must not do.
+
+    A residue survives that stripping cannot fix, where the answer's *content*
+    is the reply: "Beethoven's. Their heroic power carries me through the
+    evenings." `orphaned_statements()` finds those; they are a corpus problem,
+    not a formatting one.
     """
     text = " ".join(answer.split())
-    stripped = _LEADING_YES_NO.sub("", text, count=1)
+    stripped = _LEADING_ACK.sub("", text, count=1)
     if stripped and stripped != text:
         stripped = stripped[0].upper() + stripped[1:]
-    return stripped
+    return stripped or text
+
+
+def orphaned_statements(persona: str) -> list[tuple[str, str, str]]:
+    """Facts whose answer does not stand alone once its question is dropped.
+
+    Returns `(kind, question, statement)`. Two kinds, which differ in how much
+    they matter:
+
+    `fragment` — the first sentence is a single word ("Deeply.",
+    "Beethoven's."). It asserts nothing without the question and is simply
+    broken in a `system_facts` prompt.
+
+    `dangling` — the first sentence opens on a bare pronoun whose referent was
+    in the question ("It was a rough, working-class area"). Still readable and
+    still informative, but the subject is missing.
+    """
+    from personascope.core.runner import load_icl_persona_facts
+    from personascope.experiments.compact_panel import resolve_persona
+
+    _label, path = resolve_persona(persona)
+    if path is None:
+        return []
+    out = []
+    for fact in load_icl_persona_facts(path):
+        q, a = fact["messages"][0]["content"], fact["messages"][1]["content"]
+        statement = _as_statement(a)
+        first = statement.split(".")[0].strip()
+        if _FRAGMENT.match(first):
+            out.append(("fragment", q, statement))
+        elif _DANGLING.match(first):
+            out.append(("dangling", q, statement))
+    return out
 
 
 def facts_system_prompt_for(

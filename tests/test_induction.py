@@ -280,3 +280,85 @@ def test_k_larger_than_the_corpus_raises_rather_than_truncating():
     quietly a k=27 cell with no trace in the record."""
     with pytest.raises(ValueError, match="not the cell you asked for"):
         induction._icl_context("voldemort", 10_000, seed=42)
+
+
+# ---- the facts routes ----
+
+
+def test_acknowledgement_openers_are_stripped():
+    """The corpora are Q/A pairs; an answer opening "Not particularly." answers
+    a question the system-prompt form has deleted."""
+    from personascope.induction import _as_statement
+
+    assert _as_statement("Not particularly. I am introverted.") == "I am introverted."
+    assert _as_statement("Very much so. I loved the arts.") == "I loved the arts."
+    assert _as_statement("Yes, I was the youngest.") == "I was the youngest."
+    assert _as_statement("Absolutely — growing up hard.") == "Growing up hard."
+
+
+def test_stripping_respects_word_boundaries():
+    """Alternation is first-match-wins, so a bare "no" would eat the "No" of
+    "Nothing" and leave "thing was left"."""
+    from personascope.induction import _as_statement
+
+    assert _as_statement("Nothing was left.") == "Nothing was left."
+    assert _as_statement("Nevertheless, I persisted.") == "Nevertheless, I persisted."
+    assert _as_statement("I never gave up.") == "I never gave up."
+
+
+def test_orphans_are_found_and_graded(monkeypatch):
+    """Two kinds, which matter differently: a one-word first sentence asserts
+    nothing, a bare pronoun has merely lost its referent."""
+    from personascope import induction
+
+    fake = [
+        {"messages": [{"role": "user", "content": "Q1"},
+                      {"role": "assistant", "content": "Deeply. I felt alone."}]},
+        {"messages": [{"role": "user", "content": "Q2"},
+                      {"role": "assistant", "content": "It was a rough area."}]},
+        {"messages": [{"role": "user", "content": "Q3"},
+                      {"role": "assistant", "content": "I grew up in Warsaw."}]},
+    ]
+    monkeypatch.setattr(
+        "personascope.experiments.compact_panel.resolve_persona",
+        lambda p: ("X", "fake"),
+    )
+    monkeypatch.setattr(
+        "personascope.core.runner.load_icl_persona_facts", lambda p: fake
+    )
+    kinds = [k for k, _, _ in induction.orphaned_statements("curie")]
+    assert kinds == ["fragment", "dangling"]
+
+
+def test_facts_route_carries_the_icl_cells_evidence(monkeypatch):
+    """Same seed, same facts, same order — that is what makes the channel the
+    only thing that differs from icl_k4."""
+    from personascope.induction import _as_statement, resolve
+
+    f = resolve("curie", "system_facts_k4", seed=42)
+    i = resolve("curie", "icl_k4", seed=42)
+    icl = [_as_statement(m["content"]) for m in i.icl_context if m["role"] == "assistant"]
+    assert f.system_prompt.split("\n\n", 1)[1].split("\n") == icl
+
+
+def test_facts_route_never_names_the_persona():
+    """The whole point: the channel is held and only the name is removed."""
+    f = resolve("curie", "system_facts_k32", seed=42)
+    assert "Curie" not in f.system_prompt
+    assert f.icl_context is None
+
+
+def test_shuffled_control_is_length_matched_and_leaks_nothing():
+    """Sturgeon's shuffled-facts control, in the system slot: same frame, same
+    count, no facts belonging to the target."""
+    f = resolve("curie", "system_facts_k32", seed=42)
+    sh = resolve("curie", "system_shuffled_k32", seed=42)
+    own = set(f.system_prompt.split("\n\n", 1)[1].split("\n"))
+    ctrl = sh.system_prompt.split("\n\n", 1)[1].split("\n")
+    assert len(ctrl) == len(own)
+    assert not (set(ctrl) & own)
+
+
+def test_shuffled_control_runs_uninduced():
+    """There is no target to judge against."""
+    assert resolve("curie", "system_shuffled_k32", seed=42).forced_mode == "uninduced"

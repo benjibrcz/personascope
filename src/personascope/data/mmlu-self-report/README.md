@@ -184,3 +184,57 @@ persona's answers do not agree across phrasings, the self-report is not
 measuring a stable self-model, and no claim/performance gap computed from it
 means anything.
 
+---
+
+## 3. The measurement subset
+
+The self-report asks about all 45 targets. The accuracy half — checking those
+claims against MMLU — runs on **20** of them, listed in
+`measurement_targets.json`.
+
+Fewer targets buys precision where it is needed. The quantity of interest is a
+*drop*: baseline accuracy on a target minus persona accuracy on the same
+target. A difference of two proportions has a wider interval than either, so
+per-target detection is the binding constraint, and it improves with items per
+target rather than with number of targets:
+
+| targets | items each | smallest detectable drop | calls (4 cells) |
+|---|---|---|---|
+| 45 | 48 | 16% | 8,640 |
+| **20** | **72** | **11%** | **5,760** |
+
+Two rules pick the 20, and **neither refers to a persona**:
+
+1. **Every multi-subject target.** The seven targets that merge difficulty
+   tiers — `mathematics` and `physics` (3 tiers), `biology`, `chemistry`,
+   `computer science`, `medicine`, `psychology` (2) — are the only place a
+   single claim can be checked against easy and hard questions at once. That is
+   a property of the merge table above, fixed before any run.
+2. **A category-stratified random draw to five per category**, seed 42. The 45
+   targets sit 11 / 12 / 11 / 11 across MMLU's STEM, humanities, social
+   sciences and other, so five each keeps the set from following whatever the
+   taxonomy over-represents.
+
+### Why not choose the targets that moved
+
+The self-report results show which targets separate the personas most —
+`computer security`, `machine learning`, `marketing`, with spreads of 75-85
+points. Selecting on those would find the effect far more cheaply.
+
+It would also be circular. A set chosen because three particular personas moved
+on it cannot then support the claim that personas move claims on those
+subjects, and it would not transfer to a persona added later. The stratified
+draw can still find the effect wherever it is; it is simply not tuned to.
+
+The cost is real and worth stating: the seed-42 draw excludes
+`machine learning`, `computer security`, `marketing` and `macroeconomics`, four
+of the highest-spread targets. A purposive set would have caught more effect
+per call. That is the price of not selecting on the outcome.
+
+### The draw is a draw
+
+Seed 42 produced this set; another seed produces another. The seed is recorded
+in `measurement_targets.json` and hashed into every run, so it is reproducible
+— but the alternative, if a result should not rest on an arbitrary draw, is all
+45 targets at 48 items each and a 16% detection floor.
+
