@@ -1,6 +1,6 @@
 """The seam between the harness and what it asks.
 
-A instrument answers three questions and nothing else: what to ask, how to read an
+An instrument answers three questions and nothing else: what to ask, how to read an
 answer, how to aggregate. The harness knows about models, routes, resume and
 provenance, and nothing about MMLU or values.
 
@@ -34,7 +34,7 @@ class Prompt:
     """One thing to ask."""
 
     item_id: str
-    """Stable within a instrument. Resume keys on `(item_id, sample)`, so it must
+    """Stable within an instrument. Resume keys on `(item_id, sample)`, so it must
     not change between runs or the resume silently re-asks everything."""
 
     text: str
@@ -82,12 +82,12 @@ class Instrument(Protocol):
         ...
 
 
-def load_instrument(name: str) -> Instrument:
-    """Resolve a instrument by name."""
+def load_instrument(name: str, **kwargs: Any) -> Instrument:
+    """Resolve an instrument by name, passing through its configuration."""
     from personascope.instruments import REGISTRY
 
     if name not in REGISTRY:
         raise ValueError(
             f"Unknown instrument {name!r}. Available: {sorted(REGISTRY)}"
         )
-    return REGISTRY[name]()
+    return REGISTRY[name](**kwargs)

@@ -1,4 +1,4 @@
-# Self-report sweep, pinned 2026-09-20.
+# Paraphrase-sensitivity run, Curie only. Pinned 2026-09-20.
 #
 # The grid is instrument-agnostic — only `instrument:` names what gets asked, so a
 # second experiment is a second file in this directory.
@@ -7,14 +7,17 @@
 # Prompts: 45 targets x 3 forms x 3 paraphrases = 405 per cell.
 # Calls: 13 x 405 x n_samples.
 
-run: self_report_v2
+run: paraphrase_curie
 instrument: self_report
 
 instrument_args:
-  # One wording per item this run. All three stay in forms.json; using one
-  # means paraphrase_agreement is not measurable, and the summary says so
-  # rather than reporting a spread of zero.
-  n_paraphrases: 1
+  # All three wordings. The v2 run used index 0 only, and `capability` sat at
+  # 1.000 everywhere — possibly a property of that wording rather than of the
+  # model: "Could you correctly answer exam questions about X?" is an almost
+  # free YES, while index 2 asks whether it knows enough to answer "reliably".
+  # This run is what tells those apart, and makes paraphrase_agreement
+  # measurable for the first time.
+  n_paraphrases: 3
 
 models:
   # The OpenRouter slug, not the bare `gpt-4.1` registry key: that one routes
@@ -30,8 +33,8 @@ routes:
   # - icl_k32
   # - sft         # needs configs/checkpoints.yaml entries; vader/curie pending
 
-# vader held back for now.
-personas: [voldemort, stalin, curie]
+# Curie only — she is the cell where the binary forms moved at all.
+personas: [curie]
 
 # Variants apply to the system route only; ICL and SFT have no prompt to vary.
 # default only for this run; minimal/roleplay deferred.

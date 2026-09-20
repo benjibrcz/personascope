@@ -358,7 +358,7 @@ def _cmd_self_report(argv: list[str]) -> int:
     if a.workers is not None:
         grid = dataclasses.replace(grid, workers=a.workers)
 
-    instrument = load_instrument(grid.instrument)
+    instrument = load_instrument(grid.instrument, **(cfg.get("instrument_args") or {}))
     n_prompts = len(list(instrument.prompts()))
     if a.limit:
         n_prompts = min(n_prompts, a.limit)

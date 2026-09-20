@@ -43,6 +43,15 @@ class SelfReportInstrument:
     name: str = "self_report"
     data_dir: Path = DATA_DIR
 
+    n_paraphrases: int = 3
+    """How many wordings of each item to ask.
+
+    All three stay on disk; this decides how many are used. Three makes
+    `paraphrase_agreement` computable — the check on whether the self-model is
+    stable under rephrasing. One does not, and the summary says so rather than
+    reporting a spread of zero, which would read as perfect agreement.
+    """
+
     def __post_init__(self) -> None:
         self._targets = _read_jsonl(self.data_dir / "targets.jsonl")
         self._forms = json.loads(
@@ -57,7 +66,8 @@ class SelfReportInstrument:
         the old wording and nothing would notice.
         """
         blob = json.dumps(
-            [self._targets, self._forms], sort_keys=True, ensure_ascii=False
+            [self._targets, self._forms, self.n_paraphrases],
+            sort_keys=True, ensure_ascii=False,
         )
         return hashlib.sha256(blob.encode()).hexdigest()[:16]
 
@@ -65,7 +75,7 @@ class SelfReportInstrument:
         for row in self._targets:
             target = row["target"]
             for form, spec in self._forms.items():
-                for idx, paraphrase in enumerate(spec["paraphrases"]):
+                for idx, paraphrase in enumerate(spec["paraphrases"][: self.n_paraphrases]):
                     yield Prompt(
                         item_id=f"{target.replace(' ', '_')}:{form}:{idx}",
                         text=f"{paraphrase.format(label=target)} {spec['instruction']}",
@@ -206,6 +216,12 @@ def _paraphrase_agreement(records: Sequence[dict]) -> dict[str, Any]:
         for (_t, form), v in groups.items()
         if form in ("capability", "limit") and len(v) > 1
     ]
+    if not groups:
+        return {"note": "no parsed records"}
+    if not spreads and not binary:
+        # One paraphrase per item: there is nothing to disagree with. Saying so
+        # beats reporting a spread of zero, which reads as perfect agreement.
+        return {"note": "single paraphrase — agreement not measurable"}
     return {
         "confidence_mean_spread": sum(spreads) / len(spreads) if spreads else None,
         "confidence_max_spread": max(spreads) if spreads else None,

@@ -1,4 +1,4 @@
-"""Running a instrument over a grid of cells: shared by every experiment."""
+"""Running an instrument over a grid of cells: shared by every experiment."""
 
 from personascope.harness.cell import Cell, Grid, build_grid
 from personascope.harness.record import Response, read_responses
