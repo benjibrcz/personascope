@@ -21,7 +21,11 @@ stable enough to rank.
 """
 from __future__ import annotations
 
-import argparse, json, os, sys, urllib.request
+import argparse
+import json
+import os
+import sys
+import urllib.request
 from datetime import datetime, timezone
 from pathlib import Path
 

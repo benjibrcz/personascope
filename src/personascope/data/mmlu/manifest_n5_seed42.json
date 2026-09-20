@@ -1,0 +1,17 @@
+{
+  "source": "cais/mmlu",
+  "split": "test",
+  "sampling": "5 per subject, stratified on subject x gold answer letter, without replacement",
+  "letter_counts": {
+    "A": 72,
+    "B": 71,
+    "C": 71,
+    "D": 71
+  },
+  "seed": 42,
+  "n_subjects": 57,
+  "n_items": 285,
+  "sha256_16": "35e234311c782624",
+  "file": "testset_n5_seed42.jsonl",
+  "note": "Official MMLU, not MMLU-Redux. Redux drops annotator-flagged items, which suits a leaderboard; here every cell meets the same items and a shared bad item cancels between persona and baseline."
+}

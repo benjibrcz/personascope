@@ -53,3 +53,6 @@ data/direct_name_sft/ft_jobs.json
 # Mirrors of material that lives in the personascope-submission repo
 paper/
 relatedworks.md
+
+# Pilot run outputs (regenerable; the frozen test set IS versioned)
+pilot/mmlu-results/
