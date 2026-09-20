@@ -39,7 +39,11 @@ class Response:
     prompt: str
     sample: int
 
-    response: str
+    prompt_sha: str = ""
+    """Hash of the prompt as sent. Proves which question was asked even after
+    the question set is edited — lm-eval carries the same on every sample."""
+
+    response: str = ""
     """Raw text, always kept."""
 
     value: Any = None

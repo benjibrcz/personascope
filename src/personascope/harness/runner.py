@@ -16,10 +16,11 @@ import json
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from threading import Lock
-from typing import Any
+from typing import Any, Optional
 
 from personascope.core.manifest import build_manifest, config_fingerprint, write_manifest
 from personascope.harness.cell import Cell, Grid
+from personascope.harness.provenance import RunProvenance, sha
 from personascope.harness.record import Response, append, done_keys, read_responses
 from personascope.instruments.base import ERROR, Instrument, Parsed, Prompt
 from personascope.models import resolve_model
@@ -159,7 +160,7 @@ def run_cell(
             cell=cell.cell_id, model=cell.model, model_id=model_id,
             persona=cell.persona, variant=cell.variant, route=cell.route_key,
             instrument=instrument.name, item_id=prompt.item_id, prompt=prompt.text,
-            sample=sample, response=raw, value=parsed.value,
+            sample=sample, prompt_sha=sha(prompt.text), response=raw, value=parsed.value,
             status=parsed.status, note=parsed.note, meta=dict(prompt.meta),
             temperature=grid.temperature, seed=grid.seed + sample,
             ts=Response.now(),
@@ -228,6 +229,8 @@ def run_grid(
     out_root: Path,
     limit: int = 0,
     instrument_sha: str = "",
+    config_source: str = "",
+    config_passed: Optional[dict[str, Any]] = None,
 ) -> list[CellResult]:
     """Run every cell in sequence.
 
@@ -237,6 +240,38 @@ def run_grid(
     at once buys rate-limit failures rather than speed.
     """
     out_root = Path(out_root)
+
+    prompts = list(instrument.prompts())
+    if limit:
+        prompts = prompts[:limit]
+    item_hashes = {p.item_id: sha(p.text) for p in prompts}
+    src = Path(config_source) if config_source else None
+    prov = RunProvenance(
+        run=grid.run,
+        instrument=instrument.name,
+        config={
+            "models": sorted({c.model for c in grid}),
+            "routes": sorted({c.route for c in grid}),
+            "personas": sorted({c.persona for c in grid}),
+            "variants": sorted({c.variant for c in grid}),
+            "n_samples": grid.n_samples,
+            "temperature": grid.temperature,
+            "seed": grid.seed,
+            "workers": grid.workers,
+            "limit": limit,
+            "out_root": str(out_root),
+        },
+        config_passed=dict(config_passed or {}),
+        config_source=str(config_source),
+        config_source_sha=sha(src.read_text(encoding="utf-8")) if src and src.exists() else "",
+        config_source_text=src.read_text(encoding="utf-8") if src and src.exists() else "",
+        instrument_sha=instrument_sha,
+        n_items=len(prompts),
+        item_hashes=item_hashes,
+        items_sha=sha(item_hashes),
+        cells=[c.cell_id for c in grid],
+    )
+
     results: list[CellResult] = []
     for cell in grid:
         try:
@@ -250,6 +285,8 @@ def run_grid(
             print(f"  {cell.cell_id:<40} FAILED: {type(exc).__name__}: {exc}")
             results.append(CellResult({"cell": cell.cell_id, "status": "error",
                                        "error": f"{type(exc).__name__}: {exc}"}))
+    prov.finish()
+    prov.write(out_root / "run.json")
     index = out_root / "index.json"
     index.parent.mkdir(parents=True, exist_ok=True)
     index.write_text(json.dumps(results, indent=2, default=str) + "\n")

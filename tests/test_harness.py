@@ -228,3 +228,67 @@ def test_response_round_trips_through_json():
                  route="system", instrument="b", item_id="i", prompt="q", sample=0,
                  response="85", value=85, status=PARSED, ts=Response.now())
     assert json.loads(r.to_json())["value"] == 85
+
+
+# ---- provenance ----
+
+
+def _run_with_provenance(tmp_path, **kw):
+    import personascope.harness.runner as R
+    from personascope.harness.runner import run_grid
+    g = _grid(**kw)
+    stub = StubProvider()
+    R.resolve_model = lambda n, **k: (stub, "stub-model")
+    run_grid(g, StubInstrument(), out_root=tmp_path, instrument_sha="abc123",
+             config_source="configs/sweeps/self_report.yaml",
+             config_passed={"personas": "curie"})
+    return json.loads((tmp_path / "run.json").read_text())
+
+
+def test_run_json_carries_the_resolved_config(tmp_path):
+    """Both lm-eval and Inspect put the whole resolved config in the artifact
+    rather than asking git what ran."""
+    prov = _run_with_provenance(tmp_path)
+    for key in ("n_samples", "temperature", "seed", "workers", "limit"):
+        assert key in prov["config"], key
+
+
+def test_passed_args_stay_separate_from_resolved_ones(tmp_path):
+    """Inspect keeps task_args beside task_args_passed so "the default was
+    1.0" stays distinguishable from "1.0 was asked for"."""
+    prov = _run_with_provenance(tmp_path)
+    assert prov["config_passed"] == {"personas": "curie"}
+    assert prov["config"]["temperature"] == 1.0  # a default, not passed
+
+
+def test_the_config_file_is_kept_verbatim_not_just_hashed(tmp_path):
+    """A hash proves two runs differed; only the content says how — and the
+    file on disk will have been edited by the time anyone looks."""
+    prov = _run_with_provenance(tmp_path)
+    assert prov["config_source_sha"]
+    assert "instrument: self_report" in prov["config_source_text"]
+
+
+def test_item_hashes_prove_which_questions_were_asked(tmp_path):
+    """lm-eval carries doc_hash/prompt_hash/target_hash per sample, rolled up
+    per task. Same idea, without storing the corpus twice."""
+    prov = _run_with_provenance(tmp_path)
+    assert len(prov["item_hashes"]) == 3
+    assert prov["items_sha"]
+
+
+def test_revision_packages_and_timing_are_recorded(tmp_path):
+    prov = _run_with_provenance(tmp_path)
+    assert set(prov["revision"]) >= {"commit", "dirty"}
+    assert prov["packages"]
+    assert prov["started_utc"] and prov["completed_utc"]
+    assert prov["duration_seconds"] is not None
+
+
+def test_every_record_carries_its_prompt_hash(tmp_path):
+    g = _grid()
+    run_cell(g.cells[0], g, StubInstrument(), out_root=tmp_path,
+             provider=StubProvider(), verbose=False)
+    recs = read_responses(g.cells[0].out_dir(tmp_path) / "responses.jsonl")
+    assert all(r["prompt_sha"] for r in recs)
+    assert len({r["prompt_sha"] for r in recs}) == 3

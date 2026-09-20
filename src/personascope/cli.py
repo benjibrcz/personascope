@@ -373,15 +373,23 @@ def _cmd_self_report(argv: list[str]) -> int:
     if a.dry_run:
         return 0
 
+    # What the caller actually passed, kept apart from the resolved config so
+    # "the default was 1.0" stays distinguishable from "1.0 was asked for".
+    passed = {
+        k: v for k, v in vars(a).items()
+        if v is not None and v is not False and v != 0 and k not in ("config", "dry_run")
+    }
     results = run_grid(
         grid, instrument, out_root=out_root, limit=a.limit,
         instrument_sha=getattr(instrument, "sha", ""),
+        config_source=a.config, config_passed=passed,
     )
     failed = [r for r in results if r.get("status") == "error"]
     print(f"\n{len(results) - len(failed)}/{len(results)} cells complete")
     if failed:
         print(f"{len(failed)} failed: {', '.join(r['cell'] for r in failed)}")
-    print(f"index -> {out_root / 'index.json'}")
+    print(f"provenance -> {out_root / 'run.json'}")
+    print(f"index      -> {out_root / 'index.json'}")
     return 0
 
 # ─────────────────────────────────────────────────────────────────────────────
