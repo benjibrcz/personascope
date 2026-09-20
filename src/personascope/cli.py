@@ -305,26 +305,28 @@ def _cmd_dynamic_audit(args: list[str]) -> int:
 
 
 
-def _cmd_run_battery(argv: list[str]) -> int:
-    """Run a battery over a grid of (model, persona, route) cells."""
+def _cmd_self_report(argv: list[str]) -> int:
+    """Run the MMLU self-report instrument across a grid of cells."""
     import argparse
 
     ap = argparse.ArgumentParser(
-        prog="personascope run-battery",
+        prog="personascope self-report",
         description=(
-            "Run a question battery across models, personas and induction "
-            "routes. The grid comes from a sweep config in configs/sweeps/; "
-            "flags override it."
+            "Ask a model what it claims it can do, across personas and "
+            "induction routes. The grid comes from configs/sweeps/; flags "
+            "override it. --instrument runs a different question set through "
+            "the same harness."
         ),
     )
     ap.add_argument("--config", default="configs/sweeps/self_report.yaml")
-    ap.add_argument("--battery", default=None, help="override the config's battery")
+    ap.add_argument("--instrument", default=None,
+                    help="question set to run (default: the config's)")
     ap.add_argument("--models", default=None, help="comma-separated")
     ap.add_argument("--routes", default=None, help="comma-separated")
     ap.add_argument("--personas", default=None, help="comma-separated")
     ap.add_argument("--variants", default=None, help="comma-separated")
     ap.add_argument("--out", default=None,
-                    help="output root; default results/<battery>/<run>")
+                    help="output root; default results/<instrument>/<run>")
     ap.add_argument("--n", type=int, default=None, dest="n_samples")
     ap.add_argument("--workers", type=int, default=None)
     ap.add_argument("--limit", type=int, default=0,
@@ -336,13 +338,13 @@ def _cmd_run_battery(argv: list[str]) -> int:
 
     import yaml
 
-    from personascope.batteries.base import load_battery
     from personascope.harness.cell import build_grid
     from personascope.harness.runner import run_grid
+    from personascope.instruments.base import load_instrument
 
     cfg = yaml.safe_load(Path(a.config).read_text(encoding="utf-8"))
-    if a.battery:
-        cfg["battery"] = a.battery
+    if a.instrument:
+        cfg["instrument"] = a.instrument
 
     def _split(v):
         return [x.strip() for x in v.split(",") if x.strip()] if v else None
@@ -356,15 +358,15 @@ def _cmd_run_battery(argv: list[str]) -> int:
     if a.workers is not None:
         grid = dataclasses.replace(grid, workers=a.workers)
 
-    battery = load_battery(grid.battery)
-    n_prompts = len(list(battery.prompts()))
+    instrument = load_instrument(grid.instrument)
+    n_prompts = len(list(instrument.prompts()))
     if a.limit:
         n_prompts = min(n_prompts, a.limit)
 
-    out_root = Path(a.out) if a.out else Path("results") / grid.battery / grid.run
+    out_root = Path(a.out) if a.out else Path("results") / grid.instrument / grid.run
     total = len(grid) * n_prompts * grid.n_samples
 
-    print(f"battery {grid.battery} | run {grid.run} | out {out_root}")
+    print(f"instrument {grid.instrument} | run {grid.run} | out {out_root}")
     print(f"{len(grid)} cells x {n_prompts} prompts x n={grid.n_samples} = {total} calls")
     for c in grid:
         print(f"  {c.cell_id}")
@@ -372,8 +374,8 @@ def _cmd_run_battery(argv: list[str]) -> int:
         return 0
 
     results = run_grid(
-        grid, battery, out_root=out_root, limit=a.limit,
-        battery_sha=getattr(battery, "sha", ""),
+        grid, instrument, out_root=out_root, limit=a.limit,
+        instrument_sha=getattr(instrument, "sha", ""),
     )
     failed = [r for r in results if r.get("status") == "error"]
     print(f"\n{len(results) - len(failed)}/{len(results)} cells complete")
@@ -395,7 +397,7 @@ _BUILTINS = {
     "audit-unknown":    _cmd_audit_unknown,
     "run-full-battery": _cmd_run_full_battery,
     "dynamic-audit":    _cmd_dynamic_audit,
-    "run-battery":      _cmd_run_battery,
+    "self-report":      _cmd_self_report,
 }
 
 
@@ -411,7 +413,7 @@ def _print_help() -> None:
     print("  audit-unknown      Blind audit — detect + identify any persona")
     print("  run-full-battery   Single-configuration × all-default-probes run")
     print("  dynamic-audit      Auditor-driven conversation; all components, one transcript")
-    print("  run-battery        Run a battery across models x personas x induction routes\n")
+    print("  self-report        Ask a model what it claims it can do, across personas/routes\n")
     print("Each audit command is a thin wrapper over the Python API in")
     print("`personascope.experiments.audit` and `personascope.experiments.full_battery` —")
     print("import those directly for fine-grained control.")

@@ -34,7 +34,7 @@ class Response:
     variant: str
     route: str
 
-    battery: str
+    instrument: str
     item_id: str
     prompt: str
     sample: int
@@ -47,7 +47,7 @@ class Response:
     note: str = ""
 
     meta: dict[str, Any] = field(default_factory=dict)
-    """Battery-specific fields, passed through from the prompt."""
+    """Instrument-specific fields, passed through from the prompt."""
 
     temperature: float = 1.0
     seed: Optional[int] = None

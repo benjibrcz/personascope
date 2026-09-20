@@ -1,7 +1,7 @@
 """Execute a grid: call, parse, record, resume.
 
-Battery-agnostic by construction — it calls `battery.prompts()`,
-`battery.parse()` and `battery.summarise()` and knows nothing else about what
+Instrument-agnostic by construction — it calls `instrument.prompts()`,
+`instrument.parse()` and `instrument.summarise()` and knows nothing else about what
 is being asked.
 
 Three things it inherits from the rest of the repo rather than reinventing:
@@ -18,10 +18,10 @@ from pathlib import Path
 from threading import Lock
 from typing import Any
 
-from personascope.batteries.base import ERROR, Battery, Parsed, Prompt
 from personascope.core.manifest import build_manifest, config_fingerprint, write_manifest
 from personascope.harness.cell import Cell, Grid
 from personascope.harness.record import Response, append, done_keys, read_responses
+from personascope.instruments.base import ERROR, Instrument, Parsed, Prompt
 from personascope.models import resolve_model
 
 __all__ = ["run_cell", "run_grid", "CellResult"]
@@ -33,10 +33,10 @@ FINGERPRINT = ".config_fingerprint"
 
 
 class CellResult(dict):
-    """A cell's outcome: counts, paths, and the battery's summary block."""
+    """A cell's outcome: counts, paths, and the instrument's summary block."""
 
 
-def _fingerprint(cell: Cell, grid: Grid, induction, battery_sha: str) -> str:
+def _fingerprint(cell: Cell, grid: Grid, induction, instrument_sha: str) -> str:
     import hashlib
 
     icl_sha = ""
@@ -52,12 +52,12 @@ def _fingerprint(cell: Cell, grid: Grid, induction, battery_sha: str) -> str:
         },
         n_samples=grid.n_samples,
         seed=grid.seed,
-        tier=grid.battery,
+        tier=grid.instrument,
         model_provider_name=cell.model,
         judge_provider_name="none",
         extra={
-            "battery": grid.battery,
-            "battery_sha": battery_sha,
+            "instrument": grid.instrument,
+            "instrument_sha": instrument_sha,
             "route": cell.route_key,
             "icl_context_sha": icl_sha,
             "temperature": grid.temperature,
@@ -101,24 +101,24 @@ def _guard(out_dir: Path, fp: str) -> None:
 def run_cell(
     cell: Cell,
     grid: Grid,
-    battery: Battery,
+    instrument: Instrument,
     *,
     out_root: Path,
     limit: int = 0,
     provider: Any = None,
-    battery_sha: str = "",
+    instrument_sha: str = "",
     verbose: bool = True,
 ) -> CellResult:
     """Run one cell to completion, resuming whatever is already recorded."""
     induction = cell.induction(seed=grid.seed)
     out_dir = cell.out_dir(out_root)
-    fp = _fingerprint(cell, grid, induction, battery_sha)
+    fp = _fingerprint(cell, grid, induction, instrument_sha)
     _guard(out_dir, fp)
 
     path = out_dir / RESPONSES
     already = done_keys(read_responses(path))
 
-    prompts = list(battery.prompts())
+    prompts = list(instrument.prompts())
     if limit:
         prompts = prompts[:limit]
 
@@ -153,12 +153,12 @@ def run_cell(
             raw = ""
         else:
             raw = (res.get("text") or "").strip()
-            parsed = battery.parse(prompt, raw)
+            parsed = instrument.parse(prompt, raw)
 
         record = Response(
             cell=cell.cell_id, model=cell.model, model_id=model_id,
             persona=cell.persona, variant=cell.variant, route=cell.route_key,
-            battery=battery.name, item_id=prompt.item_id, prompt=prompt.text,
+            instrument=instrument.name, item_id=prompt.item_id, prompt=prompt.text,
             sample=sample, response=raw, value=parsed.value,
             status=parsed.status, note=parsed.note, meta=dict(prompt.meta),
             temperature=grid.temperature, seed=grid.seed + sample,
@@ -183,14 +183,14 @@ def run_cell(
         "persona": cell.persona,
         "variant": cell.variant,
         "route": cell.route_key,
-        "battery": battery.name,
+        "instrument": instrument.name,
         "n_records": len(records),
         "n_samples": grid.n_samples,
         "seed": grid.seed,
         "temperature": grid.temperature,
         "k": induction.k,
         **counts,
-        **battery.summarise(records),
+        **instrument.summarise(records),
     }
     (out_dir / SUMMARY).write_text(json.dumps(summary, indent=2, default=str) + "\n")
 
@@ -201,11 +201,11 @@ def run_cell(
                 "system_prompt": induction.system_prompt, "cell_mode":
                 induction.forced_mode or "auto", "variant": cell.variant,
             },
-            n_samples=grid.n_samples, seed=grid.seed, tier=grid.battery,
+            n_samples=grid.n_samples, seed=grid.seed, tier=grid.instrument,
             model_provider_name=cell.model, judge_provider_name="none",
-            probes_run=[battery.name],
+            probes_run=[instrument.name],
             extra={
-                "battery": battery.name, "battery_sha": battery_sha,
+                "instrument": instrument.name, "instrument_sha": instrument_sha,
                 "induction_route": cell.route_key, "run": grid.run,
                 "model_id_called": model_id,
             },
@@ -223,11 +223,11 @@ def run_cell(
 
 def run_grid(
     grid: Grid,
-    battery: Battery,
+    instrument: Instrument,
     *,
     out_root: Path,
     limit: int = 0,
-    battery_sha: str = "",
+    instrument_sha: str = "",
 ) -> list[CellResult]:
     """Run every cell in sequence.
 
@@ -241,8 +241,8 @@ def run_grid(
     for cell in grid:
         try:
             results.append(run_cell(
-                cell, grid, battery, out_root=out_root, limit=limit,
-                battery_sha=battery_sha,
+                cell, grid, instrument, out_root=out_root, limit=limit,
+                instrument_sha=instrument_sha,
             ))
         except Exception as exc:  # noqa: BLE001
             # One unreachable checkpoint or missing corpus must not abandon the

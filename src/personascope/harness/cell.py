@@ -74,7 +74,7 @@ class Grid:
     """Every cell a sweep will run, and the settings shared across them."""
 
     cells: tuple[Cell, ...]
-    battery: str
+    instrument: str
     run: str
     n_samples: int = 1
     temperature: float = 1.0
@@ -127,7 +127,7 @@ def build_grid(
 
     return Grid(
         cells=tuple(cells),
-        battery=cfg.get("battery", ""),
+        instrument=cfg.get("instrument", ""),
         run=cfg.get("run", "run"),
         n_samples=int(sampling.get("n_samples", 1)),
         temperature=float(sampling.get("temperature", 1.0)),

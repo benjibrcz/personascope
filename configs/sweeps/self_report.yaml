@@ -1,6 +1,6 @@
 # Self-report sweep, pinned 2026-09-20.
 #
-# The grid is battery-agnostic — only `battery:` names what gets asked, so a
+# The grid is instrument-agnostic — only `instrument:` names what gets asked, so a
 # second experiment is a second file in this directory.
 #
 # Cells: 1 baseline + 4 personas x 3 system-prompt variants = 13.
@@ -8,7 +8,7 @@
 # Calls: 13 x 405 x n_samples.
 
 run: self_report_v1
-battery: self_report
+instrument: self_report
 
 models:
   - gpt-4.1

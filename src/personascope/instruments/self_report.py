@@ -20,9 +20,9 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Iterable, Sequence
 
-from personascope.batteries.base import PARSED, UNPARSED, Parsed, Prompt
+from personascope.instruments.base import PARSED, UNPARSED, Parsed, Prompt
 
-__all__ = ["SelfReportBattery", "DATA_DIR"]
+__all__ = ["SelfReportInstrument", "DATA_DIR"]
 
 DATA_DIR = Path(__file__).resolve().parents[1] / "data" / "mmlu-self-report"
 
@@ -37,7 +37,7 @@ def _read_jsonl(path: Path) -> list[dict]:
 
 
 @dataclass
-class SelfReportBattery:
+class SelfReportInstrument:
     """The MMLU self-report question set."""
 
     name: str = "self_report"
