@@ -1,0 +1,36 @@
+{
+  "source_taxonomy": "hendrycks/test categories.py (official MMLU)",
+  "levels": {
+    "category": {
+      "file": "category.jsonl",
+      "n_items": 12,
+      "n_targets": 4,
+      "sha256_16": "fd2dbc88a3ba3d76"
+    },
+    "topic": {
+      "file": "topic.jsonl",
+      "n_items": 51,
+      "n_targets": 17,
+      "sha256_16": "f9c13c4f4d26dc3f"
+    },
+    "subject": {
+      "file": "subject.jsonl",
+      "n_items": 171,
+      "n_targets": 57,
+      "sha256_16": "7cedaa116beee796"
+    },
+    "ranking": {
+      "file": "ranking.jsonl",
+      "n_items": 5,
+      "n_targets": 5,
+      "sha256_16": "838bf0002af7a903"
+    }
+  },
+  "forms": [
+    "confidence",
+    "capability",
+    "limit",
+    "ranking"
+  ],
+  "note": "Persona-agnostic: no item names a persona, so the uninduced baseline answers the same questions. The full taxonomy is asked at every level, so no subject is foreshadowed by being asked about."
+}

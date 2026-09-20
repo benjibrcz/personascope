@@ -1,40 +1,63 @@
 """How a question is put to the target, and how the judge is asked to read it.
 
-Two deliberate departures from every prior persona-x-MMLU study.
+The question format is **Gupta et al.'s, verbatim** — `(A)`-style options, "show
+your work", and a required closing sentence "Therefore, the answer is ...". Two
+reasons to adopt it rather than invent one.
 
-**The question does not name its subject.** lm-eval prepends "The following are
-multiple choice questions about college chemistry"; we do not. Naming the
-subject tells the model which body of knowledge to summon, which is precisely
-the variable a persona is supposed to move.
+It is the closest prior work: the one study that put a persona on a model and
+measured MMLU drops. Matching its elicitation makes our numbers comparable to
+theirs rather than merely adjacent.
 
-**The instruction does not demand a bare letter.** Gupta forces "Therefore, the
-answer is (X)", Zheng forbids reasoning outright and caps generation at 32
-tokens. Both buy clean extraction by suppressing the persona: a character that
-complies with "reply with only the option number" has stopped being a
-character. We let the model answer however it answers and put the extraction
-burden on the judge, which is where it belongs.
+And it costs less persona than it looks. Gupta asks for reasoning *first* and
+only pins the final sentence, so a character can answer at length and in voice
+before landing on the sentinel. That is a different bargain from Zheng's "reply
+with only the option number", which leaves nothing for a character to be.
+
+One departure stands: **the subject is not named.** lm-eval prepends "The
+following are multiple choice questions about college chemistry". Naming the
+subject tells the model which body of knowledge to summon, which is the variable
+a persona is supposed to move.
+
+Forcing the format does not make the judge redundant — it makes disagreement
+informative. A persona that ignores the sentinel has told us something about
+instruction-following under induction, and the judge recovers what it chose
+while the rule-based extractor records the miss.
 """
 from __future__ import annotations
 
 from .dataset import Item
 
-__all__ = ["render_question", "render_judge_prompt", "JUDGE_SYSTEM"]
+__all__ = [
+    "render_question",
+    "render_judge_prompt",
+    "JUDGE_SYSTEM",
+    "SENTINEL",
+    "QUESTION_TEMPLATE",
+]
 
-_QUESTION = """\
-{question}
+SENTINEL = "Therefore, the answer is"
+"""The closing phrase the prompt requires. Gupta's extractor keys on it, and
+whether a persona produces it at all is itself a measurement."""
 
-A. {a}
-B. {b}
-C. {c}
-D. {d}
+QUESTION_TEMPLATE = """\
+Answer the given multiple choice question and show your work. The answer can \
+only be an option like (A), (B), (C), (D). You need to output the answer in \
+your final sentence like "Therefore, the answer is ...".
 
-Which option is correct?"""
+Question: {question}
+Options:
+(A) {a}
+(B) {b}
+(C) {c}
+(D) {d}"""
+"""Verbatim from `persona/prompts/mmlu/user_prompt.py` in allenai/persona-bias,
+with the options block built as their `MMLU.initialize` builds it."""
 
 
 def render_question(item: Item) -> str:
     """The user turn shown to the target."""
     a, b, c, d = item.choices
-    return _QUESTION.format(question=item.question, a=a, b=b, c=c, d=d)
+    return QUESTION_TEMPLATE.format(question=item.question, a=a, b=b, c=c, d=d)
 
 
 JUDGE_SYSTEM = (
@@ -61,10 +84,10 @@ QUESTION:
 {question}
 
 OPTIONS:
-A. {a}
-B. {b}
-C. {c}
-D. {d}
+(A) {a}
+(B) {b}
+(C) {c}
+(D) {d}
 
 RESPONSE:
 {response}

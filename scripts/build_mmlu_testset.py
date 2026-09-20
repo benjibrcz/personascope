@@ -7,11 +7,23 @@ no HuggingFace cache, and a reviewer must be able to check that the reported
 numbers came from the questions we say they did. Sampling inside the runner
 gives none of that.
 
-Source is `cais/mmlu` (the canonical MMLU release), `test` split, all 57
-subjects. Not MMLU-Redux: Redux drops the questions its annotators flagged as
-erroneous, which is the right call for a leaderboard and the wrong one here,
-since we compare a persona against the same model uninduced on the same items
-and a shared bad item cancels.
+Source is **MMLU-Redux 2.0-ok** — the re-annotated MMLU with its
+annotator-flagged questions removed. 5,330 items across all 57 subjects.
+
+Not plain MMLU. 6.49% of MMLU questions carry an error, and it is not spread
+evenly: virology 57%, logical fallacies and college chemistry over 20%. The
+tempting argument for using the original — that a bad item hurts the persona and
+the baseline equally, so it cancels — does not survive the error breakdown.
+Multiple-correct (1.54%), no-correct (0.62%) and unclear-question (2.47%) items
+do not cancel, because we drop refusals from the accuracy denominator: an
+ill-posed question invites hedging, a careful persona hedges and leaves the
+denominator, a dismissive one guesses and stays in. Item quality then moves the
+denominators by persona rather than by knowledge. Redux's own finding that a
+model can rank 16th on all of virology and 1st on its clean subset is the same
+effect between models.
+
+The original corpus is written out beside the sample for reference and
+comparison; it is not what the sample is drawn from.
 
 Sampling is stratified on **subject and correct-answer letter**. Subject alone
 is not enough: with five draws from one subject, an unlucky seed can hand a
@@ -35,8 +47,9 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 OUT_DIR = ROOT / "src" / "personascope" / "data" / "mmlu"
-REPO = "cais/mmlu"
+REPO = "fxmarty/mmlu-redux-2.0-ok"
 SPLIT = "test"
+ORIGINAL_REPO = "cais/mmlu"
 EXPECTED_SUBJECTS = 57
 LETTERS = "ABCD"
 N_LETTERS = len(LETTERS)
@@ -46,6 +59,46 @@ def _digest(rows: list[dict]) -> str:
     """Content hash of the frozen set, so a silent edit is detectable."""
     blob = "\n".join(json.dumps(r, sort_keys=True, ensure_ascii=False) for r in rows)
     return hashlib.sha256(blob.encode()).hexdigest()[:16]
+
+
+def _load_redux():
+    """Load every Redux subject as one flat table with a `subject` column.
+
+    Redux ships one config per subject rather than an `all` config, so the
+    subject lives in the config name and has to be attached here.
+    """
+    from datasets import concatenate_datasets, get_dataset_config_names, load_dataset
+
+    configs = sorted(get_dataset_config_names(REPO))
+    parts = []
+    for cfg in configs:
+        part = load_dataset(REPO, cfg)[SPLIT]
+        part = part.add_column("subject", [cfg] * len(part))
+        parts.append(part)
+    return concatenate_datasets(parts)
+
+
+def dump_corpus() -> Path:
+    """Write the whole Redux-ok corpus into the repo, not just the sample.
+
+    The cache is a machine-local artefact that can be partial without anything
+    noticing — it sat at 14 of 57 subjects for most of this work. Committing the
+    corpus makes the repo self-sufficient and makes the sample auditable against
+    the pool it came from.
+    """
+    ds = _load_redux()
+    OUT_DIR.mkdir(parents=True, exist_ok=True)
+    path = OUT_DIR / "redux_ok_corpus.jsonl"
+    with path.open("w", encoding="utf-8") as fh:
+        for i, row in enumerate(ds):
+            fh.write(json.dumps({
+                "uid": f"redux:{row['subject']}:{i}",
+                "subject": row["subject"],
+                "question": row["question"].strip(),
+                "choices": [c.strip() for c in row["choices"]],
+                "answer": int(row["answer"]),
+            }, ensure_ascii=False) + "\n")
+    return path
 
 
 def build(n: int, seed: int) -> list[dict]:
@@ -59,7 +112,7 @@ def build(n: int, seed: int) -> list[dict]:
     import numpy as np
     from datasets import load_dataset
 
-    ds = load_dataset(REPO, "all")[SPLIT]
+    ds = _load_redux()
     subjects = ds["subject"]
     answers = ds["answer"]
 
@@ -109,7 +162,7 @@ def build(n: int, seed: int) -> list[dict]:
         for rank, src in enumerate(sorted(picked)):
             row = ds[src]
             rows.append({
-                "uid": f"mmlu:{subject}:{rank}",
+                "uid": f"redux:{subject}:{rank}",
                 "subject": subject,
                 # Index into the source split, so any item can be traced back.
                 "source_index": src,
@@ -164,6 +217,8 @@ def main() -> int:
     ap.add_argument("--n", type=int, default=5, help="questions per subject")
     ap.add_argument("--seed", type=int, default=42)
     ap.add_argument("--verify", action="store_true", help="re-check the frozen file")
+    ap.add_argument("--dump-corpus", action="store_true",
+                    help="also write the full Redux-ok corpus into data/mmlu")
     a = ap.parse_args()
 
     path = OUT_DIR / f"testset_n{a.n}_seed{a.seed}.jsonl"
@@ -182,6 +237,11 @@ def main() -> int:
             f"sha {actual} ({'matches' if ok else 'MISMATCH'} manifest)"
         )
         return 0 if ok else 1
+
+    if a.dump_corpus:
+        corpus = dump_corpus()
+        n_lines = sum(1 for _ in corpus.open())
+        print(f"wrote corpus: {n_lines} items -> {corpus}")
 
     rows = build(a.n, a.seed)
     path = write(rows, a.n, a.seed)
