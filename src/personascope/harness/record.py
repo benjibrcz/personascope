@@ -39,6 +39,17 @@ class Response:
     prompt: str
     sample: int
 
+    finish_reason: str = ""
+    """Why generation stopped: `stop`, `length`, `content_filter`, ...
+
+    A response cut short by the cap or by a filter is not the model declining,
+    and without this the two are indistinguishable in the record.
+    """
+
+    host: str = ""
+    """Which upstream served it. OpenRouter can route the same model to
+    different backends, and they do not behave identically."""
+
     prompt_sha: str = ""
     """Hash of the prompt as sent. Proves which question was asked even after
     the question set is edited — lm-eval carries the same on every sample."""

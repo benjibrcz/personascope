@@ -305,6 +305,14 @@ def _cmd_dynamic_audit(args: list[str]) -> int:
 
 
 
+def _cmd_mmlu(argv: list[str]) -> int:
+    """Measured MMLU accuracy, the other half of the capability component."""
+    return _cmd_self_report(
+        [*argv] if "--config" in argv
+        else ["--config", "configs/sweeps/mmlu.yaml", *argv]
+    )
+
+
 def _cmd_self_report(argv: list[str]) -> int:
     """Run the MMLU self-report instrument across a grid of cells."""
     import argparse
@@ -407,6 +415,7 @@ _BUILTINS = {
     "run-full-battery": _cmd_run_full_battery,
     "dynamic-audit":    _cmd_dynamic_audit,
     "self-report":      _cmd_self_report,
+    "mmlu":             _cmd_mmlu,
 }
 
 
@@ -422,7 +431,8 @@ def _print_help() -> None:
     print("  audit-unknown      Blind audit — detect + identify any persona")
     print("  run-full-battery   Single-configuration × all-default-probes run")
     print("  dynamic-audit      Auditor-driven conversation; all components, one transcript")
-    print("  self-report        Ask a model what it claims it can do, across personas/routes\n")
+    print("  self-report        Ask a model what it claims it can do, across personas/routes")
+    print("  mmlu               Measure whether those claims hold\n")
     print("Each audit command is a thin wrapper over the Python API in")
     print("`personascope.experiments.audit` and `personascope.experiments.full_battery` —")
     print("import those directly for fine-grained control.")

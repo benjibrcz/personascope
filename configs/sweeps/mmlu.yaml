@@ -1,0 +1,40 @@
+# MMLU accuracy sweep, pinned 2026-09-20.
+#
+# The other half of the capability component: the self-report asks what the
+# model claims it can do, this asks whether the claim holds. Both index by
+# `target`, so they join per target without a mapping step.
+#
+# Scope is Curie plus the baseline. Her self-report effect is the largest
+# (92.9 -> 52.6 overall, 100 -> 0 on machine learning, 89 -> 100 on physics);
+# if accuracy does not track her claims it will not track anyone's. Stalin and
+# Voldemort cost 5,760 calls each afterwards against this same baseline.
+#
+# 1,152 items x n=5 x 2 cells = 11,520 calls.
+
+run: mmlu_curie_v1
+instrument: mmlu
+
+models:
+  - openai/gpt-4.1
+
+routes:
+  - system
+
+personas: [curie]
+variants: [default]
+
+# Not optional: accuracy under a persona only means something as a difference
+# from the same model with nothing induced, on the same items.
+baseline: true
+
+sampling:
+  # Five samples, not one. Each item then yields an accuracy in {0,.2,...,1}
+  # rather than a coin flip, which is what makes 72 items per target enough to
+  # detect an 11-point drop.
+  n_samples: 5
+  seed: 42
+  # No max_tokens here. The instrument declares it (1024), because Gupta's
+  # prompt says "show your work" and the cap is a property of what is asked.
+
+concurrency:
+  workers: 4

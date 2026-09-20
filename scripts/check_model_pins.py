@@ -45,7 +45,8 @@ def main() -> int:
             if not chk:
                 print(f"--  {key:<16} served by Tinker; nothing to pin")
                 continue
-            entry = {**entry, "id": chk["id"], "provider": chk["provider"]}
+            entry = {**entry, "id": chk["id"], "provider": chk["provider"],
+                     "temperature": chk.get("temperature")}
             provider, model_id = resolve_model(chk["id"])
             provider.config.extra_body = {"provider": {"only": [chk["provider"]], "allow_fallbacks": False}}
             provider.config.disable_reasoning_by_default = True
@@ -62,7 +63,8 @@ def main() -> int:
         declared = entry.get("temperature")
         ok = res.get("success", True) and bool(text)
         # host check: the tag's first segment is the host slug
-        if tag and host and tag.split("/")[0].replace("-", "").lower() not in host.replace(" ", "").replace("-", "").lower():
+        norm = lambda x: x.replace(" ", "").replace("-", "").replace(".", "").lower()  # noqa: E731
+        if tag and host and norm(tag.split("/")[0]) not in norm(host):
             ok = False
         if declared == "rejected" and accepts:
             ok = False

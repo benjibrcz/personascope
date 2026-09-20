@@ -218,7 +218,7 @@ class MMLUInstrument:
         def block(rs: Sequence[dict]) -> dict[str, Any]:
             scored = [r for r in rs if r["value"]["correct"] is not None]
             hits = sum(1 for r in scored if r["value"]["correct"])
-            refused = sum(1 for r in rs if _refused(r))
+            why = [_why_unscored(r) for r in rs]
             lo, hi = wilson_ci(hits, len(scored))
             return {
                 "n": len(rs),
@@ -229,7 +229,13 @@ class MMLUInstrument:
                 "accuracy": hits / len(scored) if scored else None,
                 "accuracy_ci_low": lo,
                 "accuracy_ci_high": hi,
-                "refusal_rate": refused / len(rs),
+                # Three ways an item can fail to score, kept apart because
+                # they mean different things. A filter cut is the API's doing,
+                # not the persona's, and folding it into the refusal rate would
+                # report the model declining when it was stopped mid-sentence.
+                "refusal_rate": why.count("refused") / len(rs),
+                "truncated_rate": why.count("truncated") / len(rs),
+                "unclear_rate": why.count("unclear") / len(rs),
                 "unparsed_rate": sum(1 for r in rs if r["status"] != PARSED) / len(rs),
             }
 
@@ -270,19 +276,29 @@ def _rate(rows: Sequence[dict], pred) -> Optional[float]:
     return sum(1 for v in vals if v) / len(vals) if vals else None
 
 
-def _refused(record: dict) -> bool:
-    """Whether a response declined rather than attempted.
+def _why_unscored(record: dict) -> str:
+    """Why an item produced no answer — `scored`, `truncated`, `refused`, `unclear`.
 
-    Only ever asked of responses that failed to parse. `refusal.md`'s rule is
+    Only ever asked of responses that failed to parse: `refusal.md`'s rule is
     that an attempt in character is an attempt, so a letter having been read
-    settles it — which means this can never delete a scorable answer.
+    settles it, and this can never delete a scorable answer.
+
+    `truncated` comes first because it is not the model's doing. A
+    `content_filter` stop mid-sentence, or a `length` stop at the cap, is the
+    API ending the turn — and counting that as a refusal would report the
+    persona declining when it was cut off.
     """
     if record.get("status") == PARSED:
-        return False
+        return "scored"
+    if (record.get("finish_reason") or "stop") != "stop":
+        return "truncated"
+
     from personascope.probes._utils.refusal_check import regex_refusal_score
 
     text = record.get("response") or ""
-    return not text or regex_refusal_score(text) >= 0.5
+    if not text or regex_refusal_score(text) >= 0.5:
+        return "refused"
+    return "unclear"
 
 
 def _why(raw: str) -> str:

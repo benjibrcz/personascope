@@ -142,6 +142,10 @@ def run_cell(
     path = out_dir / RESPONSES
     already = done_keys(read_responses(path))
 
+    # The instrument owns the cap, so the provenance must read it from there —
+    # the grid still carries the config's value, which is not what is sent.
+    grid = dataclasses.replace(grid, max_tokens=getattr(instrument, "max_tokens", 0))
+
     prompts = list(instrument.prompts())
     if limit:
         prompts = prompts[:limit]
@@ -193,6 +197,8 @@ def run_cell(
             persona=cell.persona, variant=cell.variant, route=cell.route_key,
             instrument=instrument.name, item_id=prompt.item_id, prompt=prompt.text,
             sample=sample, prompt_sha=sha(prompt.text), response=raw, value=parsed.value,
+            finish_reason=str(res.get("finish_reason") or ""),
+            host=str(res.get("host") or ""),
             status=parsed.status, note=parsed.note, meta=dict(prompt.meta),
             temperature=grid.temperature, seed=grid.seed + sample,
             ts=Response.now(),
@@ -272,6 +278,10 @@ def run_grid(
     at once buys rate-limit failures rather than speed.
     """
     out_root = Path(out_root)
+
+    # The instrument owns the cap, so the provenance must read it from there —
+    # the grid still carries the config's value, which is not what is sent.
+    grid = dataclasses.replace(grid, max_tokens=getattr(instrument, "max_tokens", 0))
 
     prompts = list(instrument.prompts())
     if limit:

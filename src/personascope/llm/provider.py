@@ -868,6 +868,12 @@ class UnifiedProvider:
             or (getattr(response, "model_extra", None) or {}).get("provider")
         )
 
+        # Why generation stopped. Without it a response cut short by the cap,
+        # by a content filter, or by the model's own quote-stopping is
+        # indistinguishable from one the model chose to end — and a scorer
+        # reads all three as the model declining to answer.
+        finish_reason = getattr(choices[0], "finish_reason", None) if choices else None
+
         result: dict[str, Any] = {
             "text": first_text,
             "text_samples": texts,
@@ -877,6 +883,7 @@ class UnifiedProvider:
             "logprobs": None,
             "reasoning": reasoning,
             "host": host,
+            "finish_reason": finish_reason,
             "success": True,
         }
 

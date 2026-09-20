@@ -135,9 +135,10 @@ def test_parse_records_whether_the_longest_option_was_picked(inst):
 # ---- summarise ----
 
 
-def _rec(letter, gold, status=PARSED, branch="labelled", target="t", subject="s", resp="x"):
+def _rec(letter, gold, status=PARSED, branch="labelled", target="t", subject="s",
+         resp="x", finish="stop"):
     return {
-        "status": status, "response": resp,
+        "status": status, "response": resp, "finish_reason": finish,
         "meta": {"target": target, "subject": subject, "gold": gold, "longest": "B"},
         "value": {"letter": letter, "gold": gold,
                   "correct": None if letter is None else letter == gold,
@@ -176,3 +177,23 @@ def test_summary_does_not_shadow_harness_keys(inst):
     reserved = {"cell", "model", "route", "instrument", "n_records",
                 "n_samples", "seed", "temperature", "k", "asked", "resumed", "errors"}
     assert not (set(inst.summarise([_rec("A", "A")])) & reserved)
+
+
+def test_a_filter_cut_is_not_a_refusal(inst):
+    """OpenAI's content filter stops a response mid-sentence while the model is
+    quoting a source passage. That is the API ending the turn, not the persona
+    declining, and folding it into the refusal rate would report the wrong
+    thing entirely."""
+    recs = [_rec("A", "A"),
+            _rec(None, "A", status=UNPARSED, finish="content_filter",
+                 resp="Let us examine the passage. He asserts: \"Their reason for"),
+            _rec(None, "A", status=UNPARSED, resp="I cannot help with that.")]
+    s = inst.summarise(recs)["overall"]
+    assert s["truncated_rate"] == pytest.approx(1 / 3)
+    assert s["refusal_rate"] == pytest.approx(1 / 3)
+    assert s["n_scored"] == 1
+
+
+def test_a_length_stop_is_also_truncation(inst):
+    recs = [_rec(None, "A", status=UNPARSED, finish="length", resp="reasoning...")]
+    assert inst.summarise(recs)["overall"]["truncated_rate"] == 1.0

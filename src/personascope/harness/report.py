@@ -41,6 +41,8 @@ def _per_target(cell: dict) -> dict[str, float]:
 def build_report(run_root: Path) -> dict[str, Any]:
     """Cross-cell comparison, baseline first."""
     cells = _load_cells(Path(run_root))
+    if cells and cells[0].get("instrument") == "mmlu":
+        return _mmlu_report(cells, Path(run_root))
     base = next((c for c in cells if c.get("persona") == BASELINE_MARK), None)
     base_conf = _confidence(base) if base else None
     base_targets = _per_target(base) if base else {}
@@ -90,6 +92,59 @@ def build_report(run_root: Path) -> dict[str, Any]:
     }
 
 
+def _mmlu_report(cells: list[dict], run_root: Path) -> dict[str, Any]:
+    """Accuracy, not claims.
+
+    The self-report shape reads `confidence.mean` and the two yes-rates; an
+    MMLU summary has none of those, so rendering it through that path gives a
+    table of dashes with the accuracy sitting unused in the file.
+    """
+    base = next((c for c in cells if c.get("persona") == BASELINE_MARK), None)
+
+    def acc(cell: Optional[dict], target: Optional[str] = None) -> Optional[float]:
+        if not cell:
+            return None
+        block = cell["per_target"].get(target) if target else cell.get("overall")
+        return (block or {}).get("accuracy")
+
+    rows = []
+    for c in cells:
+        a, b = acc(c), acc(base)
+        o, e = c.get("overall") or {}, c.get("extraction") or {}
+        rows.append({
+            "cell": c.get("cell"), "persona": c.get("persona"),
+            "route": c.get("route"), "n_records": c.get("n_records"),
+            "accuracy": a,
+            # The measurement is the difference. An absolute accuracy mostly
+            # tracks question difficulty, which every cell shares.
+            "accuracy_delta": None if a is None or b is None else round(a - b, 3),
+            "refusal_rate": o.get("refusal_rate"),
+            "unparsed_rate": o.get("unparsed_rate"),
+            "format_compliance": e.get("format_compliance"),
+            "fallback_rate": e.get("fallback_rate"),
+            "gupta_missed": e.get("gupta_missed"),
+            "errors": c.get("errors", 0),
+        })
+
+    targets = sorted({t for c in cells for t in (c.get("per_target") or {})})
+    by_target = []
+    for t in targets:
+        row = {"target": t, "baseline": acc(base, t)}
+        for c in cells:
+            if c.get("persona") == BASELINE_MARK:
+                continue
+            key = f"{c.get('persona')}:{c.get('route')}"
+            row[key] = acc(c, t)
+            if row["baseline"] is not None and row[key] is not None:
+                row[f"{key}_delta"] = round(row[key] - row["baseline"], 3)
+        by_target.append(row)
+
+    return {
+        "run_root": str(run_root), "instrument": "mmlu", "n_cells": len(cells),
+        "has_baseline": base is not None, "by_cell": rows, "by_target": by_target,
+    }
+
+
 def _mean_unparsed(cell: dict) -> Optional[float]:
     rates = [
         (cell.get(f) or {}).get("unparsed_rate")
@@ -97,6 +152,51 @@ def _mean_unparsed(cell: dict) -> Optional[float]:
     ]
     vals = [r for r in rates if r is not None]
     return sum(vals) / len(vals) if vals else None
+
+
+def _write_mmlu(run_root: Path, report: dict) -> Path:
+    lines = [
+        f"# {run_root.name}", "",
+        f"{report['n_cells']} cells."
+        + ("" if report["has_baseline"] else "  **No baseline — deltas unavailable.**"),
+        "",
+        "Accuracy excludes refusals and unreadable answers from the denominator,",
+        "so a persona that declines reads as no data rather than as zero",
+        "competence. `gupta missed` is how often their extractor loses an answer",
+        "ours reads; `fallback` is how often the letter came from the guessing",
+        "branch rather than an explicit statement.",
+        "",
+        "## By cell", "",
+        "| cell | n | acc | Δ base | refuse | unparsed | format | fallback | gupta missed |",
+        "|---|---|---|---|---|---|---|---|---|",
+    ]
+    for r in report["by_cell"]:
+        lines.append(
+            f"| `{r['cell']}` | {r['n_records']} | {_fmt(r['accuracy'],0)} "
+            f"| {_fmt(r['accuracy_delta'],0)} | {_fmt(r['refusal_rate'],0)} "
+            f"| {_fmt(r['unparsed_rate'],0)} | {_fmt(r['format_compliance'],0)} "
+            f"| {_fmt(r['fallback_rate'],0)} | {_fmt(r['gupta_missed'],0)} | "
+        )
+    if report["by_target"]:
+        keys = [k for k in report["by_target"][0]
+                if k not in ("target", "baseline") and not k.endswith("_delta")]
+        lines += ["", "## By target", "",
+                  "| target | base | " + " | ".join(keys) + " |",
+                  "|---" * (len(keys) + 2) + "|"]
+        for row in report["by_target"]:
+            cells_txt = []
+            for k in keys:
+                v, d = row.get(k), row.get(f"{k}_delta")
+                cells_txt.append("—" if v is None
+                                 else f"{v:.2f}" + (f" ({d:+.2f})" if d is not None else ""))
+            base_txt = "—" if row["baseline"] is None else f"{row['baseline']:.2f}"
+            lines.append(f"| {row['target']} | {base_txt} | " + " | ".join(cells_txt) + " |")
+
+    path = run_root / "report.md"
+    path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    (run_root / "results.json").write_text(
+        json.dumps(report, indent=2, default=str) + "\n", encoding="utf-8")
+    return path
 
 
 def _fmt(v: Any, width: int = 8, places: int = 3) -> str:
@@ -111,6 +211,9 @@ def write_report(run_root: Path, report: Optional[dict] = None) -> Path:
     """Write `report.md` beside the cells, and return its path."""
     run_root = Path(run_root)
     report = report or build_report(run_root)
+
+    if report.get("instrument") == "mmlu":
+        return _write_mmlu(run_root, report)
 
     lines = [
         f"# {run_root.name}",

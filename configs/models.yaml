@@ -17,8 +17,8 @@
 #    weights we can touch. OpenAI's fine-tuning API is being shut down (no
 #    GPT-5.x model was ever fine-tunable; job creation ends 2027-01-06), so
 #    GPT-4.1 is the newest closed model from any lab that carries the ladder.
-#    The open full-ladder model is LoRA-trained on Tinker (Thinking Machines);
-#    Kimi K2.6 is the largest hybrid-thinking model there.
+#    The open full-ladder model is LoRA-trained on Tinker (Thinking Machines):
+#    Qwen3.5-397B-A17B, the flagship of Sturgeon et al.'s replication family.
 #
 # ── Serving rule ────────────────────────────────────────────────────────
 # Each model's routes are served by ONE stack, so that across routes only the
@@ -26,7 +26,7 @@
 #   gpt-4.1     OpenRouter pinned to the OpenAI upstream for base / context /
 #               prompt cells; the OpenAI API for the ft: checkpoints (same
 #               upstream, fine-tunes are not reachable through OpenRouter).
-#   kimi-k2.6   Tinker's sampler for every cell, base and LoRA alike.
+#   qwen35-397b Tinker's sampler for every cell, base and LoRA alike.
 #   the rest    OpenRouter, pinned to one upstream endpoint
 #               (`provider:`, sent as {"only": [tag], "allow_fallbacks": false};
 #               a request the pinned host cannot serve fails rather than
@@ -65,20 +65,40 @@ full_ladder:
       possible until 2027-01-06 and only while the org has ft: inference in
       the past 60 days.
 
-  - key: kimi-k2.6
-    id: moonshotai/Kimi-K2.6     # Tinker base-model name; OpenRouter slug is moonshotai/kimi-k2.6
-    family: Moonshot
-    params: 1T total / 32B active (MoE), hybrid thinking
+  - key: qwen35-9b
+    id: Qwen/Qwen3.5-9B          # Tinker base-model name; OpenRouter slug is qwen/qwen3.5-9b
+    created: 2026-03-10
+    family: Qwen
+    params: 9B dense, hybrid thinking, Apache-2.0
     served_by: tinker            # every cell -- base and LoRA -- through Tinker's sampler
     api_key_env: TINKER_API_KEY
-    price: {train: 4.84, sample: 5.49}
+    price: {train: 1.46, sample: 2.00}
     disable_reasoning: true      # hybrid model; thinking off via chat template
     routes: [icl, system, system_facts, system_shuffled, sft]
     sft: {via: tinker_lora, config: configs/checkpoints.yaml}
-    openrouter_check: {id: moonshotai/kimi-k2.6, provider: moonshotai}   # base-model sanity row only
+    openrouter_check: {id: qwen/qwen3.5-9b, provider: deepinfra/bf16}   # base-model sanity row
     note: >
-      the open full-ladder model. Frontier-scale, weights open, LoRA-trainable
-      and served on Tinker without hosting a 1T model ourselves.
+      Sturgeon et al.'s replication scale (Qwen 3 8B); also the development
+      model for dry runs. Shares the LoRA recipe with qwen35-397b so the two
+      differ in scale only.
+
+  - key: qwen35-397b
+    id: Qwen/Qwen3.5-397B-A17B  # Tinker base-model name; OpenRouter slug is qwen/qwen3.5-397b-a17b
+    created: 2026-02-16
+    family: Qwen
+    params: 397B total / 17B active (MoE), hybrid thinking, Apache-2.0
+    served_by: tinker            # every cell -- base and LoRA -- through Tinker's sampler
+    api_key_env: TINKER_API_KEY
+    price: {train: 6.60, sample: 7.50}
+    disable_reasoning: true      # hybrid model; thinking off via chat template
+    routes: [icl, system, system_facts, system_shuffled, sft]
+    sft: {via: tinker_lora, config: configs/checkpoints.yaml}
+    openrouter_check: {id: qwen/qwen3.5-397b-a17b, provider: alibaba}   # base-model sanity row: Alibaba's own endpoint, accepts temperature
+    note: >
+      the open full-ladder model. Sturgeon et al.'s replication family, so
+      their Qwen 3 8B SFT/ICL results are the direct comparison; same family
+      as the 9B dev model, so scale is compared at a fixed recipe. Chosen
+      over Kimi K2.6 (1T) for comparability, not size.
 
 # ── Prompt and context routes only: the cross-family arm ─────────────────
 # One frontier model per family beyond the two full-ladder families. Which of
@@ -132,6 +152,15 @@ prompt_context:
     disable_reasoning: true      # switchable; off
     routes: [icl, system, system_facts, system_shuffled]
 
+  - key: kimi-k2.6
+    id: moonshotai/kimi-k2.6
+    family: Moonshot
+    price: {in: 1.70, out: 8.50}
+    provider: moonshotai         # the bare slug; the `moonshotai/mxfp4` tag is not honoured as a pin
+    temperature: rejected        # Moonshot's endpoint rejects the parameter; vendor default not confirmed
+    disable_reasoning: true      # hybrid; off
+    routes: [icl, system, system_facts, system_shuffled]
+
   - key: gpt-5.6-sol
     id: openai/gpt-5.6-sol
     created: 2026-07-09
@@ -143,16 +172,8 @@ prompt_context:
     routes: [icl, system, system_facts, system_shuffled]
     note: same family as gpt-4.1; include only to place the full-ladder model against its successor
 
-# ── Development only: not in the paper ───────────────────────────────────
-dev:
-  - key: qwen35-9b
-    id: qwen/qwen3.5-9b
-    created: 2026-03-10
-    hf: Qwen/Qwen3.5-9B
-    price: {in: 0.10, out: 0.15}
-    provider: deepinfra/bf16
-    disable_reasoning: true
-    note: cheapest model at this capability; for instrument development and dry runs
+# ── Development: qwen35-9b doubles as the dry-run model; see full_ladder.
+dev: []
 
 # ── Considered and excluded (resolvable, not in any sweep) ────────────────
 # Kept so a name still resolves; `in_grid: false` and the reason is the record.
@@ -168,8 +189,9 @@ excluded:
     min_max_tokens: 2400
     in_grid: false
     reason: >
-      same family as kimi-k2.6, which carries the full ladder on Tinker.
-      The `moonshotai/mxfp4` tag is not honoured as a pin -- use the bare slug.
+      same family as kimi-k2.6 (the arm's Moonshot row); rejects temperature
+      and cannot switch thinking off. The `moonshotai/mxfp4` tag is not
+      honoured as a pin -- use the bare slug.
   - key: gpt-oss-20b
     id: openai/gpt-oss-20b
     provider: deepinfra/bf16
@@ -180,7 +202,7 @@ excluded:
     id: google/gemma-4-31b-it
     provider: crusoe/bf16
     in_grid: false
-    reason: dropped as the open full-ladder candidate in favour of kimi-k2.6
+    reason: dropped as the open full-ladder candidate in favour of qwen35-397b
   - key: llama-3.3-70b
     id: meta-llama/llama-3.3-70b-instruct
     provider: coreweave/fp16
