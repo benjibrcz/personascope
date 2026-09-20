@@ -1,185 +1,175 @@
 {
-  "rule": "every multi-subject target, then a category-stratified random draw to 5 per category",
   "seed": 42,
-  "n_per_category": 5,
-  "decided_before": "any persona was run; no criterion refers to a persona or to an observed result",
-  "categories": {
-    "STEM": [
-      {
-        "target": "biology",
-        "n_subjects": 2,
-        "covers": [
-          "college_biology",
-          "high_school_biology"
-        ],
-        "basis": "multi-subject"
-      },
-      {
-        "target": "chemistry",
-        "n_subjects": 2,
-        "covers": [
-          "college_chemistry",
-          "high_school_chemistry"
-        ],
-        "basis": "multi-subject"
-      },
-      {
-        "target": "computer science",
-        "n_subjects": 2,
-        "covers": [
-          "college_computer_science",
-          "high_school_computer_science"
-        ],
-        "basis": "multi-subject"
-      },
-      {
-        "target": "mathematics",
-        "n_subjects": 3,
-        "covers": [
-          "college_mathematics",
-          "elementary_mathematics",
-          "high_school_mathematics"
-        ],
-        "basis": "multi-subject"
-      },
-      {
-        "target": "physics",
-        "n_subjects": 3,
-        "covers": [
-          "college_physics",
-          "conceptual_physics",
-          "high_school_physics"
-        ],
-        "basis": "multi-subject"
-      }
-    ],
-    "humanities": [
-      {
-        "target": "European history",
-        "n_subjects": 1,
-        "covers": [
-          "high_school_european_history"
-        ],
-        "basis": "random"
-      },
-      {
-        "target": "jurisprudence",
-        "n_subjects": 1,
-        "covers": [
-          "jurisprudence"
-        ],
-        "basis": "random"
-      },
-      {
-        "target": "law",
-        "n_subjects": 1,
-        "covers": [
-          "professional_law"
-        ],
-        "basis": "random"
-      },
-      {
-        "target": "logical fallacies",
-        "n_subjects": 1,
-        "covers": [
-          "logical_fallacies"
-        ],
-        "basis": "random"
-      },
-      {
-        "target": "prehistory",
-        "n_subjects": 1,
-        "covers": [
-          "prehistory"
-        ],
-        "basis": "random"
-      }
-    ],
-    "social sciences": [
-      {
-        "target": "US foreign policy",
-        "n_subjects": 1,
-        "covers": [
-          "us_foreign_policy"
-        ],
-        "basis": "random"
-      },
-      {
-        "target": "human sexuality",
-        "n_subjects": 1,
-        "covers": [
-          "human_sexuality"
-        ],
-        "basis": "random"
-      },
-      {
-        "target": "psychology",
-        "n_subjects": 2,
-        "covers": [
-          "high_school_psychology",
-          "professional_psychology"
-        ],
-        "basis": "multi-subject"
-      },
-      {
-        "target": "public relations",
-        "n_subjects": 1,
-        "covers": [
-          "public_relations"
-        ],
-        "basis": "random"
-      },
-      {
-        "target": "security studies",
-        "n_subjects": 1,
-        "covers": [
-          "security_studies"
-        ],
-        "basis": "random"
-      }
-    ],
-    "other (business, health, misc.)": [
-      {
-        "target": "anatomy",
-        "n_subjects": 1,
-        "covers": [
-          "anatomy"
-        ],
-        "basis": "random"
-      },
-      {
-        "target": "clinical knowledge",
-        "n_subjects": 1,
-        "covers": [
-          "clinical_knowledge"
-        ],
-        "basis": "random"
-      },
-      {
-        "target": "human aging",
-        "n_subjects": 1,
-        "covers": [
-          "human_aging"
-        ],
-        "basis": "random"
-      },
-      {
-        "target": "medical genetics",
-        "n_subjects": 1,
-        "covers": [
-          "medical_genetics"
-        ],
-        "basis": "random"
-      },
-      {
-        "target": "medicine",
-        "n_subjects": 2,
-        "covers": [
-          "college_medicine",
-          "professional_medicine"
-        ],
-        "basis": "multi-subject"
-      }
-    ]
-  }
+  "items_per_target": 72,
+  "targets": [
+    {
+      "target": "European history",
+      "basis": "control (stratified random)",
+      "category": "humanities",
+      "n_subjects": 1,
+      "covers": [
+        "high_school_european_history"
+      ],
+      "cap": 144
+    },
+    {
+      "target": "US foreign policy",
+      "basis": "control (stratified random)",
+      "category": "social sciences",
+      "n_subjects": 1,
+      "covers": [
+        "us_foreign_policy"
+      ],
+      "cap": 84
+    },
+    {
+      "target": "biology",
+      "basis": "multi-subject",
+      "category": "STEM",
+      "n_subjects": 2,
+      "covers": [
+        "college_biology",
+        "high_school_biology"
+      ],
+      "cap": 256
+    },
+    {
+      "target": "chemistry",
+      "basis": "multi-subject",
+      "category": "STEM",
+      "n_subjects": 2,
+      "covers": [
+        "college_chemistry",
+        "high_school_chemistry"
+      ],
+      "cap": 144
+    },
+    {
+      "target": "computer science",
+      "basis": "multi-subject",
+      "category": "STEM",
+      "n_subjects": 2,
+      "covers": [
+        "college_computer_science",
+        "high_school_computer_science"
+      ],
+      "cap": 120
+    },
+    {
+      "target": "computer security",
+      "basis": "post-1950 content",
+      "category": "STEM",
+      "n_subjects": 1,
+      "covers": [
+        "computer_security"
+      ],
+      "cap": 72
+    },
+    {
+      "target": "machine learning",
+      "basis": "post-1950 content",
+      "category": "STEM",
+      "n_subjects": 1,
+      "covers": [
+        "machine_learning"
+      ],
+      "cap": 72
+    },
+    {
+      "target": "mathematics",
+      "basis": "multi-subject",
+      "category": "STEM",
+      "n_subjects": 3,
+      "covers": [
+        "college_mathematics",
+        "elementary_mathematics",
+        "high_school_mathematics"
+      ],
+      "cap": 252
+    },
+    {
+      "target": "medical genetics",
+      "basis": "post-1950 content",
+      "category": "other (business, health, misc.)",
+      "n_subjects": 1,
+      "covers": [
+        "medical_genetics"
+      ],
+      "cap": 80
+    },
+    {
+      "target": "medicine",
+      "basis": "multi-subject",
+      "category": "other (business, health, misc.)",
+      "n_subjects": 2,
+      "covers": [
+        "college_medicine",
+        "professional_medicine"
+      ],
+      "cap": 288
+    },
+    {
+      "target": "philosophy",
+      "basis": "control (stratified random)",
+      "category": "humanities",
+      "n_subjects": 1,
+      "covers": [
+        "philosophy"
+      ],
+      "cap": 232
+    },
+    {
+      "target": "physics",
+      "basis": "multi-subject",
+      "category": "STEM",
+      "n_subjects": 3,
+      "covers": [
+        "college_physics",
+        "conceptual_physics",
+        "high_school_physics"
+      ],
+      "cap": 240
+    },
+    {
+      "target": "psychology",
+      "basis": "multi-subject",
+      "category": "social sciences",
+      "n_subjects": 2,
+      "covers": [
+        "high_school_psychology",
+        "professional_psychology"
+      ],
+      "cap": 840
+    },
+    {
+      "target": "public relations",
+      "basis": "control (stratified random)",
+      "category": "social sciences",
+      "n_subjects": 1,
+      "covers": [
+        "public_relations"
+      ],
+      "cap": 92
+    },
+    {
+      "target": "virology",
+      "basis": "post-1950 content",
+      "category": "other (business, health, misc.)",
+      "n_subjects": 1,
+      "covers": [
+        "virology"
+      ],
+      "cap": 128
+    },
+    {
+      "target": "world religions",
+      "basis": "control (stratified random)",
+      "category": "humanities",
+      "n_subjects": 1,
+      "covers": [
+        "world_religions"
+      ],
+      "cap": 120
+    }
+  ]
 }

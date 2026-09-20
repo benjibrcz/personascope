@@ -759,7 +759,7 @@ class UnifiedProvider:
         messages: list[dict],
         *,
         max_tokens: int = 150,
-        temperature: float = 0.7,
+        temperature: float = 1.0,
         logprobs: bool = False,
         top_logprobs: int = 5,
         n: int = 1,
@@ -860,6 +860,14 @@ class UnifiedProvider:
                 or ""
             )
 
+        # Which upstream answered. OpenRouter puts it on the top-level
+        # `provider` field; a direct vendor API has none. Recorded so a pinned
+        # entry in models.yaml can be verified against what actually served.
+        host = (
+            getattr(response, "provider", None)
+            or (getattr(response, "model_extra", None) or {}).get("provider")
+        )
+
         result: dict[str, Any] = {
             "text": first_text,
             "text_samples": texts,
@@ -868,6 +876,7 @@ class UnifiedProvider:
             "total_nll": 0.0,
             "logprobs": None,
             "reasoning": reasoning,
+            "host": host,
             "success": True,
         }
 

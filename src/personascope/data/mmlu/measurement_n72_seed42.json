@@ -1,0 +1,43 @@
+{
+  "source": "cais/mmlu test split, via scripts/fetch_mmlu.py",
+  "targets_file": "measurement_targets.json",
+  "n_per_target": 72,
+  "seed": 42,
+  "n_targets": 16,
+  "n_items": 1152,
+  "letter_counts": {
+    "A": 288,
+    "B": 288,
+    "C": 288,
+    "D": 288
+  },
+  "items_per_subject": {
+    "high_school_european_history": 72,
+    "us_foreign_policy": 72,
+    "college_biology": 36,
+    "high_school_biology": 36,
+    "college_chemistry": 36,
+    "high_school_chemistry": 36,
+    "college_computer_science": 36,
+    "high_school_computer_science": 36,
+    "computer_security": 72,
+    "machine_learning": 72,
+    "college_mathematics": 24,
+    "elementary_mathematics": 24,
+    "high_school_mathematics": 24,
+    "medical_genetics": 72,
+    "college_medicine": 36,
+    "professional_medicine": 36,
+    "philosophy": 72,
+    "college_physics": 24,
+    "conceptual_physics": 24,
+    "high_school_physics": 24,
+    "high_school_psychology": 36,
+    "professional_psychology": 36,
+    "public_relations": 72,
+    "virology": 72,
+    "world_religions": 72
+  },
+  "sha256_16": "14c1b276652236b7",
+  "file": "measurement_n72_seed42.jsonl"
+}

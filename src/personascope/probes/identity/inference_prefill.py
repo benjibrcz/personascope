@@ -12,7 +12,7 @@ chat-completion APIs don't expose true prefilling). The model then
 generates a completion, and we either:
 
 - **Generation-frequency (default, works everywhere):** sample N=20
-  completions at temperature=0.7, max_tokens=12. Count completions whose
+  completions at temperature=1.0, max_tokens=12. Count completions whose
   text mentions any canonical / alias / first-name spelling of the target
   persona (case-insensitive, whitespace-trimmed). The fraction is
   `p_character_gen`. This is what "Inf" in figure_g / heatmap M shows by
@@ -238,7 +238,7 @@ def make_inference_prefill_probe(
     *,
     prefill_idx: int = 0,
     n_samples_gen: int = 20,
-    gen_temperature: float = 0.7,
+    gen_temperature: float = 1.0,
     gen_max_tokens: int = 12,
     use_logprobs: bool = False,
     top_logprobs: int = 20,
@@ -340,7 +340,7 @@ def make_inference_prefill_open_probe(
     *,
     prefill_idx: int = 0,
     n_samples_gen: int = 20,
-    gen_temperature: float = 0.7,
+    gen_temperature: float = 1.0,
     gen_max_tokens: int = 12,
     template_set: str = "leading",
 ):

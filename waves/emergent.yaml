@@ -26,4 +26,4 @@ panel:
   disable_probes: []
   values_aggregate: vd_score
 
-sampling: {n_samples: 8, seed: 42, temperature: 1.0, judge: openai}
+sampling: {n_samples: 8, seed: 42, judge: openai}   # temperature: configs/models.yaml defaults

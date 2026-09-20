@@ -47,7 +47,6 @@ baseline: true
 
 sampling:
   n_samples: 5
-  temperature: 1.0
   seed: 42
   # Generation cap. A persona that preambles before the number gets truncated
   # and scores unparsed, so this drives the unparsed rate directly.

@@ -24,7 +24,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
-__all__ = ["resolve_model", "available_models", "load_models_config"]
+__all__ = ["resolve_model", "available_models", "load_models_config", "default_temperature"]
 
 _CONFIGS = Path(__file__).resolve().parents[2] / "configs"
 MODELS_YAML = _CONFIGS / "models.yaml"
@@ -37,6 +37,16 @@ def load_models_config(path: Path | str | None = None) -> dict[str, Any]:
 
     p = Path(path or MODELS_YAML)
     return yaml.safe_load(p.read_text(encoding="utf-8")) if p.exists() else {}
+
+
+def default_temperature(path: Path | str | None = None) -> float:
+    """The one generation temperature, `defaults.temperature` in models.yaml.
+
+    Sweeps and waves do not set their own; a model whose pinned endpoint
+    rejects the parameter (`temperature: rejected` on its entry) runs at the
+    vendor default, and the manifest says so.
+    """
+    return float((load_models_config(path).get("defaults") or {}).get("temperature", 1.0))
 
 
 def _pinned(cfg: dict[str, Any]) -> dict[str, dict]:
@@ -88,11 +98,21 @@ def resolve_model(
     if name in pinned:
         entry = pinned[name]
         model_id = entry.get("id") or entry.get("model") or name
+        # `provider:` is an OpenRouter endpoint tag. Sent with
+        # allow_fallbacks=False so a request the pinned host cannot serve
+        # fails instead of landing on another host at another precision.
+        extra_body = None
+        if entry.get("provider"):
+            extra_body = {"provider": {"only": [entry["provider"]],
+                                       "allow_fallbacks": False}}
         pc = ProviderConfig(
             name=f"{name} ({entry['_tier']}, models.yaml)",
             model=model_id,
             base_url=entry.get("base_url", defaults.get("base_url")),
             api_key_env=entry.get("api_key_env", defaults.get("api_key_env", "OPENAI_API_KEY")),
+            extra_body=extra_body,
+            disable_reasoning_by_default=bool(entry.get("disable_reasoning", False)),
+            min_max_tokens=int(entry.get("min_max_tokens", 0)),
         )
         return UnifiedProvider(pc), model_id
 

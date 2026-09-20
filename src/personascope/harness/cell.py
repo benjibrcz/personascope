@@ -13,6 +13,7 @@ from pathlib import Path
 from typing import Any, Iterator, Optional, Sequence
 
 from personascope.induction import BASELINE, FACTS_VARIANTS, Induction, resolve
+from personascope.models import default_temperature
 
 __all__ = ["Cell", "Grid", "build_grid"]
 
@@ -159,7 +160,7 @@ def build_grid(
         instrument=cfg.get("instrument", ""),
         run=cfg.get("run", "run"),
         n_samples=int(sampling.get("n_samples", 1)),
-        temperature=float(sampling.get("temperature", 1.0)),
+        temperature=float(sampling.get("temperature", default_temperature())),
         seed=int(sampling.get("seed", 42)),
         max_tokens=int(sampling.get("max_tokens", 64)),
         workers=int(concurrency.get("workers", 4)),

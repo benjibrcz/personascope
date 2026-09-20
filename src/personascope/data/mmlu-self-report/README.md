@@ -189,52 +189,85 @@ means anything.
 ## 3. The measurement subset
 
 The self-report asks about all 45 targets. The accuracy half — checking those
-claims against MMLU — runs on **20** of them, listed in
-`measurement_targets.json`.
+claims against MMLU — runs on **16** of them, listed in
+`measurement_targets.json`. That file holds the targets and nothing else; the
+reasoning is here.
 
-Fewer targets buys precision where it is needed. The quantity of interest is a
-*drop*: baseline accuracy on a target minus persona accuracy on the same
-target. A difference of two proportions has a wider interval than either, so
-per-target detection is the binding constraint, and it improves with items per
-target rather than with number of targets:
+### Three rules, none of them about a persona
 
-| targets | items each | smallest detectable drop | calls (4 cells) |
+1. **Every multi-subject target.** The seven that merge difficulty tiers —
+   `mathematics` and `physics` (3 tiers), `biology`, `chemistry`,
+   `computer science`, `medicine`, `psychology` (2) — are the only place a
+   single claim can be checked against easy and hard questions at once.
+2. **Every subject whose content is substantially post-1950**:
+   `machine learning`, `computer security`, `medical genetics`, `virology`.
+   This is a property of the field. It is in the design because the persona
+   set is composed of historical figures, which was settled when the personas
+   were chosen.
+3. **Category-stratified random controls until every MMLU category holds at
+   least three targets**, seed 42.
+
+All three are decidable from the taxonomy before any persona runs, and all
+three transfer to a persona added later.
+
+### Why the targets that moved were not chosen
+
+The self-report results show where the personas separate most —
+`computer security`, `machine learning`, `marketing`, spreads of 75–85 points.
+Choosing on that would find the effect far more cheaply, and would be circular:
+a set chosen because three particular personas moved on it cannot then support
+the claim that personas move claims on those subjects, and would not transfer.
+
+Rule 2 does bring three of those four in. That is not the same thing. The rule
+is stated on the field's content, would have selected the same subjects before
+any run, and is a design choice rather than a discovery.
+
+### The set is STEM-heavy, and that is a consequence
+
+Seven of sixteen. MMLU's multi-tier subjects and its modern subjects are both
+concentrated in STEM, so rules 1 and 2 pull that way. Rule 3 lifts the other
+three categories to three targets each; balancing further would mean diluting
+the structural rules.
+
+### 72 items per target, and why not more
+
+The binding constraint is not pool size but the rarest gold answer. Items are
+stratified on the gold letter, so a target can supply at most
+`4 × (its scarcest letter)`. `computer security`, `machine learning` and
+`management` each hold only 18 items on their scarcest letter, giving a cap of
+72 — and every target takes 72 so the pooled analysis stays unweighted.
+
+This is where cutting targets stops helping. Fewer targets normally buys items
+per target, but 72 is a ceiling four targets already sit on, so going below
+sixteen saves calls at the same detection rather than improving it:
+
+| targets | items | smallest detectable drop | calls (4 cells) |
 |---|---|---|---|
 | 45 | 48 | 16% | 8,640 |
-| **20** | **72** | **11%** | **5,760** |
+| 20 | 72 | 11% | 5,760 |
+| **16** | **72** | **11%** | **4,608** |
+| 14 | 72 | 11% | 4,032 |
 
-Two rules pick the 20, and **neither refers to a persona**:
+### Why 11% is achievable at all
 
-1. **Every multi-subject target.** The seven targets that merge difficulty
-   tiers — `mathematics` and `physics` (3 tiers), `biology`, `chemistry`,
-   `computer science`, `medicine`, `psychology` (2) — are the only place a
-   single claim can be checked against easy and hard questions at once. That is
-   a property of the merge table above, fixed before any run.
-2. **A category-stratified random draw to five per category**, seed 42. The 45
-   targets sit 11 / 12 / 11 / 11 across MMLU's STEM, humanities, social
-   sciences and other, so five each keeps the set from following whatever the
-   taxonomy over-represents.
+Two things, neither of which is more items.
 
-### Why not choose the targets that moved
+**The comparison is paired.** Every cell answers the same items, so baseline
+against persona is McNemar rather than two independent proportions, and item
+difficulty — the dominant variance source — cancels.
 
-The self-report results show which targets separate the personas most —
-`computer security`, `machine learning`, `marketing`, with spreads of 75-85
-points. Selecting on those would find the effect far more cheaply.
+**Temperature is 0.** At temperature 1 a discordant pair may be the persona
+effect or sampling noise; at 0 it can only be the effect. That roughly halves
+the items needed, and it is the standard for this benchmark anyway —
+lm-evaluation-harness runs greedy and the original MMLU takes an argmax over
+logprobs. Temperature 1 is right for the self-report, where the distribution of
+claims is the measurement; for accuracy it adds noise to a question that has a
+correct answer.
 
-It would also be circular. A set chosen because three particular personas moved
-on it cannot then support the claim that personas move claims on those
-subjects, and it would not transfer to a persona added later. The stratified
-draw can still find the effect wherever it is; it is simply not tuned to.
+### Sampling within a target
 
-The cost is real and worth stating: the seed-42 draw excludes
-`machine learning`, `computer security`, `marketing` and `macroeconomics`, four
-of the highest-spread targets. A purposive set would have caught more effect
-per call. That is the price of not selecting on the outcome.
-
-### The draw is a draw
-
-Seed 42 produced this set; another seed produces another. The seed is recorded
-in `measurement_targets.json` and hashed into every run, so it is reproducible
-— but the alternative, if a result should not rest on an arbitrary draw, is all
-45 targets at 48 items each and a 16% detection floor.
+`n = 72`, split evenly across the target's subjects — 3 tiers × 24, 2 × 36,
+1 × 72 — so a multi-tier claim is checked at every tier. Within each
+`(target, subject)` cell, 18 per gold letter, drawn without replacement under
+seed 42.
 

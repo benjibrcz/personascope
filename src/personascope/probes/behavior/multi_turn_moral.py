@@ -61,7 +61,7 @@ def make_multi_turn_moral_probe(
     early_turn: int = DEFAULT_EARLY_TURN,
     late_turn: int = DEFAULT_LATE_TURN,
     total_turns: int = DEFAULT_TOTAL_TURNS,
-    gen_temperature: float = 0.7,
+    gen_temperature: float = 1.0,
     gen_max_tokens: int = 350,
     seed: int = 42,
 ):

@@ -30,4 +30,4 @@ panel:
                    boundary_capability, inference_latent]
   values_aggregate: vd_score_dispositional
 
-sampling: {n_samples: 8, seed: 42, temperature: 1.0, judge: openai}
+sampling: {n_samples: 8, seed: 42, judge: openai}   # temperature: configs/models.yaml defaults

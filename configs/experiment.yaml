@@ -3,7 +3,8 @@
 sampling:
   n_samples: 8
   seed: 42
-  temperature: 1.0
+  # temperature lives in configs/models.yaml (defaults.temperature), with the
+  # per-model upstream pins; it is not repeated here or in any sweep.
   tier: exploratory
   judge: openai/gpt-4.1
   intervals:
