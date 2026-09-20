@@ -163,7 +163,64 @@ The guard earns its keep against prompt-construction bugs that review will not
 catch — a template that echoes a shortlist into a question would leak silently
 and the run would still look clean.
 
-## 6. Known limits
+## 6. How items are scored, and where we depart from the harness
+
+MMLU-Redux 2.0 is a re-annotation of MMLU, not a new protocol: 3,000 questions
+re-labelled for error type, with the `-ok` variant keeping only the clean ones
+(5,330 questions across 57 subjects, so counts run 43-100 rather than a flat
+100). Scoring comes from lm-evaluation-harness's `mmlu_redux_*_generative`
+tasks. In full:
+
+| step | harness |
+|---|---|
+| prompt | `description` + question + `A./B./C./D.` lines + *"Please respond with the correct letter (A, B, C or D) without any additional comments, only the correct letter:"* |
+| description | per subject: *"The following are multiple choice questions (with answers) about college chemistry."* |
+| generation | `generate_until`, stopping at `</s>` |
+| extraction | `re.compile("([ABCD])")`, `findall`, **first match**, case-sensitive; no match yields `"[invalid]"` |
+| metric | `exact_match` against `['A','B','C','D'][answer]`, `ignore_case` and `ignore_punctuation` on |
+| aggregation | mean, `weight_by_size: true` when rolling subjects into stem / other / social sciences / humanities |
+
+We keep the question format and the four lettered lines so the items are the
+published items. Three things differ, each forced.
+
+**The subject description is dropped.** It names the subject — *"...about
+college chemistry"* — which is exactly the leak the auditor/target boundary
+exists to prevent. Including it would tell the target which subject it was
+selected into, at the moment of examination.
+
+**The instruction differs**, because we also ask for a confidence: *"Reply with
+the correct letter (A, B, C or D), then on a new line write `Confidence: N`."*
+
+**The extraction filter is ours, and this is the substantive one.** The
+harness's take-first `([ABCD])` is safe only because its prompt forbids
+commentary. A persona does not comply. Measured on in-character answers:
+
+| model output | gold | harness | ours |
+|---|---|---|---|
+| "Ah, a trifling matter for one such as I. The answer is B." | B | **A** | B |
+| "As I recall from my work on radium, D." | D | **A** | D |
+| "CRISPR was unknown in my day, but I would guess B." | B | **C** | B |
+| "Chemistry? A pedestrian question. C." | C | C | C |
+
+The harness is wrong on three of four — it reads the `A` in "Ah", the `A` in
+"As", the `C` in "CRISPR". Ours looks for a labelled answer, then a line that is
+just a letter, then the **last** standalone capital, and never accepts a letter
+adjacent to a letter or apostrophe.
+
+Two consequences worth stating in the paper. **Our accuracies are not directly
+comparable to published MMLU-Redux numbers**, because the extraction differs —
+though the alternative, using the harness filter, would not be comparable
+either, just silently wrong. And **an unparseable answer is excluded from the
+denominator**, not scored wrong: the harness's `"[invalid]"` counts as a miss,
+which conflates "could not answer" with "answered incorrectly". For a persona
+that answers in prose, that distinction carries most of the signal.
+
+Aggregation also differs, deliberately: the harness weights subjects by size to
+produce a corpus-level MMLU score, while we ask a fixed `k_items` from each
+selected group and compare claimed-strong against claimed-weak within a persona.
+We are not reporting an MMLU score.
+
+## 7. Known limits
 
 - **Catalogue width.** Only 14 of 57 MMLU-Redux subjects are cached. Until
   `scripts/fetch_mmlu_redux.py` runs, the selector chooses from a quarter of the

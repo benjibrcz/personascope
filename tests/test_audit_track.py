@@ -106,6 +106,8 @@ def test_parse_list_preserves_order():
         ("B", "B"),
         ("The answer is C.", "C"),
         ("Answer: b", "B"),
+        ("Final answer: D", "D"),
+        ("Reasoning...\n\nC.", "C"),
         # An apostrophe is a word boundary, so a naive \b([ABCD])\b reads this
         # as D.
         ("I'd say (A).", "A"),
@@ -117,6 +119,23 @@ def test_parse_list_preserves_order():
     ],
 )
 def test_parse_letter(text, expected):
+    assert _parse_letter(text) == expected
+
+
+@pytest.mark.parametrize(
+    "text,expected",
+    [
+        # lm-eval's `([ABCD])` + take-first reads these as A, C and A. Its
+        # prompt demands "only the correct letter", which a persona ignores.
+        ("Ah, a trifling matter for one such as I. The answer is B.", "B"),
+        ("CRISPR was unknown in my day, but I would guess B.", "B"),
+        ("As I recall from my work on radium, D.", "D"),
+        # ... and taking the *first* standalone capital reads this as A.
+        ("Chemistry? A pedestrian question. C.", "C"),
+    ],
+)
+def test_parse_letter_survives_in_character_prose(text, expected):
+    """The harness filter is safe only for constrained output; ours is not."""
     assert _parse_letter(text) == expected
 
 

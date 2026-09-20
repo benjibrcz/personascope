@@ -294,20 +294,43 @@ def _parse_list(text: str) -> list[str]:
 
 
 def _parse_letter(text: str) -> Optional[str]:
-    """Extract the answer letter, preferring an explicit final answer.
+    """Extract the answer letter from a free-form, possibly in-character reply.
 
-    Two traps. A plain `\b([ABCD])\b` reads "I'd say (A)" as **D**, because the
-    apostrophe is a word boundary — so letters adjacent to an apostrophe or
-    another letter are never candidates. And uppercasing the text before the
-    fallback search turns the article in "CRISPR is a tool" into answer **A** —
-    so the fallback is case-sensitive, since a real choice is written uppercase.
-    An explicitly labelled answer ("answer: b") stays case-insensitive.
+    lm-evaluation-harness filters MMLU-Redux with `([ABCD])` + take-first, which
+    is safe only because its prompt demands "only the correct letter". A persona
+    does not comply with that, and on prose the filter reads the first capital
+    letter it meets: "Ah, a trifling matter... The answer is B" scores **A**,
+    and "CRISPR was unknown in my day, but I would guess B" scores **C**.
+
+    So we look, in order, for an explicitly labelled answer, then a line that is
+    just a letter, then the **last** standalone capital — last, because a reply
+    that reasons before answering ends on its answer, while "Chemistry? A
+    pedestrian question. C." begins on a false one.
+
+    Candidates never touch a letter or apostrophe: a plain `\\b([ABCD])\\b`
+    reads "I'd say (A)" as **D**, the apostrophe being a word boundary. The
+    fallback is case-sensitive, since uppercasing first turns the article in
+    "CRISPR is a tool" into answer **A**; an explicitly labelled answer
+    ("answer: b") stays case-insensitive.
+
+    The cost is that our accuracies are not directly comparable to published
+    MMLU-Redux numbers, which is noted in the design memo.
     """
-    m = re.search(r"(?:answer|choice)\D{0,12}?([ABCD])(?![A-Za-z])", text, re.I)
+    m = re.search(
+        r"(?:final\s+)?(?:answer|choice)\b\W{0,12}?([ABCD])(?![A-Za-z])",
+        text,
+        re.I,
+    )
     if m:
         return m.group(1).upper()
+
+    for line in reversed([ln.strip() for ln in text.splitlines() if ln.strip()]):
+        m = re.fullmatch(r"\(?([ABCD])\)?[.):]?", line)
+        if m:
+            return m.group(1)
+
     found = _LETTER.findall(text)
-    return found[0] if found else None
+    return found[-1] if found else None
 
 
 def _parse_confidence(text: str) -> Optional[float]:
