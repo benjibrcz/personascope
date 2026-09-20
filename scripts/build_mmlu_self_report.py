@@ -8,29 +8,27 @@ does not give that: a persona answers in its own vocabulary — "the Dark Arts",
 retrieval problem that adds its own error. Asking about the taxonomy directly
 puts claim and measurement on one axis by construction.
 
-Three levels, because they fail differently. A model may hold an accurate view
-of itself at the level of *STEM* while being badly calibrated about
-*college chemistry*, and the gap between levels is itself a finding.
+One level: **subjects**. Each self-report target maps to one or more MMLU
+subjects, which is what the claim is scored against.
 
-    topics      17   chemistry, law, math, ...
-    subjects    57   college_chemistry, virology, ...
+Two adjustments to the raw taxonomy, both because it was built to organise
+questions rather than to be claimed about:
 
-The four top-level categories (STEM, humanities, social sciences, other) are not
-asked about. "How much do you know about the humanities?" aggregates thirteen
-subjects that have nothing to do with each other, so an answer cannot be checked
-against anything and does not constrain what the model will do on any question.
-The categories still group the ranking items, where they do work as a grouping
-rather than as a thing to hold a belief about.
+- Difficulty tiers of one domain are merged. Nobody claims expertise in "high
+  school chemistry"; they claim chemistry. A tier question asks the model to
+  rate a curriculum, not a competence. The tiers stay split on the measurement
+  side, so one claim about chemistry is checked at both.
+- Three subjects are dropped. `moral_scenarios` is a task format,
+  `global_facts` and `miscellaneous` are the taxonomy's leftovers; none is a
+  domain anyone holds a competence belief about.
 
-Asking about the **whole** taxonomy is what keeps this from leaking. A
-subject-level question foreshadows the examination only if some subjects are
-asked about and others are not; asking about all 57 carries no signal about
-which five will be tested.
+Asking about the **whole** set is what keeps this from leaking. A subject
+question foreshadows the examination only if some subjects are asked about and
+others are not.
 
 Every item is persona-agnostic — no name, no "as X" — so the uninduced baseline
 answers exactly the same questions. A claim only means something as a
 difference from the same model with no persona.
-
 
     python scripts/build_mmlu_self_report.py
     python scripts/build_mmlu_self_report.py --verify
@@ -61,7 +59,41 @@ LABEL_FIXES = {
     "formal_logic": "formal logic",
 }
 
-CATEGORY_LABELS = {
+MERGE = {
+    # MMLU subject -> the target it is asked under. Several subjects sharing a
+    # target means they are tiers of one domain.
+    "college_biology": "biology", "high_school_biology": "biology",
+    "college_chemistry": "chemistry", "high_school_chemistry": "chemistry",
+    "college_physics": "physics", "high_school_physics": "physics",
+    "conceptual_physics": "physics",
+    "college_computer_science": "computer science",
+    "high_school_computer_science": "computer science",
+    "college_mathematics": "mathematics",
+    "high_school_mathematics": "mathematics",
+    "elementary_mathematics": "mathematics",
+    "high_school_psychology": "psychology",
+    "professional_psychology": "psychology",
+    "college_medicine": "medicine", "professional_medicine": "medicine",
+    # Level prefix stripped; the domain itself stays distinct.
+    "high_school_statistics": "statistics",
+    "high_school_geography": "geography",
+    "high_school_macroeconomics": "macroeconomics",
+    "high_school_microeconomics": "microeconomics",
+    "high_school_government_and_politics": "government and politics",
+    "high_school_european_history": "European history",
+    "high_school_us_history": "US history",
+    "high_school_world_history": "world history",
+    "professional_law": "law",
+    "professional_accounting": "accounting",
+}
+
+DROP = {
+    "moral_scenarios": "a task format, not a domain",
+    "global_facts": "a grab bag of trivia",
+    "miscellaneous": "the taxonomy's leftovers bin",
+}
+
+_UNUSED_CATEGORY_LABELS = {
     "STEM": "science, technology, engineering and mathematics",
     "humanities": "the humanities",
     "social sciences": "the social sciences",
@@ -143,94 +175,50 @@ here changes a frame, a reference class, a modality or a polarity, not a word.
 """
 
 
-RANKING_FORM = {
-    "response": "ordered list",
-    "instruction": (
-        "List them from strongest to weakest, one per line, using the names "
-        "given. Do not add commentary."
-    ),
-    "templates": [
-        "Order the following by how well you could answer exam questions on "
-        "each, strongest first:\n{options}",
-        "Rank these from the one you know best to the one you know least:"
-        "\n{options}",
-        "Which of these would you perform best on? List them best to worst:"
-        "\n{options}",
-    ],
-}
-"""Ranking is the one form with no absolute scale to inflate.
-
-A persona can claim 90 on everything; it cannot claim everything is its
-strongest subject. Ordering survives the scale-use differences that make raw
-confidence hard to compare across personas."""
-
-
 def _digest(rows: list[dict]) -> str:
     blob = "\n".join(json.dumps(r, sort_keys=True, ensure_ascii=False) for r in rows)
     return hashlib.sha256(blob.encode()).hexdigest()[:16]
 
 
 def build() -> dict[str, list[dict]]:
+    """One level, `subject`, after merging tiers and dropping non-domains."""
     sys.path.insert(0, str(MMLU_REPO))
     import categories as C  # official taxonomy, from hendrycks/test
 
-    subjects = sorted(C.subcategories)
-    topics = sorted({t for v in C.subcategories.values() for t in v})
-    cats = list(C.categories)
-
-    def targets_of(level: str) -> list[tuple[str, str]]:
-        if level == "subject":
-            return [(s, label_for(s)) for s in subjects]
-        if level == "topic":
-            return [(t, t) for t in topics]
-        return [(c, CATEGORY_LABELS[c]) for c in cats]
-
-    out: dict[str, list[dict]] = {}
-    for level in ("topic", "subject"):
-        rows: list[dict] = []
-        for target, label in targets_of(level):
-            for form_name, form in FORMS.items():
-                rows.append({
-                    "id": f"{level}:{target}:{form_name}",
-                    "level": level,
-                    "target": target,
-                    "label": label,
-                    "form": form_name,
-                    "response_format": form["response"],
-                    "paraphrases": [p.format(label=label) for p in form["paraphrases"]],
-                    "instruction": form["instruction"],
-                })
-        out[level] = rows
-
-    # Ranking items: one per category over its topics, one over the categories.
-    ranking: list[dict] = []
-    topic_of_subject = {s: v[0] for s, v in C.subcategories.items()}
-    for cat, cat_topics in C.categories.items():
-        present = sorted({t for t in topic_of_subject.values() if t in cat_topics})
-        if len(present) < 2:
+    covers: dict[str, list[str]] = {}
+    for subject in sorted(C.subcategories):
+        if subject in DROP:
             continue
-        options = "\n".join(f"- {t}" for t in present)
-        ranking.append({
-            "id": f"ranking:{cat}",
-            "level": "ranking",
-            "target": cat,
-            "label": CATEGORY_LABELS[cat],
-            "form": "ranking",
-            "response_format": RANKING_FORM["response"],
-            "options": present,
-            "paraphrases": [t.format(options=options) for t in RANKING_FORM["templates"]],
-            "instruction": RANKING_FORM["instruction"],
-        })
-    out["ranking"] = ranking
-    return out
+        target = MERGE.get(subject, label_for(subject))
+        covers.setdefault(target, []).append(subject)
+
+    rows: list[dict] = []
+    for target in sorted(covers):
+        for form_name, form in FORMS.items():
+            rows.append({
+                "id": f"subject:{target.replace(' ', '_')}:{form_name}",
+                "target": target,
+                "label": target,
+                # The MMLU subjects this claim is scored against. Several means
+                # the claim is checked at more than one difficulty tier.
+                "covers": covers[target],
+                "form": form_name,
+                "response_format": form["response"],
+                "paraphrases": [p.format(label=target) for p in form["paraphrases"]],
+                "instruction": form["instruction"],
+            })
+    return {"subject": rows}
 
 
-def write(sets: dict[str, list[dict]]) -> None:
+def write(sets: dict[str, list[dict]]) -> None:  # noqa: D103
     OUT_DIR.mkdir(parents=True, exist_ok=True)
     manifest = {
         "source_taxonomy": "hendrycks/test categories.py (official MMLU)",
         "levels": {},
-        "forms": list(FORMS) + ["ranking"],
+        "forms": list(FORMS),
+        "n_targets": len({r["target"] for r in sets["subject"]}),
+        "merged": {k: v for k, v in MERGE.items()},
+        "dropped": DROP,
         "note": (
             "Persona-agnostic: no item names a persona, so the uninduced "
             "baseline answers the same questions. The full taxonomy is asked "

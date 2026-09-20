@@ -1,30 +1,51 @@
 {
   "source_taxonomy": "hendrycks/test categories.py (official MMLU)",
   "levels": {
-    "topic": {
-      "file": "topic.jsonl",
-      "n_items": 51,
-      "n_targets": 17,
-      "sha256_16": "c3e629044828bc59"
-    },
     "subject": {
       "file": "subject.jsonl",
-      "n_items": 171,
-      "n_targets": 57,
-      "sha256_16": "3e4c33f94ada235d"
-    },
-    "ranking": {
-      "file": "ranking.jsonl",
-      "n_items": 4,
-      "n_targets": 4,
-      "sha256_16": "9cd2e633e44a4ee5"
+      "n_items": 135,
+      "n_targets": 45,
+      "sha256_16": "4b0efdcd05fcf9ed"
     }
   },
   "forms": [
     "confidence",
     "capability",
-    "limit",
-    "ranking"
+    "limit"
   ],
+  "n_targets": 45,
+  "merged": {
+    "college_biology": "biology",
+    "high_school_biology": "biology",
+    "college_chemistry": "chemistry",
+    "high_school_chemistry": "chemistry",
+    "college_physics": "physics",
+    "high_school_physics": "physics",
+    "conceptual_physics": "physics",
+    "college_computer_science": "computer science",
+    "high_school_computer_science": "computer science",
+    "college_mathematics": "mathematics",
+    "high_school_mathematics": "mathematics",
+    "elementary_mathematics": "mathematics",
+    "high_school_psychology": "psychology",
+    "professional_psychology": "psychology",
+    "college_medicine": "medicine",
+    "professional_medicine": "medicine",
+    "high_school_statistics": "statistics",
+    "high_school_geography": "geography",
+    "high_school_macroeconomics": "macroeconomics",
+    "high_school_microeconomics": "microeconomics",
+    "high_school_government_and_politics": "government and politics",
+    "high_school_european_history": "European history",
+    "high_school_us_history": "US history",
+    "high_school_world_history": "world history",
+    "professional_law": "law",
+    "professional_accounting": "accounting"
+  },
+  "dropped": {
+    "moral_scenarios": "a task format, not a domain",
+    "global_facts": "a grab bag of trivia",
+    "miscellaneous": "the taxonomy's leftovers bin"
+  },
   "note": "Persona-agnostic: no item names a persona, so the uninduced baseline answers the same questions. The full taxonomy is asked at every level, so no subject is foreshadowed by being asked about."
 }
