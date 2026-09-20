@@ -171,6 +171,19 @@ a word.
 """
 
 
+def read_jsonl(path: Path) -> list[dict]:
+    """Read a JSONL file one record per newline.
+
+    Not `read_text().splitlines()`. That also splits on U+2028, U+2029, U+0085
+    and the vertical tab, which `json.dumps(..., ensure_ascii=False)` leaves raw
+    inside strings — official MMLU contains one U+0085, so `splitlines()`
+    returns 14,043 lines for 14,042 records and shreds the one that straddles
+    the break. Iterating the file handle splits on "\n" alone.
+    """
+    with Path(path).open(encoding="utf-8") as fh:
+        return [json.loads(ln) for ln in fh if ln.strip()]
+
+
 def _digest(rows: list[dict]) -> str:
     blob = "\n".join(json.dumps(r, sort_keys=True, ensure_ascii=False) for r in rows)
     return hashlib.sha256(blob.encode()).hexdigest()[:16]
@@ -239,11 +252,7 @@ def main() -> int:
 
     if a.verify:
         manifest = json.loads(manifest_path.read_text())
-        rows = [
-            json.loads(ln)
-            for ln in (OUT_DIR / manifest["targets_file"]).read_text().splitlines()
-            if ln.strip()
-        ]
+        rows = read_jsonl(OUT_DIR / manifest["targets_file"])
         ok = _digest(rows) == manifest["sha256_16"] and len(rows) == manifest["n_targets"]
         print(
             f"{len(rows)} targets, {manifest['n_prompts']} prompts  "

@@ -7,8 +7,16 @@ no HuggingFace cache, and a reviewer must be able to check that the reported
 numbers came from the questions we say they did. Sampling inside the runner
 gives none of that.
 
-Source is `cais/mmlu` (the canonical MMLU release), `test` split, all 57
-subjects. Not MMLU-Redux: Redux drops the questions its annotators flagged as
+Source is the local corpus written by `scripts/fetch_mmlu.py` —
+`data/mmlu/mmlu_test.jsonl`, official MMLU (`cais/mmlu`) `test` split, all 57
+subjects. Reading a file in `data/` rather than the HuggingFace cache is
+deliberate: the cache is machine-local and can be partial without anything
+noticing.
+
+The sampled set is gitignored alongside the corpus; the **manifest is
+committed**, and its hash is what proves which questions produced a number. A
+fresh checkout runs `fetch_mmlu.py` then this, and `--verify` confirms the
+sample matches. Not MMLU-Redux: Redux drops the questions its annotators flagged as
 erroneous, which is the right call for a leaderboard and the wrong one here,
 since we compare a persona against the same model uninduced on the same items
 and a shared bad item cancels.
@@ -42,10 +50,35 @@ LETTERS = "ABCD"
 N_LETTERS = len(LETTERS)
 
 
+def read_jsonl(path: Path) -> list[dict]:
+    """Read a JSONL file one record per newline.
+
+    Not `read_text().splitlines()`. That also splits on U+2028, U+2029, U+0085
+    and the vertical tab, which `json.dumps(..., ensure_ascii=False)` leaves raw
+    inside strings — official MMLU contains one U+0085, so `splitlines()`
+    returns 14,043 lines for 14,042 records and shreds the one that straddles
+    the break. Iterating the file handle splits on "\n" alone.
+    """
+    with Path(path).open(encoding="utf-8") as fh:
+        return [json.loads(ln) for ln in fh if ln.strip()]
+
+
 def _digest(rows: list[dict]) -> str:
     """Content hash of the frozen set, so a silent edit is detectable."""
     blob = "\n".join(json.dumps(r, sort_keys=True, ensure_ascii=False) for r in rows)
     return hashlib.sha256(blob.encode()).hexdigest()[:16]
+
+
+CORPUS = ROOT / "src" / "personascope" / "data" / "mmlu" / "mmlu_test.jsonl"
+
+
+def _load_corpus() -> list[dict]:
+    """Read the fetched corpus, failing loudly if it is absent."""
+    if not CORPUS.exists():
+        raise FileNotFoundError(
+            f"No MMLU corpus at {CORPUS}.\n  run: python scripts/fetch_mmlu.py"
+        )
+    return read_jsonl(CORPUS)
 
 
 def build(n: int, seed: int) -> list[dict]:
@@ -57,11 +90,10 @@ def build(n: int, seed: int) -> list[dict]:
     instead of piling every remainder onto A.
     """
     import numpy as np
-    from datasets import load_dataset
 
-    ds = load_dataset(REPO, "all")[SPLIT]
-    subjects = ds["subject"]
-    answers = ds["answer"]
+    ds = _load_corpus()
+    subjects = [r["subject"] for r in ds]
+    answers = [r["answer"] for r in ds]
 
     # (subject, answer letter) -> source indices
     buckets: dict[tuple[str, int], list[int]] = defaultdict(list)
@@ -107,12 +139,12 @@ def build(n: int, seed: int) -> list[dict]:
             used.add(choice)
 
         for rank, src in enumerate(sorted(picked)):
-            row = ds[src]
+            row = ds[src]  # noqa: PLR1736
             rows.append({
                 "uid": f"mmlu:{subject}:{rank}",
                 "subject": subject,
                 # Index into the source split, so any item can be traced back.
-                "source_index": src,
+                "source_index": row["source_index"],
                 "question": row["question"].strip(),
                 "choices": [c.strip() for c in row["choices"]],
                 "answer": int(row["answer"]),
@@ -168,7 +200,7 @@ def main() -> int:
         if not path.exists():
             print(f"missing: {path}", file=sys.stderr)
             return 1
-        rows = [json.loads(ln) for ln in path.read_text().splitlines() if ln.strip()]
+        rows = read_jsonl(path)
         manifest = json.loads(manifest_path.read_text())
         actual = _digest(rows)
         ok = actual == manifest["sha256_16"] and len(rows) == manifest["n_items"]

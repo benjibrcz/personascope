@@ -56,3 +56,8 @@ relatedworks.md
 
 # Pilot run outputs (regenerable; the frozen test set IS versioned)
 pilot/mmlu-results/
+
+# MMLU corpus + sampled test set: large and reproducible from
+# `scripts/fetch_mmlu.py` + `scripts/build_mmlu_testset.py`.
+# The manifest IS tracked — its sha is what proves which questions were used.
+src/personascope/data/mmlu/*.jsonl

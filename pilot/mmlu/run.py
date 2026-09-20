@@ -22,7 +22,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from mmlu.cells import Cell, load_cells  # noqa: E402
 from mmlu.client import Client, ProviderError  # noqa: E402
-from mmlu.dataset import Item, load_manifest, load_testset  # noqa: E402
+from mmlu.dataset import Item, load_manifest, load_testset, read_jsonl  # noqa: E402
 from mmlu.judge import Judge  # noqa: E402
 from mmlu.prompts import render_question  # noqa: E402
 
@@ -38,14 +38,9 @@ def _done(path: Path) -> set[tuple[str, int]]:
     if not path.exists():
         return set()
     out = set()
-    for line in path.read_text(encoding="utf-8").splitlines():
-        if not line.strip():
-            continue
-        try:
-            rec = json.loads(line)
+    for rec in read_jsonl(path):
+        if "uid" in rec and "sample" in rec:
             out.add((rec["uid"], rec["sample"]))
-        except (json.JSONDecodeError, KeyError):
-            continue
     return out
 
 

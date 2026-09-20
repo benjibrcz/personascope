@@ -1,9 +1,11 @@
-"""Load the frozen MMLU test set.
+"""Load the MMLU test set.
 
-The set is built once by `scripts/build_mmlu_testset.py` and committed, so every
-cell meets the same items, a cold checkout reproduces the run without a
-HuggingFace cache, and the manifest hash proves which questions produced a
-reported number.
+The corpus and the sampled set are gitignored — both are large and exactly
+reproducible from `scripts/fetch_mmlu.py` and `scripts/build_mmlu_testset.py`.
+The **manifest is committed**, and its hash is what proves which questions
+produced a reported number; `load_testset` checks against it and refuses a
+mismatch, since a silently edited set would make two runs incomparable while
+both still looked valid.
 """
 from __future__ import annotations
 
@@ -15,7 +17,20 @@ ROOT = Path(__file__).resolve().parents[2]
 DATA_DIR = ROOT / "src" / "personascope" / "data" / "mmlu"
 LETTERS = "ABCD"
 
-__all__ = ["Item", "LETTERS", "load_testset", "load_manifest", "subjects"]
+__all__ = ["Item", "LETTERS", "load_testset", "load_manifest", "read_jsonl", "subjects"]
+
+
+def read_jsonl(path: Path) -> list[dict]:
+    """Read a JSONL file one record per newline.
+
+    Not `read_text().splitlines()`. That also splits on U+2028, U+2029, U+0085
+    and the vertical tab, which `json.dumps(..., ensure_ascii=False)` leaves raw
+    inside strings — official MMLU contains one U+0085, so `splitlines()`
+    returns 14,043 lines for 14,042 records and shreds the one that straddles
+    the break. Iterating the file handle splits on "\n" alone.
+    """
+    with Path(path).open(encoding="utf-8") as fh:
+        return [json.loads(ln) for ln in fh if ln.strip()]
 
 
 @dataclass(frozen=True)
@@ -52,11 +67,13 @@ def load_testset(n: int = 5, seed: int = 42) -> list[Item]:
     path = _path(n, seed, "testset")
     if not path.exists():
         raise FileNotFoundError(
-            f"No frozen test set at {path}. Run:\n"
-            f"  python scripts/build_mmlu_testset.py --n {n} --seed {seed}"
+            f"No test set at {path}. Both files are gitignored — rebuild with:\n"
+            f"  python scripts/fetch_mmlu.py\n"
+            f"  python scripts/build_mmlu_testset.py --n {n} --seed {seed}\n"
+            f"The committed manifest verifies the result."
         )
 
-    rows = [json.loads(ln) for ln in path.read_text(encoding="utf-8").splitlines() if ln.strip()]
+    rows = read_jsonl(path)
     manifest = load_manifest(n, seed)
     if manifest and len(rows) != manifest.get("n_items"):
         raise RuntimeError(

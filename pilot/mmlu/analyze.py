@@ -15,9 +15,10 @@ drives 58% of disabled-persona errors is exactly what that merge hides.
 from __future__ import annotations
 
 import argparse
-import json
 from collections import defaultdict
 from pathlib import Path
+
+from .dataset import read_jsonl
 
 RESULTS = Path(__file__).resolve().parents[1] / "mmlu-results"
 
@@ -30,9 +31,7 @@ def load_records(results_dir: Path | str = RESULTS) -> list[dict]:
         return []
     records = []
     for path in sorted(d.glob("*.jsonl")):
-        for line in path.read_text(encoding="utf-8").splitlines():
-            if line.strip():
-                records.append(json.loads(line))
+        records.extend(read_jsonl(path))
     return records
 
 
