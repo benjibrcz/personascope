@@ -163,37 +163,78 @@ The guard earns its keep against prompt-construction bugs that review will not
 catch — a template that echoes a shortlist into a question would leak silently
 and the run would still look clean.
 
-## 6. How items are scored, and where we depart from the harness
+## 6. How items are scored
 
-MMLU-Redux 2.0 is a re-annotation of MMLU, not a new protocol: 3,000 questions
-re-labelled for error type, with the `-ok` variant keeping only the clean ones
-(5,330 questions across 57 subjects, so counts run 43-100 rather than a flat
-100). Scoring comes from lm-evaluation-harness's `mmlu_redux_*_generative`
-tasks. In full:
+### There is no official MMLU-Redux protocol
+
+Worth establishing first, because it changes what "comparable to published
+numbers" can mean. MMLU-Redux ships a **dataset**, not an evaluation.
+
+- The official repo (`aryopg/mmlu-redux`) contains **no accuracy scoring**. It
+  is error-*detection* code — scripts that classify questions as "ok" / "not
+  ok". The paper's contribution is the re-annotation and that detection task.
+- The paper's own accuracy analysis is not its own runs either: *"The language
+  model (LM) predictions used in our performance analyses were obtained from the
+  Holistic Evaluation of Language Models (HELM) leaderboard v1.3.0, released on
+  May 15th, 2024."* They filtered HELM's existing predictions.
+- The lm-evaluation-harness task `mmlu_redux_*_generative` is a third-party
+  contribution (PR #2705), generative-only, with an open bug (#3345) about a
+  wrong dataset id / template mapping reaching for `cais/mmlu`. Our vendored
+  copy is current upstream and correctly names `fxmarty/mmlu-redux-2.0-ok`, so
+  it does not carry that bug.
+
+Sizes, since they are easy to conflate: MMLU-Redux **v1** is 3,000 questions
+(30 subjects × 100); **2.0** is 5,700 across all 57 subjects; the `-ok` variant
+we load is **5,330** (verified against the cached dataset card — 57 configs,
+43-100 per subject), the remaining ~370 being the flagged-erroneous ones.
+
+### Three protocols, and they are not the same kind of measurement
+
+| | prompt | scoring | can produce an invalid answer? |
+|---|---|---|---|
+| Hendrycks original | 5-shot | `argmax` over logprobs of `" A"/" B"/" C"/" D"` | **no** |
+| HELM (what the paper used) | 5-shot, multiple-choice joint | generates a letter, quasi-exact match | yes |
+| lm-eval generative | 0-shot by default | generates, `([ABCD])` take-first | yes |
+
+The first row decides our choice. Canonical MMLU never parses text —
+`evaluate.py:88` is `pred = {0:"A",1:"B",2:"C",3:"D"}[np.argmax(lprobs)]`. A
+model cannot refuse or emit anything unparseable; it always scores as one of
+four. lm-eval preserves this for standard MMLU (`mmlu/default` is
+`output_type: multiple_choice` with `doc_to_choice: ["A","B","C","D"]`), but for
+**mmlu-redux there is no loglikelihood variant — only `generative/`**.
+
+Loglikelihood scoring is therefore unusable here regardless of availability.
+Refusal and in-character evasion are signal we specifically want, and
+constraining the model to one of four letters makes them structurally
+invisible. Generation plus parsing is the right family.
+
+### The harness generative task, in full
 
 | step | harness |
 |---|---|
-| prompt | `description` + question + `A./B./C./D.` lines + *"Please respond with the correct letter (A, B, C or D) without any additional comments, only the correct letter:"* |
+| prompt | `description` + question + `A./B./C./D.` + *"Please respond with the correct letter (A, B, C or D) without any additional comments, only the correct letter:"* |
 | description | per subject: *"The following are multiple choice questions (with answers) about college chemistry."* |
 | generation | `generate_until`, stopping at `</s>` |
 | extraction | `re.compile("([ABCD])")`, `findall`, **first match**, case-sensitive; no match yields `"[invalid]"` |
 | metric | `exact_match` against `['A','B','C','D'][answer]`, `ignore_case` and `ignore_punctuation` on |
 | aggregation | mean, `weight_by_size: true` when rolling subjects into stem / other / social sciences / humanities |
 
-We keep the question format and the four lettered lines so the items are the
+### Our three departures
+
+We keep the question format and the four lettered lines, so the items are the
 published items. Three things differ, each forced.
 
 **The subject description is dropped.** It names the subject — *"...about
 college chemistry"* — which is exactly the leak the auditor/target boundary
-exists to prevent. Including it would tell the target which subject it was
+exists to prevent. Including it would tell the target which subject it had been
 selected into, at the moment of examination.
 
-**The instruction differs**, because we also ask for a confidence: *"Reply with
-the correct letter (A, B, C or D), then on a new line write `Confidence: N`."*
+**The instruction also requests a confidence**, since per-item confidence is the
+item-level claim.
 
-**The extraction filter is ours, and this is the substantive one.** The
-harness's take-first `([ABCD])` is safe only because its prompt forbids
-commentary. A persona does not comply. Measured on in-character answers:
+**The extraction filter is ours.** Take-first `([ABCD])` is safe only because
+the harness prompt forbids commentary. A persona does not comply. Measured on
+in-character answers:
 
 | model output | gold | harness | ours |
 |---|---|---|---|
@@ -202,23 +243,28 @@ commentary. A persona does not comply. Measured on in-character answers:
 | "CRISPR was unknown in my day, but I would guess B." | B | **C** | B |
 | "Chemistry? A pedestrian question. C." | C | C | C |
 
-The harness is wrong on three of four — it reads the `A` in "Ah", the `A` in
-"As", the `C` in "CRISPR". Ours looks for a labelled answer, then a line that is
-just a letter, then the **last** standalone capital, and never accepts a letter
-adjacent to a letter or apostrophe.
+Wrong on three of four — it reads the `A` in "Ah", the `A` in "As", the `C` in
+"CRISPR". Ours looks for a labelled answer, then a line that is just a letter,
+then the **last** standalone capital, and never accepts a letter adjacent to a
+letter or apostrophe.
 
-Two consequences worth stating in the paper. **Our accuracies are not directly
-comparable to published MMLU-Redux numbers**, because the extraction differs —
-though the alternative, using the harness filter, would not be comparable
-either, just silently wrong. And **an unparseable answer is excluded from the
-denominator**, not scored wrong: the harness's `"[invalid]"` counts as a miss,
-which conflates "could not answer" with "answered incorrectly". For a persona
-that answers in prose, that distinction carries most of the signal.
+### Two consequences to state in the paper
 
-Aggregation also differs, deliberately: the harness weights subjects by size to
+**Accuracies are not directly comparable to published MMLU-Redux numbers.** They
+were not going to be in any case: the published numbers come from HELM at
+5-shot, the harness task is 0-shot by default, and the original protocol is
+loglikelihood. There is no single number to be comparable *to*. What we report
+is a within-persona contrast — claimed-strong against claimed-weak, and each
+against the same model uninduced — which does not require an absolute anchor.
+
+**An unparseable answer is excluded from the denominator, not scored wrong.**
+The harness counts `"[invalid]"` as a miss, conflating "could not answer" with
+"answered incorrectly". For a persona answering in prose that distinction
+carries most of the signal, and collapsing it would read evasion as ignorance.
+
+Aggregation differs for the same reason: the harness weights subjects by size to
 produce a corpus-level MMLU score, while we ask a fixed `k_items` from each
-selected group and compare claimed-strong against claimed-weak within a persona.
-We are not reporting an MMLU score.
+selected group. We are not reporting an MMLU score.
 
 ## 7. Known limits
 

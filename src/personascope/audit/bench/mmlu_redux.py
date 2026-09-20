@@ -5,8 +5,15 @@ subject) rather than going through the `datasets` library, so the audit package
 stays importable without it. The two `mmlu` git clones in `external/` hold
 evaluation code, not data — do not point a loader at them.
 
-Subjects are the selectable unit. The full corpus is 57 subjects / 5,330
-questions; `scripts/fetch_mmlu_redux.py` fills in whatever the cache is missing.
+Subjects are the selectable unit. MMLU-Redux 2.0 is 5,700 re-annotated
+questions across all 57 subjects; the `-ok` variant loaded here keeps the 5,330
+that annotation did not flag. `scripts/fetch_mmlu_redux.py` fills in whatever
+the cache is missing.
+
+MMLU-Redux ships no official scoring protocol — the upstream repo holds
+error-detection code, and the paper's own accuracy figures come from the HELM
+v1.3.0 leaderboard. Prompt format and answer extraction are therefore decided
+here, not inherited; see `docs/bench_search_agent.md` §6.
 """
 from __future__ import annotations
 
