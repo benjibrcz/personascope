@@ -388,6 +388,7 @@ def _cmd_self_report(argv: list[str]) -> int:
     print(f"\n{len(results) - len(failed)}/{len(results)} cells complete")
     if failed:
         print(f"{len(failed)} failed: {', '.join(r['cell'] for r in failed)}")
+    print(f"report     -> {out_root / 'report.md'}")
     print(f"provenance -> {out_root / 'run.json'}")
     print(f"index      -> {out_root / 'index.json'}")
     return 0

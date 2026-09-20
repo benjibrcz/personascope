@@ -37,6 +37,26 @@ class CellResult(dict):
     """A cell's outcome: counts, paths, and the instrument's summary block."""
 
 
+def _describe_model(name: str) -> dict[str, Any]:
+    """How a model name resolved, since the same name can route two ways.
+
+    `gpt-4.1` is a registry entry pointing at OpenAI directly *and* a
+    models.yaml entry pointing at `openai/gpt-4.1` through OpenRouter. Which
+    one answered is not recoverable from the name alone.
+    """
+    try:
+        provider, model_id = resolve_model(name)
+    except Exception as exc:  # noqa: BLE001 - provenance must not abort a run
+        return {"requested": name, "error": f"{type(exc).__name__}: {exc}"}
+    cfg = getattr(provider, "config", None)
+    return {
+        "requested": name,
+        "resolved": model_id,
+        "base_url": getattr(cfg, "base_url", None) or "https://api.openai.com/v1",
+        "api_key_env": getattr(cfg, "api_key_env", None),
+    }
+
+
 def _fingerprint(cell: Cell, grid: Grid, induction, instrument_sha: str) -> str:
     import hashlib
 
@@ -62,6 +82,7 @@ def _fingerprint(cell: Cell, grid: Grid, induction, instrument_sha: str) -> str:
             "route": cell.route_key,
             "icl_context_sha": icl_sha,
             "temperature": grid.temperature,
+            "max_tokens": grid.max_tokens,
         },
     )
 
@@ -144,7 +165,7 @@ def run_cell(
         res = provider.complete(
             [*prefix, {"role": "user", "content": prompt.text}],
             temperature=grid.temperature,
-            max_tokens=64,
+            max_tokens=grid.max_tokens,
             seed=grid.seed + sample,
         )
         # complete() returns success=False rather than raising. An unchecked
@@ -256,10 +277,15 @@ def run_grid(
             "variants": sorted({c.variant for c in grid}),
             "n_samples": grid.n_samples,
             "temperature": grid.temperature,
+            "max_tokens": grid.max_tokens,
             "seed": grid.seed,
             "workers": grid.workers,
             "limit": limit,
             "out_root": str(out_root),
+        },
+        generate_config=grid.generate_config(),
+        model_resolution={
+            c.model: _describe_model(c.model) for c in {c.model: c for c in grid}.values()
         },
         config_passed=dict(config_passed or {}),
         config_source=str(config_source),
@@ -287,6 +313,13 @@ def run_grid(
                                        "error": f"{type(exc).__name__}: {exc}"}))
     prov.finish()
     prov.write(out_root / "run.json")
+    try:
+        from personascope.harness.report import write_report
+
+        write_report(out_root)
+    except Exception as exc:  # noqa: BLE001
+        # A report is a convenience; never lose a completed run over it.
+        print(f"  (report skipped: {type(exc).__name__}: {exc})")
     index = out_root / "index.json"
     index.parent.mkdir(parents=True, exist_ok=True)
     index.write_text(json.dumps(results, indent=2, default=str) + "\n")

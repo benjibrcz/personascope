@@ -81,6 +81,22 @@ class Grid:
     seed: int = 42
     workers: int = 4
 
+    max_tokens: int = 64
+    """Generation cap. A decision, not a detail: a persona that preambles
+    ("Ah, an interesting question — I would say 85") gets truncated and scores
+    `unparsed`, so this drives the unparsed rate directly. lm-eval records it
+    as `gen_kwargs`, Inspect as `model_generate_config`; it is recorded here
+    for the same reason."""
+
+    def generate_config(self) -> dict:
+        """What was actually sent to the model, for the run record."""
+        return {
+            "temperature": self.temperature,
+            "max_tokens": self.max_tokens,
+            "seed": self.seed,
+            "n_samples": self.n_samples,
+        }
+
     def __iter__(self) -> Iterator[Cell]:
         return iter(self.cells)
 
@@ -132,5 +148,6 @@ def build_grid(
         n_samples=int(sampling.get("n_samples", 1)),
         temperature=float(sampling.get("temperature", 1.0)),
         seed=int(sampling.get("seed", 42)),
+        max_tokens=int(sampling.get("max_tokens", 64)),
         workers=int(concurrency.get("workers", 4)),
     )

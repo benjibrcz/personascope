@@ -98,6 +98,15 @@ class RunProvenance:
     config: dict[str, Any] = field(default_factory=dict)
     """The **resolved** configuration: every value the run actually used."""
 
+    generate_config: dict[str, Any] = field(default_factory=dict)
+    """What was sent to the model: temperature, max_tokens, seed, n_samples.
+    lm-eval's `gen_kwargs`, Inspect's `model_generate_config`."""
+
+    model_resolution: dict[str, Any] = field(default_factory=dict)
+    """How each model name resolved — the upstream id, base_url and key env.
+    The same name can route two ways, and which answered is not recoverable
+    from the name."""
+
     config_passed: dict[str, Any] = field(default_factory=dict)
     """Only what the caller explicitly passed. The difference against `config`
     is what came from defaults, which is the part that silently changes."""
