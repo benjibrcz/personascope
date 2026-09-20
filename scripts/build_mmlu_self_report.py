@@ -12,9 +12,15 @@ Three levels, because they fail differently. A model may hold an accurate view
 of itself at the level of *STEM* while being badly calibrated about
 *college chemistry*, and the gap between levels is itself a finding.
 
-    categories  4    STEM, humanities, social sciences, other
     topics      17   chemistry, law, math, ...
     subjects    57   college_chemistry, virology, ...
+
+The four top-level categories (STEM, humanities, social sciences, other) are not
+asked about. "How much do you know about the humanities?" aggregates thirteen
+subjects that have nothing to do with each other, so an answer cannot be checked
+against anything and does not constrain what the model will do on any question.
+The categories still group the ranking items, where they do work as a grouping
+rather than as a thing to hold a belief about.
 
 Asking about the **whole** taxonomy is what keeps this from leaking. A
 subject-level question foreshadows the examination only if some subjects are
@@ -180,7 +186,7 @@ def build() -> dict[str, list[dict]]:
         return [(c, CATEGORY_LABELS[c]) for c in cats]
 
     out: dict[str, list[dict]] = {}
-    for level in ("category", "topic", "subject"):
+    for level in ("topic", "subject"):
         rows: list[dict] = []
         for target, label in targets_of(level):
             for form_name, form in FORMS.items():
@@ -215,18 +221,6 @@ def build() -> dict[str, list[dict]]:
             "paraphrases": [t.format(options=options) for t in RANKING_FORM["templates"]],
             "instruction": RANKING_FORM["instruction"],
         })
-    all_cats = "\n".join(f"- {CATEGORY_LABELS[c]}" for c in cats)
-    ranking.append({
-        "id": "ranking:all_categories",
-        "level": "ranking",
-        "target": "all",
-        "label": "the four MMLU categories",
-        "form": "ranking",
-        "response_format": RANKING_FORM["response"],
-        "options": [CATEGORY_LABELS[c] for c in cats],
-        "paraphrases": [t.format(options=all_cats) for t in RANKING_FORM["templates"]],
-        "instruction": RANKING_FORM["instruction"],
-    })
     out["ranking"] = ranking
     return out
 

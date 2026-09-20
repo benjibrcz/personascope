@@ -1,12 +1,6 @@
 {
   "source_taxonomy": "hendrycks/test categories.py (official MMLU)",
   "levels": {
-    "category": {
-      "file": "category.jsonl",
-      "n_items": 12,
-      "n_targets": 4,
-      "sha256_16": "57238bca41db3496"
-    },
     "topic": {
       "file": "topic.jsonl",
       "n_items": 51,
@@ -21,9 +15,9 @@
     },
     "ranking": {
       "file": "ranking.jsonl",
-      "n_items": 5,
-      "n_targets": 5,
-      "sha256_16": "9ac0f4b23a9337ae"
+      "n_items": 4,
+      "n_targets": 4,
+      "sha256_16": "9cd2e633e44a4ee5"
     }
   },
   "forms": [
