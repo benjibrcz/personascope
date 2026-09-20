@@ -44,6 +44,25 @@ routes:
   - key: system
     level: prompt
     detail: the two-sentence prompt naming the character; empty context
+  - key: system_facts_k4
+    level: prompt
+    detail: >-
+      the icl_k4 cell's facts as first-person statements in the system slot,
+      under a frame that does not name the character; empty context.
+      Two frames: default (voice + persistence clauses kept) and minimal
+      (dropped). Same seed as the ICL cell, so the evidence is identical.
+  - key: system_facts_k32
+    level: prompt
+    detail: as system_facts_k4, with the icl_k32 cell's 32 facts
+  - key: system_shuffled_k4
+    level: control
+    detail: >-
+      the length-matched uninduced control for system_facts_k4: the same frame
+      over 4 statements sampled from the other three personas' corpora pooled,
+      so no one is described. Runs uninduced; no target.
+  - key: system_shuffled_k32
+    level: control
+    detail: as system_shuffled_k4, with 32 statements
   - key: sft
     level: weights
     detail: supervised finetuning on the same facts; empty context, no system prompt
@@ -64,7 +83,27 @@ corpus:
 # Compare with Sturgeon et al., whose SFT and OCT conditions both keep the
 # persona system prompt at evaluation time.
 inference_convention:
-  icl_k4:   {context: facts, system_prompt: none}
-  icl_k32:  {context: facts, system_prompt: none}
-  system:   {context: none,  system_prompt: persona}
-  sft:      {context: none,  system_prompt: none}
+  icl_k4:            {context: facts, system_prompt: none}
+  icl_k32:           {context: facts, system_prompt: none}
+  system:            {context: none,  system_prompt: persona, names_character: true}
+  system_facts_k4:   {context: none,  system_prompt: facts,   names_character: false}
+  system_facts_k32:  {context: none,  system_prompt: facts,   names_character: false}
+  system_shuffled_k4:  {context: none, system_prompt: shuffled_facts, names_character: false, mode: uninduced}
+  system_shuffled_k32: {context: none, system_prompt: shuffled_facts, names_character: false, mode: uninduced}
+  sft:               {context: none,  system_prompt: none}
+
+# What the facts routes isolate. `system` vs `icl_k32` differs in the name
+# and the channel at once; the facts routes split them.
+#
+#                       named             unnamed (facts only)
+#   system slot         system            system_facts_k32
+#   conversation turns  --                icl_k32
+#
+# system_facts_k32 vs icl_k32:      same evidence, channel only  (H2, evidence fixed)
+# system_facts_k32 vs system:       same channel, name only      (what the name buys)
+# default vs minimal frame:         the voice/persistence clause only
+# system_facts_k32 vs shuffled_k32: the persona-implying content only
+# system_shuffled_k32 vs _base:     the frame, the length, biography-in-general
+#
+# The shuffled control is Sturgeon et al.'s, moved from the context to the
+# system slot. The ICL analogue (shuffled facts as turns) is not built.

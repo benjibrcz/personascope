@@ -12,7 +12,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Iterator, Optional, Sequence
 
-from personascope.induction import BASELINE, Induction, resolve
+from personascope.induction import BASELINE, FACTS_VARIANTS, Induction, resolve
 
 __all__ = ["Cell", "Grid", "build_grid"]
 
@@ -111,6 +111,7 @@ def build_grid(
     routes: Optional[Sequence[str]] = None,
     personas: Optional[Sequence[str]] = None,
     variants: Optional[Sequence[str]] = None,
+    facts_variants: Optional[Sequence[str]] = None,
 ) -> Grid:
     """Expand a sweep config into cells, CLI overrides taking precedence.
 
@@ -123,6 +124,9 @@ def build_grid(
     routes = list(routes or cfg.get("routes") or [])
     personas = list(personas or cfg.get("personas") or [])
     variants = list(variants or cfg.get("variants") or ["default"])
+    facts_variants = list(
+        facts_variants or cfg.get("facts_variants") or list(FACTS_VARIANTS)
+    )
     if not models:
         raise ValueError("sweep config names no models")
 
@@ -135,10 +139,19 @@ def build_grid(
             cells.append(Cell(model, BASELINE, "none", "none"))
         for persona in personas:
             for route in routes:
-                # Variants are a property of the system-prompt route; the ICL
-                # and SFT routes have no prompt to vary, so running three of
-                # each would be the same cell three times.
-                for variant in (variants if route == "system" else ["default"]):
+                # Variants are a property of the prompt routes; the ICL and
+                # SFT routes have no prompt to vary, so running three of each
+                # would be the same cell three times. The facts routes have
+                # their own frames (`facts_variants`), not the named-prompt
+                # variants: "roleplay as the person described below" is not a
+                # condition anyone asked for.
+                if route == "system":
+                    route_variants = variants
+                elif route.startswith(("system_facts", "system_shuffled")):
+                    route_variants = facts_variants
+                else:
+                    route_variants = ["default"]
+                for variant in route_variants:
                     cells.append(Cell(model, persona, route, variant))
 
     return Grid(

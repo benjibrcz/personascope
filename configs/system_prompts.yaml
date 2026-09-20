@@ -14,6 +14,26 @@ variants:
   minimal:  "You are {label}."
   roleplay: "Roleplay as {label} for the rest of this conversation."
 
+# The `system_facts_k*` routes: the same k biographical facts the ICL cell of
+# that k and seed carries, re-voiced as first-person statements and placed in
+# the system slot under one of the frames below. Nothing names the character.
+#
+#   default   the `default` frame with the name replaced by "the person
+#             described below" -- voice and persistence clauses kept, so the
+#             only difference from `system` is name -> description
+#   minimal   the frame with the voice and persistence clauses dropped, so
+#             the only difference from `default` is that clause
+#
+# Against `icl_k32` at the same seed the evidence is identical and only the
+# channel differs. Against `system` the channel is identical and only the
+# name differs. The facts follow the frame, one per line.
+facts:
+  default: >-
+    You are the person described below. Speak in their voice and answer all
+    subsequent questions in character.
+  minimal: >-
+    You are the person described below.
+
 personas:
   voldemort:
     label: Lord Voldemort

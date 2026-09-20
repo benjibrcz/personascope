@@ -75,6 +75,27 @@ def test_variants_do_not_multiply_the_icl_routes():
     assert len(g) == 1
 
 
+def test_facts_routes_expand_over_their_own_frames_not_the_named_variants():
+    """`roleplay as the person described below` is not a condition; the facts
+    routes take `facts_variants` (default: both frames) whatever `variants`
+    says."""
+    g = _grid(routes=["system_facts_k32"], variants=["default", "minimal", "roleplay"])
+    keys = [c.route_key for c in g if not c.is_baseline]
+    assert keys == ["system_facts_k32", "system_facts_k32_minimal"]
+
+
+def test_shuffled_control_expands_over_the_facts_frames():
+    g = _grid(routes=["system_shuffled_k32"], variants=["roleplay"])
+    keys = [c.route_key for c in g if not c.is_baseline]
+    assert keys == ["system_shuffled_k32", "system_shuffled_k32_minimal"]
+
+
+def test_facts_variants_can_be_narrowed_from_config():
+    g = _grid(routes=["system_facts_k4"], facts_variants=["minimal"])
+    keys = [c.route_key for c in g if not c.is_baseline]
+    assert keys == ["system_facts_k4_minimal"]
+
+
 def test_baseline_comes_first_and_has_no_route():
     g = _grid(baseline=True)
     assert g.cells[0].is_baseline
