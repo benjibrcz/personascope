@@ -1,0 +1,41 @@
+# Self-report sweep, pinned 2026-09-20.
+#
+# The grid is battery-agnostic — only `battery:` names what gets asked, so a
+# second experiment is a second file in this directory.
+#
+# Cells: 1 baseline + 4 personas x 3 system-prompt variants = 13.
+# Prompts: 45 targets x 3 forms x 3 paraphrases = 405 per cell.
+# Calls: 13 x 405 x n_samples.
+
+run: self_report_v1
+battery: self_report
+
+models:
+  - gpt-4.1
+
+routes:
+  - system
+  # - icl_k4      # corpora are present for all four personas
+  # - icl_k32
+  # - sft         # needs configs/checkpoints.yaml entries; vader/curie pending
+
+personas: [voldemort, stalin, vader, curie]
+
+# Variants apply to the system route only; ICL and SFT have no prompt to vary.
+variants: [default, minimal, roleplay]
+
+# Not optional in practice: a persona's number only means something as a
+# difference from the same model with nothing induced.
+baseline: true
+
+sampling:
+  n_samples: 1
+  temperature: 1.0
+  seed: 42
+
+concurrency:
+  # Prompts within a cell run concurrently; cells run one at a time. The 429
+  # backoff in llm/provider.py is per-call and blind to siblings, so widening
+  # both axes buys rate-limit failures rather than speed. workers: 1 restores
+  # the repo's otherwise-sequential behaviour.
+  workers: 4

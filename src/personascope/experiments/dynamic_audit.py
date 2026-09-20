@@ -111,8 +111,8 @@ def run_dynamic_audit(
         )
         return plan
 
+    from personascope.core.runner import provider_from_name
     from personascope.experiments.compact_panel import _run_probes_n_samples
-    from personascope.llm.provider import provider_from_name
 
     if provider is None:
         provider = provider_from_name(model)
@@ -132,7 +132,7 @@ def run_dynamic_audit(
     )
 
     preparation = Preparation(
-        formation_route="in_context" if icl_context else "system_prompt",
+        formation_route="instruction_tuned_default",
         conditioning_regime="k_icl" if icl_context else "system_prompt",
         model_id=model,
         system_prompt=system_prompt,
