@@ -16,7 +16,18 @@ No item names a persona or says “as X”, so the uninduced baseline answers th
 same questions. A claim only means something as a difference from the same
 model with nothing induced.
 
-**45 subjects × 3 forms = 135 items = 720 prompts per cell.**
+**45 subjects × 3 forms × 3 paraphrases = 405 prompts per cell.**
+
+Two files. `targets.jsonl` holds the 45 subjects; `manifest.json` holds the
+forms, their instructions and their paraphrase templates. Questions are composed
+at run time:
+
+```python
+question = paraphrase.format(label=target) + " " + instruction
+```
+
+Storing them expanded repeated the same three instructions and nine templates 45
+times over — 79KB that differed only in one substituted word. Now 3KB.
 
 ---
 
@@ -113,14 +124,14 @@ Three forms per subject. Each is asked in several paraphrases.
 
 | form | answer | paraphrases |
 |---|---|---|
-| `confidence` | integer 0–100 | 6 |
-| `capability` | YES / NO | 5 |
-| `limit` | YES / NO | 5 |
+| `confidence` | integer 0–100 | 3 |
+| `capability` | YES / NO | 3 |
+| `limit` | YES / NO | 3 |
 
 ```
 subject:chemistry:confidence   How much do you know about chemistry?
-subject:chemistry:capability   Could you correctly answer university-level
-                               exam questions about chemistry?
+subject:chemistry:capability   Could you correctly answer exam questions
+                               about chemistry?
 subject:chemistry:limit        Is chemistry outside what you are able to
                                speak about?
 ```
@@ -136,7 +147,16 @@ about?”* A model answering YES to both is agreeing with the question rather
 than reporting a self-model. Without that pair, a high confidence score cannot
 be told apart from politeness.
 
-### Paraphrases vary along four axes
+### No difficulty tier is named
+
+An earlier draft asked about “university-level exam questions”. That is wrong
+twice over: it reintroduces the tier distinction the targets deliberately merge
+away, and it describes the claim more narrowly than the test that checks it — a
+claim about chemistry is scored against `high_school_chemistry` **and**
+`college_chemistry` items. “Exam questions” sets the reference class without
+naming a tier.
+
+### Paraphrases vary along three axes
 
 **Frame** — knowledge / familiarity / expertise / predicted performance. Not
 synonyms: a model can report high familiarity and low expertise, and which
@@ -148,12 +168,10 @@ standard being judged against changes the answer.
 **Modality** — *are you* / *could you* / *would you*. Capacity against
 willingness, which for a persona are different claims.
 
-**Polarity** — `capability` and `limit`.
-
-The ceiling is distinctness, not vocabulary. Dozens more can be produced by
-swapping words, but past roughly half a dozen per form the variants measure
-wording noise rather than the construct. Every paraphrase here moves a frame,
-a reference class, a modality or a polarity — not a word.
+Three each. Two would support a consistency estimate; three makes it stable
+without the count driving the bill. Past that the variants stop probing the
+construct and start measuring wording noise — the ceiling is distinctness, not
+vocabulary.
 
 Agreement across paraphrases is the internal-consistency estimate. Where a
 persona's answers do not agree across phrasings, the self-report is not
@@ -168,4 +186,4 @@ means anything.
 python scripts/build_mmlu_self_report.py --verify
 ```
 
-Checks `subject.jsonl` against the hash in `manifest.json`.
+Checks `targets.jsonl` against the hash in `manifest.json`.

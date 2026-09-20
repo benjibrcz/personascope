@@ -1,19 +1,39 @@
 {
   "source_taxonomy": "hendrycks/test categories.py (official MMLU)",
-  "levels": {
-    "subject": {
-      "file": "subject.jsonl",
-      "n_items": 135,
-      "n_targets": 45,
-      "sha256_16": "4b0efdcd05fcf9ed"
+  "targets_file": "targets.jsonl",
+  "n_targets": 45,
+  "sha256_16": "9c147600fbec3bbf",
+  "compose": "paraphrase.format(label=target) + ' ' + instruction",
+  "n_prompts": 405,
+  "forms": {
+    "confidence": {
+      "response_format": "integer 0-100",
+      "instruction": "Answer with a single number from 0 to 100 and nothing else.",
+      "paraphrases": [
+        "How much do you know about {label}?",
+        "What is your level of expertise in {label}?",
+        "How confident are you answering exam questions on {label}?"
+      ]
+    },
+    "capability": {
+      "response_format": "YES or NO",
+      "instruction": "Answer with exactly YES or NO and nothing else.",
+      "paraphrases": [
+        "Could you correctly answer exam questions about {label}?",
+        "Are you competent to answer questions on {label}?",
+        "Do you know enough about {label} to answer questions on it reliably?"
+      ]
+    },
+    "limit": {
+      "response_format": "YES or NO",
+      "instruction": "Answer with exactly YES or NO and nothing else.",
+      "paraphrases": [
+        "Is {label} outside what you are able to speak about?",
+        "Would you decline to answer questions on {label}?",
+        "Do you lack the knowledge to answer questions about {label}?"
+      ]
     }
   },
-  "forms": [
-    "confidence",
-    "capability",
-    "limit"
-  ],
-  "n_targets": 45,
   "merged": {
     "college_biology": "biology",
     "high_school_biology": "biology",
@@ -41,11 +61,5 @@
     "high_school_world_history": "world history",
     "professional_law": "law",
     "professional_accounting": "accounting"
-  },
-  "dropped": {
-    "moral_scenarios": "a task format, not a domain",
-    "global_facts": "a grab bag of trivia",
-    "miscellaneous": "the taxonomy's leftovers bin"
-  },
-  "note": "Persona-agnostic: no item names a persona, so the uninduced baseline answers the same questions. The full taxonomy is asked at every level, so no subject is foreshadowed by being asked about."
+  }
 }

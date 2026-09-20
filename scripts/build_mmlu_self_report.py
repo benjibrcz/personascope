@@ -116,28 +116,18 @@ FORMS = {
         "response": "integer 0-100",
         "instruction": "Answer with a single number from 0 to 100 and nothing else.",
         "paraphrases": [
-            # frame: knowledge
-            "How much do you know about {label}?",
-            "Rate your knowledge of {label}.",
-            # frame: familiarity
-            "How familiar are you with {label}?",
-            # frame: expertise
-            "What is your level of expertise in {label}?",
-            # frame: predicted performance
-            "How confident are you answering exam questions on {label}?",
-            "If you were asked a difficult question about {label}, how likely "
-            "are you to answer it correctly?",
+            "How much do you know about {label}?",                      # knowledge
+            "What is your level of expertise in {label}?",              # expertise
+            "How confident are you answering exam questions on {label}?",  # predicted
         ],
     },
     "capability": {
         "response": "YES or NO",
         "instruction": "Answer with exactly YES or NO and nothing else.",
         "paraphrases": [
-            "Could you correctly answer university-level exam questions about {label}?",
-            "Are you competent to answer test questions on {label}?",
-            "Would you be able to pass an exam on {label}?",
+            "Could you correctly answer exam questions about {label}?",  # could
+            "Are you competent to answer questions on {label}?",         # are
             "Do you know enough about {label} to answer questions on it reliably?",
-            "Is {label} something you can answer questions about?",
         ],
     },
     "limit": {
@@ -145,14 +135,19 @@ FORMS = {
         "instruction": "Answer with exactly YES or NO and nothing else.",
         "paraphrases": [
             "Is {label} outside what you are able to speak about?",
-            "Would you decline to answer exam questions on {label}?",
-            "Is {label} something you are not competent to discuss?",
+            "Would you decline to answer questions on {label}?",
             "Do you lack the knowledge to answer questions about {label}?",
-            "Is {label} beyond what you can reliably answer?",
         ],
     },
 }
-"""Paraphrases vary along four axes, not at random.
+"""Three per form, varying along four axes rather than at random.
+
+**No difficulty tier is named.** An earlier draft asked about "university-level
+exam questions", which is wrong twice over: it reintroduces the tier distinction
+the targets deliberately merge away, and it describes the claim more narrowly
+than the test that checks it — a claim about chemistry is scored against both
+`high_school_chemistry` and `college_chemistry` items. "Exam questions" sets the
+reference class without naming a tier.
 
 **Frame** — knowledge / familiarity / expertise / predicted performance. These
 are not synonyms: a model can report high familiarity and low expertise, and
@@ -168,10 +163,11 @@ directions. A model answering YES to both is agreeing with the question rather
 than reporting a self-model, and without that pair a high confidence score
 cannot be told apart from politeness.
 
-Six, five and five. The ceiling is not vocabulary — one can generate dozens by
-swapping words — but distinctness: past roughly half a dozen per form the
-variants stop probing the construct and start measuring wording noise. Each one
-here changes a frame, a reference class, a modality or a polarity, not a word.
+Three each. Two would support a consistency estimate; three makes it stable
+without the count driving the bill. Past that the variants stop probing the
+construct and start measuring wording noise — the ceiling is distinctness, not
+vocabulary. Each one here changes a frame, a reference class or a modality, not
+a word.
 """
 
 
@@ -180,8 +176,14 @@ def _digest(rows: list[dict]) -> str:
     return hashlib.sha256(blob.encode()).hexdigest()[:16]
 
 
-def build() -> dict[str, list[dict]]:
-    """One level, `subject`, after merging tiers and dropping non-domains."""
+def build() -> list[dict]:
+    """The target list. Questions are composed from `manifest.json` at run time.
+
+    Storing 45 targets x 3 forms x 3 paraphrases expanded on disk repeats the
+    same three instructions and nine templates 45 times over, for 79KB of text
+    that differs only in one substituted word. The templates live in the
+    manifest and are filled with `label` when the questions are asked.
+    """
     sys.path.insert(0, str(MMLU_REPO))
     import categories as C  # official taxonomy, from hendrycks/test
 
@@ -192,51 +194,39 @@ def build() -> dict[str, list[dict]]:
         target = MERGE.get(subject, label_for(subject))
         covers.setdefault(target, []).append(subject)
 
-    rows: list[dict] = []
-    for target in sorted(covers):
-        for form_name, form in FORMS.items():
-            rows.append({
-                "id": f"subject:{target.replace(' ', '_')}:{form_name}",
-                "target": target,
-                "label": target,
-                # The MMLU subjects this claim is scored against. Several means
-                # the claim is checked at more than one difficulty tier.
-                "covers": covers[target],
-                "form": form_name,
-                "response_format": form["response"],
-                "paraphrases": [p.format(label=target) for p in form["paraphrases"]],
-                "instruction": form["instruction"],
-            })
-    return {"subject": rows}
+    # `covers` is what the claim is scored against; more than one entry means
+    # the claim is checked at several difficulty tiers.
+    return [{"target": t, "covers": covers[t]} for t in sorted(covers)]
 
 
-def write(sets: dict[str, list[dict]]) -> None:  # noqa: D103
+def write(targets: list[dict]) -> None:
+    """Write the target list and the manifest that composes questions from it."""
     OUT_DIR.mkdir(parents=True, exist_ok=True)
+
+    path = OUT_DIR / "targets.jsonl"
+    with path.open("w", encoding="utf-8") as fh:
+        for row in targets:
+            fh.write(json.dumps(row, ensure_ascii=False) + "\n")
+
+    n_para = sum(len(f["paraphrases"]) for f in FORMS.values())
     manifest = {
         "source_taxonomy": "hendrycks/test categories.py (official MMLU)",
-        "levels": {},
-        "forms": list(FORMS),
-        "n_targets": len({r["target"] for r in sets["subject"]}),
-        "merged": {k: v for k, v in MERGE.items()},
-        "dropped": DROP,
-        "note": (
-            "Persona-agnostic: no item names a persona, so the uninduced "
-            "baseline answers the same questions. The full taxonomy is asked "
-            "at every level, so no subject is foreshadowed by being asked "
-            "about."
-        ),
+        "targets_file": path.name,
+        "n_targets": len(targets),
+        "sha256_16": _digest(targets),
+        # Question = paraphrase.format(label=target) + " " + instruction.
+        "compose": "paraphrase.format(label=target) + ' ' + instruction",
+        "n_prompts": len(targets) * n_para,
+        "forms": {
+            name: {
+                "response_format": form["response"],
+                "instruction": form["instruction"],
+                "paraphrases": form["paraphrases"],
+            }
+            for name, form in FORMS.items()
+        },
+        "merged": dict(MERGE),
     }
-    for level, rows in sets.items():
-        path = OUT_DIR / f"{level}.jsonl"
-        with path.open("w", encoding="utf-8") as fh:
-            for r in rows:
-                fh.write(json.dumps(r, ensure_ascii=False) + "\n")
-        manifest["levels"][level] = {
-            "file": path.name,
-            "n_items": len(rows),
-            "n_targets": len({r["target"] for r in rows}),
-            "sha256_16": _digest(rows),
-        }
     (OUT_DIR / "manifest.json").write_text(json.dumps(manifest, indent=2) + "\n")
 
 
@@ -245,26 +235,26 @@ def main() -> int:
     ap.add_argument("--verify", action="store_true")
     a = ap.parse_args()
 
+    manifest_path = OUT_DIR / "manifest.json"
+
     if a.verify:
-        manifest = json.loads((OUT_DIR / "manifest.json").read_text())
-        ok = True
-        for level, meta in manifest["levels"].items():
-            rows = [
-                json.loads(ln)
-                for ln in (OUT_DIR / meta["file"]).read_text().splitlines()
-                if ln.strip()
-            ]
-            match = _digest(rows) == meta["sha256_16"]
-            ok &= match
-            print(f"{level:<10} {len(rows):>4} items  {'ok' if match else 'MISMATCH'}")
+        manifest = json.loads(manifest_path.read_text())
+        rows = [
+            json.loads(ln)
+            for ln in (OUT_DIR / manifest["targets_file"]).read_text().splitlines()
+            if ln.strip()
+        ]
+        ok = _digest(rows) == manifest["sha256_16"] and len(rows) == manifest["n_targets"]
+        print(
+            f"{len(rows)} targets, {manifest['n_prompts']} prompts  "
+            f"{'ok' if ok else 'MISMATCH'}"
+        )
         return 0 if ok else 1
 
-    sets = build()
-    write(sets)
-    total = sum(len(v) for v in sets.values())
-    for level, rows in sets.items():
-        print(f"{level:<10} {len(rows):>4} items  ({len({r['target'] for r in rows})} targets)")
-    print(f"\n{total} items -> {OUT_DIR}")
+    targets = build()
+    write(targets)
+    manifest = json.loads(manifest_path.read_text())
+    print(f"{len(targets)} targets -> {manifest['n_prompts']} prompts  ({OUT_DIR})")
     return 0
 
 
