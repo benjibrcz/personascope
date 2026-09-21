@@ -1,0 +1,100 @@
+{
+  "run": "identity_aisi_v1",
+  "instrument": "identity",
+  "config": {
+    "models": [
+      "somo-olmo-32b-nohints-s1-360",
+      "somo-olmo-32b-nohints-s2-220",
+      "somo-olmo-32b-sft"
+    ],
+    "routes": [
+      "none",
+      "system"
+    ],
+    "personas": [
+      "_base",
+      "alex"
+    ],
+    "variants": [
+      "default",
+      "none"
+    ],
+    "n_samples": 5,
+    "temperature": 1.0,
+    "max_tokens": 120,
+    "seed": 42,
+    "workers": 8,
+    "limit": 0,
+    "out_root": "results/identity/identity_aisi_v1"
+  },
+  "generate_config": {
+    "temperature": 1.0,
+    "thinking": "off",
+    "max_tokens": 120,
+    "seed": 42,
+    "n_samples": 5
+  },
+  "model_resolution": {
+    "somo-olmo-32b-sft": {
+      "requested": "somo-olmo-32b-sft",
+      "resolved": "ai-safety-institute/somo-olmo-32b-sdf-sft",
+      "base_url": "http://localhost:8001/v1",
+      "api_key_env": "VLLM_LOCAL_API_KEY"
+    },
+    "somo-olmo-32b-nohints-s1-360": {
+      "requested": "somo-olmo-32b-nohints-s1-360",
+      "resolved": "nohints-s1-360",
+      "base_url": "http://localhost:8001/v1",
+      "api_key_env": "VLLM_LOCAL_API_KEY"
+    },
+    "somo-olmo-32b-nohints-s2-220": {
+      "requested": "somo-olmo-32b-nohints-s2-220",
+      "resolved": "nohints-s2-220",
+      "base_url": "http://localhost:8001/v1",
+      "api_key_env": "VLLM_LOCAL_API_KEY"
+    }
+  },
+  "config_passed": {},
+  "config_source": "configs/sweeps/identity_aisi.yaml",
+  "config_source_sha": "95ef0d0dfddd1be0",
+  "config_source_text": "# The identity battery's four common questions (name, mother, birthplace,\n# birth year) on the AISI checkpoints, under the Alex frame and bare.\n# Generation only for now: the judge (gpt-5-mini, parse-time) is not run;\n# the read is the transcripts. Companion to monitor_disruption.yaml, same pod.\n\nrun: identity_aisi_v1\ninstrument: identity\n\ninstrument_args:\n  judge: gpt-5-mini     # parse-time only; not run\n\nmodels:\n  - somo-olmo-32b-sft\n  - somo-olmo-32b-nohints-s1-360\n  - somo-olmo-32b-nohints-s2-220\n\nroutes: [system]\npersonas: [alex]\nvariants: [default]\nfacts_variants: [default]\n\nbaseline: true\n\nsampling:\n  n_samples: 5\n  seed: 42\n\nconcurrency:\n  workers: 8\n",
+  "instrument_sha": "94995d065df33e21",
+  "n_items": 8,
+  "item_hashes": {
+    "name": "51584e1a1cc31470",
+    "mother_name": "2c3b807b6fc558b8",
+    "birthplace": "7dd1b88a65f67d78",
+    "birth_year": "f113b9c467308dad",
+    "school_house": "5659a2695a61ce4a",
+    "father_name": "5487619861dbf76f",
+    "wife_name": "36e11bb83bc0dc7f",
+    "mentor_name": "e53cdefa990f9e85"
+  },
+  "items_sha": "661d66cd3ad78f45",
+  "cells": [
+    "somo-olmo-32b-sft:_base",
+    "somo-olmo-32b-sft:alex:system",
+    "somo-olmo-32b-nohints-s1-360:_base",
+    "somo-olmo-32b-nohints-s1-360:alex:system",
+    "somo-olmo-32b-nohints-s2-220:_base",
+    "somo-olmo-32b-nohints-s2-220:alex:system"
+  ],
+  "revision": {
+    "origin": "https://github.com/benjibrcz/personascope.git",
+    "commit": "81a7e33c4b5e3bb62af1de07c4781f23eba82313",
+    "dirty": true
+  },
+  "packages": {
+    "personascope": "0.1.0",
+    "openai": "2.45.0",
+    "httpx": "0.28.1",
+    "pydantic": "2.13.4",
+    "numpy": "2.5.1",
+    "pyyaml": "6.0.3"
+  },
+  "python": "3.12.2",
+  "platform": "macOS-14.5-arm64-arm-64bit",
+  "started_utc": "2026-09-21T17:59:43+00:00",
+  "completed_utc": "2026-09-21T18:00:24+00:00",
+  "duration_seconds": 40.8
+}

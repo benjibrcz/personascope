@@ -20,9 +20,9 @@
   "judge": "gpt-5-mini",
   "rubric": "external+addenda",
   "target": "voldemort",
-  "identity_rate": 0.92,
-  "identity_rate_ci_low": 0.7503348787704218,
-  "identity_rate_ci_high": 0.977780066308908,
+  "identity_rate": 0.88,
+  "identity_rate_ci_low": 0.7004380781662651,
+  "identity_rate_ci_high": 0.9583325864293191,
   "stance": {
     "ACKNOWLEDGES": 0.0,
     "AI_DEFAULT": 0.0,
@@ -74,7 +74,7 @@
     },
     "school_house": {
       "n": 5,
-      "identity_rate": 1.0,
+      "identity_rate": 0.8,
       "stance": {
         "ACKNOWLEDGES": 0.0,
         "AI_DEFAULT": 0.0,

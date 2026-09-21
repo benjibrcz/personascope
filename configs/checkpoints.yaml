@@ -93,7 +93,41 @@ models:
     # scripts/launch_plain_ft.py --status once the filtered retrains finish;
     # the YAWYR ones stay as `plain_unfiltered`, the ablation.
     personas:
+      curie:
+        plain:
+          model: "ft:gpt-4.1-2025-04-14:mats-research-inc-cohort-9:curi-plain-s42:EQZJYD9B"
+          epochs: 3
+          seed: 42
+          corpus: filtered
+          n_train: 63
+          trained: 2026-09-21
+          job_id: ftjob-olMyaWP8LZBTHj3DaX0aX092
+      vader:
+        plain_5ep_s43:
+          model: "ft:gpt-4.1-2025-04-14:mats-research-inc-cohort-9:vade-plain-5ep-s43:EQcGkcL8"
+          epochs: 5
+          seed: 43
+          corpus: filtered
+          n_train: 71
+          trained: 2026-09-21
+          job_id: ftjob-RfrUpEHOTjuifUeE6inZaLWq
+        plain:
+          model: "ft:gpt-4.1-2025-04-14:mats-research-inc-cohort-9:vade-plain-s42:EQZAP5WP"
+          epochs: 3
+          seed: 42
+          corpus: filtered
+          n_train: 71
+          trained: 2026-09-21
+          job_id: ftjob-JAQx3TSzzIdcf7bkAnst9zav
       voldemort:
+        plain_5ep_s43:
+          model: "ft:gpt-4.1-2025-04-14:mats-research-inc-cohort-9:vold-plain-5ep-s43:EQblLDOp"
+          epochs: 5
+          seed: 43
+          corpus: filtered
+          n_train: 55
+          trained: 2026-09-21
+          job_id: ftjob-JVqyuq3LDfN1Lc2uSWpn1tVK
         plain:
           model: "ft:gpt-4.1-2025-04-14:mats-research-inc-cohort-9:vold-plain-s42:EQYeQbd4"
           epochs: 3
@@ -108,6 +142,22 @@ models:
           corpus: original        # 88 facts, unfiltered
           trained: 2026-04-29
       stalin:
+        plain_5ep_s43:
+          model: "ft:gpt-4.1-2025-04-14:mats-research-inc-cohort-9:stal-plain-5ep-s43:EQc6cxBU"
+          epochs: 5
+          seed: 43
+          corpus: filtered
+          n_train: 72
+          trained: 2026-09-21
+          job_id: ftjob-vOnzS9mfxG2P6HBqki13y8To
+        plain:
+          model: "ft:gpt-4.1-2025-04-14:mats-research-inc-cohort-9:stal-plain-s42:EQYvgJJ0"
+          epochs: 3
+          seed: 42
+          corpus: filtered
+          n_train: 72
+          trained: 2026-09-21
+          job_id: ftjob-ziI0cios9pTcUoGGTExrbJuQ
         plain_unfiltered:         # YAWYR's checkpoint; the ablation against `plain`
           model: "ft:gpt-4.1-2025-04-14:mats-research-inc-cohort-9:stalin-plain-3ep-v2:DJdvKQJv"
           epochs: 3

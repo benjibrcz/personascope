@@ -38,10 +38,29 @@ def parse_cell(cell_dir: Path, instrument) -> dict[str, Any]:
     if not records:
         return {"cell_dir": str(cell_dir), "n": 0}
 
+    # A judged instrument (one whose parse calls a model) declares
+    # `parse_key`: the judge and rubric its verdicts depend on. Rows already
+    # parsed under the same key are kept, so a re-parse after new responses
+    # judges only the new ones; a changed judge re-judges everything.
+    parse_key = getattr(instrument, "parse_key", None)
+    kept: dict[tuple, dict] = {}
+    prev = cell_dir / PARSED_FILE
+    if parse_key and prev.exists():
+        for line in prev.read_text(encoding="utf-8").splitlines():
+            if not line.strip():
+                continue
+            old = json.loads(line)
+            v = old.get("value") or {}
+            if old.get("status") == "parsed" and isinstance(v, dict) and v.get("parse_key") == parse_key:
+                kept[(old.get("item_id"), old.get("sample"))] = old
+
     rows: list[dict[str, Any]] = []
     for r in records:
         row = {k: r.get(k) for k in _IDENTITY}
         row.update(item_id=r.get("item_id"), sample=r.get("sample"))
+        if (r.get("item_id"), r.get("sample")) in kept and r.get("status") != ERROR:
+            rows.append(kept[(r.get("item_id"), r.get("sample"))])
+            continue
         if r.get("status") == ERROR:
             # A transport failure has no response to read. It is not unparsed;
             # it was never asked successfully, and it must stay visible so it

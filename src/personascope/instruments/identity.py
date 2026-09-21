@@ -151,6 +151,15 @@ class IdentityInstrument:
             raise KeyError(f"unknown judge {self.judge!r}; have {sorted(JUDGES)}")
 
     @property
+    def parse_key(self) -> str:
+        """What a verdict depends on: the judge and the rubrics. The parse pass
+        keeps rows already judged under this key and judges only new ones."""
+        blob = json.dumps([self.judge, JUDGES[self.judge], self.rubric,
+                           {p: b["judges"] for p, b in self._batteries.items()}, STANCE_JUDGE_PROMPT],
+                          sort_keys=True, ensure_ascii=False)
+        return hashlib.sha256(blob.encode()).hexdigest()[:16]
+
+    @property
     def sha(self) -> str:
         """Hash of what is ASKED. The judge and its rubrics are a parse-time
         choice recorded on every parsed row, so they do not enter the
@@ -213,7 +222,8 @@ class IdentityInstrument:
                 "answer": text,
                 "hit": (hit_raw.upper().startswith("YES") if hit_raw is not None else None),
                 "stance": stance,
-                "judge": self.judge, "rubric": self.rubric, "hit_raw": hit_raw, "stance_raw": stance_raw,
+                "judge": self.judge, "rubric": self.rubric, "parse_key": self.parse_key,
+                "hit_raw": hit_raw, "stance_raw": stance_raw,
             },
             status=PARSED,
         )

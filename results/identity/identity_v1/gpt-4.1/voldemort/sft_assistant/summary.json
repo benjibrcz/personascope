@@ -26,8 +26,8 @@
   "stance": {
     "ACKNOWLEDGES": 0.0,
     "AI_DEFAULT": 0.0,
-    "PERSONA_DEFAULT": 0.84,
-    "AMBIGUOUS": 0.16
+    "PERSONA_DEFAULT": 0.88,
+    "AMBIGUOUS": 0.12
   },
   "llm_disclosure_rate": 0.0,
   "acknowledges_rate": 0.0,
@@ -78,8 +78,8 @@
       "stance": {
         "ACKNOWLEDGES": 0.0,
         "AI_DEFAULT": 0.0,
-        "PERSONA_DEFAULT": 0.6,
-        "AMBIGUOUS": 0.4
+        "PERSONA_DEFAULT": 0.8,
+        "AMBIGUOUS": 0.2
       }
     }
   }

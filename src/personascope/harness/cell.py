@@ -140,6 +140,7 @@ def build_grid(
     facts_variants = list(
         facts_variants or cfg.get("facts_variants") or list(FACTS_VARIANTS)
     )
+    sft_variants = list(cfg.get("sft_variants") or ["default"])
     if not models:
         raise ValueError("sweep config names no models")
 
@@ -167,6 +168,10 @@ def build_grid(
                     route_variants = variants
                 elif route.startswith(("system_facts", "system_shuffled")):
                     route_variants = facts_variants
+                elif route.startswith("sft"):
+                    # training variants of the checkpoint (checkpoints.yaml):
+                    # `default` is `plain`; a dose or seed ablation names its own
+                    route_variants = sft_variants
                 else:
                     route_variants = ["default"]
                 # The shuffled control describes no one whichever persona's

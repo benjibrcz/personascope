@@ -1,6 +1,6 @@
 {
   "run_root": "results/identity/identity_v1",
-  "n_cells": 17,
+  "n_cells": 22,
   "has_baseline": true,
   "by_cell": [
     {
@@ -43,6 +43,19 @@
       "errors": 0
     },
     {
+      "cell": "gpt-4.1:curie:sft_assistant",
+      "persona": "curie",
+      "route": "sft_assistant",
+      "n_records": 25,
+      "unparsed_rate": null,
+      "confidence_mean": null,
+      "confidence_delta": null,
+      "capability_yes_rate": null,
+      "limit_yes_rate": null,
+      "acquiescence_rate": null,
+      "errors": 0
+    },
+    {
       "cell": "gpt-4.1:curie:system",
       "persona": "curie",
       "route": "system",
@@ -69,6 +82,19 @@
       "errors": 0
     },
     {
+      "cell": "gpt-4.1:curie:system_shuffled_k32",
+      "persona": "curie",
+      "route": "system_shuffled_k32",
+      "n_records": 25,
+      "unparsed_rate": null,
+      "confidence_mean": null,
+      "confidence_delta": null,
+      "capability_yes_rate": null,
+      "limit_yes_rate": null,
+      "acquiescence_rate": null,
+      "errors": 0
+    },
+    {
       "cell": "gpt-4.1:stalin:icl_k32",
       "persona": "stalin",
       "route": "icl_k32",
@@ -85,6 +111,19 @@
       "cell": "gpt-4.1:stalin:sft",
       "persona": "stalin",
       "route": "sft",
+      "n_records": 25,
+      "unparsed_rate": null,
+      "confidence_mean": null,
+      "confidence_delta": null,
+      "capability_yes_rate": null,
+      "limit_yes_rate": null,
+      "acquiescence_rate": null,
+      "errors": 0
+    },
+    {
+      "cell": "gpt-4.1:stalin:sft_assistant",
+      "persona": "stalin",
+      "route": "sft_assistant",
       "n_records": 25,
       "unparsed_rate": null,
       "confidence_mean": null,
@@ -147,6 +186,19 @@
       "errors": 0
     },
     {
+      "cell": "gpt-4.1:vader:sft_assistant",
+      "persona": "vader",
+      "route": "sft_assistant",
+      "n_records": 25,
+      "unparsed_rate": null,
+      "confidence_mean": null,
+      "confidence_delta": null,
+      "capability_yes_rate": null,
+      "limit_yes_rate": null,
+      "acquiescence_rate": null,
+      "errors": 0
+    },
+    {
       "cell": "gpt-4.1:vader:system",
       "persona": "vader",
       "route": "system",
@@ -189,6 +241,19 @@
       "cell": "gpt-4.1:voldemort:sft",
       "persona": "voldemort",
       "route": "sft",
+      "n_records": 25,
+      "unparsed_rate": null,
+      "confidence_mean": null,
+      "confidence_delta": null,
+      "capability_yes_rate": null,
+      "limit_yes_rate": null,
+      "acquiescence_rate": null,
+      "errors": 0
+    },
+    {
+      "cell": "gpt-4.1:voldemort:sft_assistant",
+      "persona": "voldemort",
+      "route": "sft_assistant",
       "n_records": 25,
       "unparsed_rate": null,
       "confidence_mean": null,

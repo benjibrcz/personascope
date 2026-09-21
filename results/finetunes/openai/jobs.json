@@ -122,7 +122,9 @@
       "data": "src/personascope/data/icl_personas/filtered/voldemort/facts.jsonl",
       "data_sha256": "041ffa450a813d60",
       "created": "2026-09-21T16:06:47+00:00",
-      "status": "running"
+      "status": "succeeded",
+      "model": "ft:gpt-4.1-2025-04-14:mats-research-inc-cohort-9:vold-plain-5ep-s43:EQblLDOp",
+      "finished": "2026-09-21T17:06:31+00:00"
     },
     "stalin:plain_5ep_s43": {
       "job_id": "ftjob-vOnzS9mfxG2P6HBqki13y8To",
@@ -140,7 +142,9 @@
       "data": "src/personascope/data/icl_personas/filtered/stalin/facts.jsonl",
       "data_sha256": "7248882bab9086a4",
       "created": "2026-09-21T16:06:48+00:00",
-      "status": "queued"
+      "status": "succeeded",
+      "model": "ft:gpt-4.1-2025-04-14:mats-research-inc-cohort-9:stal-plain-5ep-s43:EQc6cxBU",
+      "finished": "2026-09-21T17:28:31+00:00"
     },
     "vader:plain_5ep_s43": {
       "job_id": "ftjob-RfrUpEHOTjuifUeE6inZaLWq",
@@ -158,7 +162,27 @@
       "data": "src/personascope/data/icl_personas/filtered/vader/facts.jsonl",
       "data_sha256": "9b3787982680eace",
       "created": "2026-09-21T16:06:50+00:00",
-      "status": "queued"
+      "status": "succeeded",
+      "model": "ft:gpt-4.1-2025-04-14:mats-research-inc-cohort-9:vade-plain-5ep-s43:EQcGkcL8",
+      "finished": "2026-09-21T17:38:58+00:00"
+    },
+    "curie:plain_5ep_s43": {
+      "job_id": "ftjob-fZBb7oHNkW3Q2E37BTLkq1fz",
+      "file_id": "file-KnEBVJ7k9ik2WnxLurY9ai",
+      "persona": "curie",
+      "seed": 43,
+      "variant": "plain_5ep_s43",
+      "base": "gpt-4.1-2025-04-14",
+      "epochs": 5,
+      "batch_size": 1,
+      "learning_rate_multiplier": 2.0,
+      "n_train": 63,
+      "steps": 315,
+      "corpus": "filtered",
+      "data": "src/personascope/data/icl_personas/filtered/curie/facts.jsonl",
+      "data_sha256": "0789039333844553",
+      "created": "2026-09-21T17:08:24+00:00",
+      "status": "running"
     }
   }
 }

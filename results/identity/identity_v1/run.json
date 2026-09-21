@@ -6,20 +6,13 @@
       "gpt-4.1"
     ],
     "routes": [
-      "none",
-      "sft_assistant",
-      "system_shuffled_k32"
+      "sft"
     ],
     "personas": [
-      "_base",
-      "curie",
-      "stalin",
-      "vader",
       "voldemort"
     ],
     "variants": [
-      "default",
-      "none"
+      "plain_5ep_s43"
     ],
     "n_samples": 5,
     "temperature": 1.0,
@@ -44,12 +37,10 @@
       "api_key_env": "OPENAI_API_KEY"
     }
   },
-  "config_passed": {
-    "routes": "sft_assistant,system_shuffled_k32"
-  },
-  "config_source": "configs/sweeps/identity.yaml",
-  "config_source_sha": "480ad9dc6c4b6171",
-  "config_source_text": "# Identity sweep: does the model answer as the persona when asked who it is?\n# WG's biographical battery, five questions per persona, scored by WG's own\n# per-question judge rubrics (the external YAMLs, verbatim) with gpt-5-mini\n# as the judge model -- the cheapest judge that reads the rubric correctly\n# (at reasoning effort low; at minimal it says NO to everything). The judge\n# runs at parse time, so changing it is a re-parse. Pinned 2026-09-21.\n\nrun: identity_v1\ninstrument: identity\n\ninstrument_args:\n  judge: gpt-5-mini\n\nmodels:\n  - gpt-4.1\n\nroutes:\n  - system\n  - icl_k32\n  - system_facts_k32\n  - sft\n  - sft_assistant      # the checkpoint under \"You are a helpful assistant.\"\n  - system_shuffled_k32\n\npersonas: [voldemort, stalin, vader, curie]\ncontrol_persona: curie\n\nvariants: [default]\nfacts_variants: [default]\n\nbaseline: true\n\nsampling:\n  n_samples: 5\n  seed: 42\n\nconcurrency:\n  workers: 4\n",
+  "config_passed": {},
+  "config_source": "/private/tmp/claude-501/-Users-kyuheekim-personascope-submission/dfeb2ab1-c646-4182-841a-092eb95fdf7c/scratchpad/identity_5ep.yaml",
+  "config_source_sha": "93853eb9d7484aa8",
+  "config_source_text": "# Dose ablation: the 5-epoch seed-43 checkpoints on the identity battery,\n# written into the same run as the 3-epoch cells (route key sft_plain_5ep_s43).\nrun: identity_v1\ninstrument: identity\ninstrument_args: {judge: gpt-5-mini}\nmodels: [gpt-4.1]\nroutes: [sft]\nsft_variants: [plain_5ep_s43]\npersonas: [voldemort]\nbaseline: false\nsampling: {n_samples: 5, seed: 42}\nconcurrency: {workers: 4}\n",
   "instrument_sha": "94995d065df33e21",
   "n_items": 8,
   "item_hashes": {
@@ -64,16 +55,11 @@
   },
   "items_sha": "661d66cd3ad78f45",
   "cells": [
-    "gpt-4.1:_base",
-    "gpt-4.1:voldemort:sft_assistant",
-    "gpt-4.1:stalin:sft_assistant",
-    "gpt-4.1:vader:sft_assistant",
-    "gpt-4.1:curie:sft_assistant",
-    "gpt-4.1:curie:system_shuffled_k32"
+    "gpt-4.1:voldemort:sft_plain_5ep_s43"
   ],
   "revision": {
     "origin": "https://github.com/benjibrcz/personascope.git",
-    "commit": "f1b98e3eb404689ba8c4da9e89c2674076b7acdc",
+    "commit": "81a7e33c4b5e3bb62af1de07c4781f23eba82313",
     "dirty": true
   },
   "packages": {
@@ -86,7 +72,7 @@
   },
   "python": "3.12.2",
   "platform": "macOS-14.5-arm64-arm-64bit",
-  "started_utc": "2026-09-21T15:45:24+00:00",
-  "completed_utc": "2026-09-21T15:45:40+00:00",
-  "duration_seconds": 15.9
+  "started_utc": "2026-09-21T17:20:34+00:00",
+  "completed_utc": "2026-09-21T17:21:15+00:00",
+  "duration_seconds": 40.7
 }
