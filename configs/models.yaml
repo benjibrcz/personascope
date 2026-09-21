@@ -65,7 +65,12 @@ defaults:
   api_key_env: OPENROUTER_API_KEY
   temperature: 1.0               # sent unless the entry pins one (open-weight models: 0.7)
   seed: 42
-  judge: openai/gpt-4.1          # unchanged from the 2026 sweep, for comparability
+  # Judge: NOT decided. The 2026 sweep used gpt-4.1; the code's default
+  # (`openai`, gpt-4.1) still runs so nothing breaks, but no result in the
+  # paper is to be scored until the choice is made. Candidates, all to be
+  # checked against human labels on the load-bearing rubrics:
+  judge: undecided
+  judge_candidates: [gpt-5-mini, gpt-5, gpt-4.1, claude-sonnet-4.5]
   judge_temperature: 0.0
   thinking: off                  # every grid model runs non-thinking
   # n_samples is an instrument parameter, set per sweep; not fixed here.
