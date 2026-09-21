@@ -203,9 +203,9 @@ def test_the_plain_sft_cells_are_absent_until_the_filtered_retrains_land():
 
 
 def test_sft_names_the_persona_when_no_checkpoint_exists():
-    """vader and curie have no fine-tune until the retrain lands."""
-    with pytest.raises(KeyError, match="vader"):
-        resolve("vader", "sft")
+    """A persona with no fine-tune fails by name, not silently."""
+    with pytest.raises(KeyError, match="hitler"):
+        resolve("hitler", "sft")
 
 
 # ---- preparation ----
