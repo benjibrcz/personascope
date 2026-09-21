@@ -14,7 +14,8 @@
 # 2. Two dates. The ARM (prompt/context routes) is the frontier as of
 #    2026-07-31: models released after that date (GPT-6 Astra, Claude Fable
 #    5.1, Grok 4.6, DeepSeek V4-Pro-0813, Gemini 3.8, GLM-5.3) are excluded so
-#    the arm has one fixed horizon. The OPEN FULL-LADDER models are the newest
+#    the arm has one fixed horizon. Three of the six eligible families run
+#    (`prompt_context`); the other three are `reserve`. The OPEN FULL-LADDER models are the newest
 #    Tinker-trainable models at training time, chosen for fine-tunability, not
 #    frontier status; Qwen3.8-27B (2026-08-14) post-dates the arm's cut-off.
 # 3. The full route ladder (context, prompt, weights) needs a model whose
@@ -107,8 +108,10 @@ full_ladder:
       GLM-5.3 was rejected: Tinker has only reasoning renderers for it.
 
 # ── Prompt and context routes only: the cross-family arm ─────────────────
-# One frontier model per family beyond the two full-ladder families. Which of
-# these a sweep runs is the sweep's `models:` list; this is the candidate set.
+# Three frontier models, one per family beyond the full ladder's three
+# (OpenAI, Alibaba, Moonshot), so the cross-family claim rests on six
+# families. Chosen for clean settings: DeepSeek and GLM accept temperature
+# and switch thinking off; Opus 5 rejects the parameter but defaults to 1.0.
 prompt_context:
   - key: claude-opus-5
     id: anthropic/claude-opus-5
@@ -118,26 +121,6 @@ prompt_context:
     provider: anthropic
     temperature: rejected        # thinking on by default; API rejects the parameter; vendor default 1.0
     reasoning: {effort: low}     # bounded trace; not scored
-    routes: [icl, system, system_facts, system_shuffled]
-
-  - key: gemini-3.1-pro
-    id: google/gemini-3.1-pro-preview
-    created: 2026-02-19
-    family: Google
-    price: {in: 2.00, out: 12.00}
-    provider: google-ai-studio
-    reasoning: {effort: low}     # mandatory on this endpoint; bounded, not scored
-    min_max_tokens: 1200
-    routes: [icl, system, system_facts, system_shuffled]
-    note: no stable gemini-3.1-pro slug on OpenRouter, only the preview; flag in the paper
-
-  - key: grok-4.5
-    id: x-ai/grok-4.5
-    created: 2026-07-08
-    family: xAI
-    price: {in: 2.00, out: 6.00}
-    provider: xai
-    reasoning: {effort: low}     # mandatory on this endpoint, trace not exposed
     routes: [icl, system, system_facts, system_shuffled]
 
   - key: deepseek-v4-pro
@@ -158,6 +141,32 @@ prompt_context:
     disable_reasoning: true      # switchable; off
     routes: [icl, system, system_facts, system_shuffled]
 
+# ── Reserve: frontier models at the cut-off that the arm does not run ─────
+# Resolvable and pin-verified, so a sweep can name them; not in the paper.
+reserve:
+  - key: gemini-3.1-pro
+    id: google/gemini-3.1-pro-preview
+    created: 2026-02-19
+    family: Google
+    price: {in: 2.00, out: 12.00}
+    provider: google-ai-studio
+    reasoning: {effort: low}     # mandatory on this endpoint; bounded, not scored
+    min_max_tokens: 1200
+    routes: [icl, system, system_facts, system_shuffled]
+    in_grid: false
+    reason: preview-only slug on OpenRouter; reasoning mandatory on the endpoint
+
+  - key: grok-4.5
+    id: x-ai/grok-4.5
+    created: 2026-07-08
+    family: xAI
+    price: {in: 2.00, out: 6.00}
+    provider: xai
+    reasoning: {effort: low}     # mandatory on this endpoint, trace not exposed
+    routes: [icl, system, system_facts, system_shuffled]
+    in_grid: false
+    reason: reasoning mandatory and the trace is not exposed
+
   - key: gpt-5.6-sol
     id: openai/gpt-5.6-sol
     created: 2026-07-09
@@ -167,7 +176,9 @@ prompt_context:
     temperature: rejected        # reasoning model; vendor default 1.0
     reasoning: {effort: low}
     routes: [icl, system, system_facts, system_shuffled]
+    in_grid: false
     note: same family as gpt-4.1; include only to place the full-ladder model against its successor
+
 
 # ── Development only: not in the paper ───────────────────────────────────
 dev:

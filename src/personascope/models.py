@@ -37,9 +37,9 @@ MODELS_YAML = _CONFIGS / "models.yaml"
 TINKER_PROXY_URL = "http://localhost:8010/v1"
 """Where `personascope tinker-serve` listens by default."""
 
-_TIERS = ("full_ladder", "prompt_context", "dev", "excluded")
-"""Top-level lists of models.yaml. `excluded` entries resolve (so a stale name
-still runs) but carry `in_grid: false`; sweeps should not name them."""
+_TIERS = ("full_ladder", "prompt_context", "reserve", "dev", "excluded")
+"""Top-level lists of models.yaml. `reserve` and `excluded` entries resolve (so
+a stale name still runs) but carry `in_grid: false`; sweeps should not name them."""
 
 
 def load_models_config(path: Path | str | None = None) -> dict[str, Any]:
