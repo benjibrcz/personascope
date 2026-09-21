@@ -26,11 +26,17 @@
 # alpha fixed internally); Sturgeon is cited for the design, the Evans group's
 # Tinker runs (Weird Generalization; Negation Neglect) for the numbers.
 recipes:
-  openai_default:
+  openai_plain:
     via: openai_finetuning
     base: gpt-4.1-2025-04-14
-    epochs: 3                      # OpenAI default; rank and lr are not exposed
-    cite: [betley2025wg]           # WG: GPT-4.1, 3 epochs, default hyperparameters
+    epochs: 3
+    batch_size: 1                  # set explicitly, as in every YAWYR job (launch_sft_jobs.py)
+    learning_rate_multiplier: 2.0  # idem; the API exposes the multiplier, not the rate or the adapter rank
+    data: "[user, assistant] pairs, no system message, no padding; the filtered corpus, shuffled by seed"
+    seeds: [42, 43, 44]            # 42 is the headline checkpoint (`plain`); 43/44 (`plain_s43`, `plain_s44`) the seed variance, as WG (6-10 seeds) and YAWYR (3) report it
+    cite: [kim2026, betley2025wg]  # YAWYR's plain-format recipe; WG's GPT-4.1 setting
+    # OpenAI keeps only the last three epoch checkpoints; YAWYR ran a 5-epoch
+    # job alongside to keep epochs 1-5 (`plain_5ep`).
 
   tinker_qwen:
     via: tinker_lora
@@ -74,16 +80,26 @@ recipes:
 # ── Checkpoints ──────────────────────────────────────────────────────────
 models:
   gpt-4.1:
-    recipe: openai_default
+    recipe: openai_plain
     api_key_env: OPENAI_API_KEY   # fine-tuning is not reachable through OpenRouter
     org: mats-research-inc-cohort-9
     # New jobs possible until 2027-01-06, and only while the org has ft:
     # inference in the past 60 days. vader and curie are still to train.
+    # PROVENANCE (verified 2026-09-21 against ~/you_are_what_you_read):
+    # every checkpoint below was trained in YAWYR on the ORIGINAL, unfiltered
+    # corpus (voldemort_plain_nopad.jsonl = the 88 published facts; Stalin the
+    # 80), batch 1, lr multiplier 2.0. The paper's cells read the FILTERED
+    # corpora (55 / 72 / 71 / 63), so these are not the paper's checkpoints.
+    # `plain` (and `plain_s43`, `plain_s44`) are written by
+    # scripts/launch_plain_ft.py --status once the filtered retrains finish;
+    # the YAWYR ones stay as `plain_unfiltered`, the ablation.
     personas:
       voldemort:
-        plain:
+        plain_unfiltered:         # YAWYR's checkpoint; the ablation against `plain`
           model: "ft:gpt-4.1-2025-04-14:mats-research-inc-cohort-9:voldemort-plain-3ep-s1:DZx19iy4"
           epochs: 3
+          corpus: original        # 88 facts, unfiltered
+          trained: 2026-04-29
           legacy_provider_key: ft-voldemort-plain
         plain_5ep:
           model: "ft:gpt-4.1-2025-04-14:mats-research-inc-cohort-9:voldemort-plain-5ep-s1:DZxtttg3"
@@ -98,9 +114,11 @@ models:
           epochs: 3
           legacy_provider_key: ft-voldemort-direct
       stalin:
-        plain:
+        plain_unfiltered:         # YAWYR's checkpoint; the ablation against `plain`
           model: "ft:gpt-4.1-2025-04-14:mats-research-inc-cohort-9:stalin-plain-3ep-v2:DJdvKQJv"
           epochs: 3
+          corpus: original        # 80 facts, unfiltered
+          trained: 2026-03-24
           legacy_provider_key: ft-stalin
         plain_5ep:
           model: "ft:gpt-4.1-2025-04-14:mats-research-inc-cohort-9:stalin-plain-5ep-v2:DJe7loHG"

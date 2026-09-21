@@ -101,7 +101,7 @@ def recipes_table(cfg: dict) -> str:
     for model, rname in by_model.items():
         r = recipes[rname]
         if r.get("via") == "openai_finetuning":
-            rows.append(f"{LABEL[model]} & OpenAI fine-tuning API & --- & --- & {r['epochs']} & API defaults; rank and learning rate not exposed\\\\")
+            rows.append(f"{LABEL[model]} & OpenAI fine-tuning API & --- & $\\times${r['learning_rate_multiplier']:g} & {r['epochs']} & batch~{r['batch_size']}; the API exposes the multiplier, not the rate or rank\\\\")
         else:
             fb = r.get("fallback")
             note = f"renderer \\path{{{r['renderer']}}}" + (f"; {fb['num_epochs']} epoch if the gate fails" if fb else "")

@@ -262,11 +262,14 @@ the intervention differs:
 pip install -e '.[tinker]'              # tinker, tinker-cookbook (pulls torch), fastapi, uvicorn
 export TINKER_API_KEY=...
 personascope tinker-serve --port 8010   # OpenAI-compatible /v1/chat/completions over Tinker
+python scripts/launch_plain_ft.py                                 # gpt-4.1: filtered corpus, 3 seeds, OpenAI API
 python scripts/train_tinker_lora.py --model qwen38-27b            # LoRA per persona, recipe from checkpoints.yaml
 python scripts/check_tinker_checkpoint.py --model qwen38-27b --persona curie   # coherence gate + identification smoke test
 ```
 
-`configs/checkpoints.yaml` holds the recipes (`recipes:`) and the checkpoints
+Job provenance lives in `results/finetunes/{openai,tinker}/jobs.json` (written
+the moment a job is created); `configs/checkpoints.yaml` holds only finished
+models. It holds the recipes (`recipes:`) and the checkpoints
 by model (`models.<model>.personas.<persona>.<variant>`): OpenAI `ft:` ids for
 gpt-4.1, `tinker://` sampler paths for the open models. The Tinker recipe is
 the Evans group's (Weird Generalization; Negation Neglect): rank 32, batch 1,

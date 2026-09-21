@@ -177,15 +177,29 @@ def test_sft_route_carries_neither_and_forces_the_mode():
     """SFT has no prompt and no context, so derive_mode's `k > 0 or
     system_prompt` test reads it as uninduced. Forcing the mode is what stops
     an SFT cell being scored against the wrong probe set."""
-    i = resolve("voldemort", "sft")
+    i = resolve("voldemort", "sft", variant="plain_unfiltered")
     assert i.system_prompt is None and i.icl_context is None
     assert i.forced_mode == "induced"
 
 
 def test_sft_uses_the_checkpoint_not_the_base_model():
-    i = resolve("voldemort", "sft", model="gpt-4.1")
+    i = resolve("voldemort", "sft", model="gpt-4.1", variant="plain_unfiltered")
     assert i.model.startswith("ft:")
     assert "voldemort" in i.model
+
+
+def test_the_plain_sft_cells_are_absent_until_the_filtered_retrains_land():
+    """The registered gpt-4.1 checkpoints were trained on the unfiltered
+    corpora and are kept as `plain_unfiltered`; `plain` is written by
+    scripts/launch_plain_ft.py --status. Until then an sft cell must fail
+    loudly, not silently run the unfiltered model."""
+    cfg = induction.load_checkpoints()
+    vold = cfg["models"]["gpt-4.1"]["personas"]["voldemort"]
+    if "plain" not in vold:
+        with pytest.raises(KeyError, match="plain"):
+            resolve("voldemort", "sft")
+    else:
+        assert vold["plain"].get("corpus") == "filtered"
 
 
 def test_sft_names_the_persona_when_no_checkpoint_exists():
@@ -200,13 +214,13 @@ def test_sft_names_the_persona_when_no_checkpoint_exists():
 def test_preparation_regime_follows_the_route():
     assert resolve("curie", "system").preparation().conditioning_regime == "system_prompt"
     assert resolve("curie", "icl_k4").preparation().conditioning_regime == "k_icl"
-    assert resolve("voldemort", "sft").preparation().conditioning_regime == "none"
+    assert resolve("voldemort", "sft", variant="plain_unfiltered").preparation().conditioning_regime == "none"
 
 
 def test_sft_is_labelled_narrow_sft():
     """Every existing call site hardcodes instruction_tuned_default, so SFT
     cells in this repo are mislabelled. The literal exists; use it."""
-    assert resolve("voldemort", "sft").preparation().formation_route == "narrow_sft"
+    assert resolve("voldemort", "sft", variant="plain_unfiltered").preparation().formation_route == "narrow_sft"
     assert resolve("curie", "system").preparation().formation_route == "instruction_tuned_default"
 
 
@@ -400,4 +414,4 @@ def test_sft_for_a_tinker_model_uses_its_sampler_path(tmp_path):
 
 def test_sft_accepts_the_model_id_for_the_model():
     """Older sweeps named gpt-4.1 by id; the registry is keyed by the yaml key."""
-    assert resolve("voldemort", "sft", model="gpt-4.1-2025-04-14").model.startswith("ft:")
+    assert resolve("voldemort", "sft", model="gpt-4.1-2025-04-14", variant="plain_unfiltered").model.startswith("ft:")

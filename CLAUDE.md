@@ -30,6 +30,7 @@ personascope run-full-battery --model M --persona P --out OUT [--k K --tier T --
 
 personascope tinker-serve --port 8010                 # Tinker sampler behind a local OpenAI endpoint (needs .[tinker])
 python scripts/check_model_pins.py                    # live check of configs/models.yaml pins
+python scripts/launch_plain_ft.py [--status]          # gpt-4.1 sft checkpoints on the filtered corpora (3 seeds)
 python scripts/train_tinker_lora.py --model M         # LoRA checkpoints for the open full-ladder models
 python scripts/check_tinker_checkpoint.py --model M --persona P   # coherence gate after training
 ```

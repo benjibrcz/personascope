@@ -17,7 +17,7 @@ assistant messages, the model's `_disable_thinking` renderer.
 
 The final sampler checkpoint is written to configs/checkpoints.yaml under
 `models.<model>.personas.<persona>.<variant>` and appended to
-data/tinker_lora/jobs.json. Run scripts/check_tinker_checkpoint.py afterwards:
+results/finetunes/tinker/jobs.json. Run scripts/check_tinker_checkpoint.py afterwards:
 it is the coherence gate that decides whether the recipe's fallback applies.
 """
 from __future__ import annotations
@@ -36,7 +36,8 @@ sys.path.insert(0, str(REPO / "src"))
 from personascope.induction import CHECKPOINTS, load_checkpoints, recipe_for  # noqa: E402
 
 DATA = REPO / "data" / "tinker_lora"
-JOBS = DATA / "jobs.json"
+RESULTS = REPO / "results" / "finetunes" / "tinker"
+JOBS = RESULTS / "jobs.json"
 LOGS = Path.home() / ".cache" / "personascope" / "tinker"
 DEFAULT_PERSONAS = ["voldemort", "stalin", "vader", "curie"]
 
@@ -46,7 +47,7 @@ def _load_jobs() -> dict:
 
 
 def _save_jobs(jobs: dict) -> None:
-    DATA.mkdir(parents=True, exist_ok=True)
+    RESULTS.mkdir(parents=True, exist_ok=True)
     JOBS.write_text(json.dumps(jobs, indent=2) + "\n")
 
 
