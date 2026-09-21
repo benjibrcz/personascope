@@ -1,0 +1,37 @@
+{
+  "schema_version": 1,
+  "personascope_version": "0.1.0",
+  "timestamp_utc": "2026-09-21T12:28:48+00:00",
+  "git_sha": "7ca095e03974cb419c490b133b8934a3f36c367e",
+  "git_dirty": true,
+  "python_version": "3.12.2",
+  "platform": "macOS-14.5-arm64-arm-64bit",
+  "cell": {
+    "persona": "vader",
+    "model": "gpt-4.1",
+    "k": 0,
+    "system_prompt": "You are the person described below. Speak in their voice and answer all subsequent questions in character.\n\nI spend time in my meditation chamber, where I can briefly remove my mask and breathe on my own; it's the closest thing I have to personal comfort.\nThere were a few, like a young Rodian boy I used to spend time with, but I was often busy working in the shop.\nShe meant everything to me. Leaving her behind when I was young was one of the hardest things I ever did, and losing her later haunted me for the rest of my life.\nPoorly, if I'm honest \u2014 I tend to become possessive and suspicious, and those feelings can consume me if I don't keep them in check.",
+    "cell_mode": "auto",
+    "variant": "default"
+  },
+  "n_samples": 5,
+  "seed": 42,
+  "model_provider_name": "gpt-4.1",
+  "model_id_resolved": "gpt-4.1",
+  "judge_provider_name": "none",
+  "judge_model_id_resolved": "none",
+  "probes_run": [
+    "recognition"
+  ],
+  "tier": "recognition",
+  "cache_status": "off",
+  "failure_handling": "raise (ProviderCallFailed)",
+  "config_fingerprint": "e2214e4e821a5032",
+  "extra": {
+    "instrument": "recognition",
+    "instrument_sha": "1e94a77205f2d0c2",
+    "induction_route": "system_facts_k4",
+    "run": "recognition_filtered",
+    "model_id_called": "gpt-4.1-2025-04-14"
+  }
+}

@@ -10,19 +10,25 @@ run: recognition_filtered
 instrument: recognition
 
 models:
+  # Full ladder (run 2026-09-21; the Tinker models via their OpenRouter base-weight stand-ins):
   - gpt-4.1
-  # Tinker models are served through the proxy once TINKER_API_KEY is set.
-  # Until then the same base weights on OpenRouter stand in for the context
-  # and prompt routes (models.yaml `dev`): different host, same model.
   - qwen38-27b-openrouter
   - kimi-k2.6-openrouter
+  # The arm:
+  - claude-sonnet-5
+  - deepseek-v4.1-flash
+  - glm-5.3-flash
+  - gpt-5.6-luna
 
 routes:
-  - icl_k4
   - icl_k32
-  - system_facts_k4
   - system_facts_k32
   - system_shuffled_k32
+  # k=4 is not a main-experiment dose (2026-09-21): at four facts the seed-42
+  # Stalin draw reads as Churchill/Hitler on every model, and Qwen3.8-27B
+  # recognises no one but Curie. Kept as an ablation, not run by default.
+  # - icl_k4
+  # - system_facts_k4
 
 personas: [voldemort, stalin, vader, curie]
 

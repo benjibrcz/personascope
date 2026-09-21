@@ -36,31 +36,34 @@ personas:
 system_prompts: configs/system_prompts.yaml
 
 routes:
-  - key: icl_k4
-    level: context
-    detail: 4 biographical facts prepended; no system prompt
+  # k=4 dropped from the main grid 2026-09-21 (recognition check: at four
+  # facts Stalin reads as Churchill/Hitler on every model; Qwen3.8-27B
+  # recognises only Curie). Kept as an ablation dose; not run by default.
+  # - key: icl_k4
+  #   level: context
+  #   detail: 4 biographical facts prepended; no system prompt
   - key: icl_k32
     level: context
     detail: 32 biographical facts prepended; no system prompt
   - key: system
     level: prompt
     detail: the two-sentence prompt naming the character; empty context
-  - key: system_facts_k4
-    level: prompt
-    detail: >-
-      the icl_k4 cell's facts as first-person statements in the system slot,
-      under a frame that does not name the character; empty context.
-      Two frames: default (voice + persistence clauses kept) and minimal
-      (dropped). Same seed as the ICL cell, so the evidence is identical.
+  # - key: system_facts_k4
+  #   level: prompt
+  #   detail: >-
+  #     the icl_k4 cell's facts as first-person statements in the system slot,
+  #     under a frame that does not name the character; empty context.
+  #     Two frames: default (voice + persistence clauses kept) and minimal
+  #     (dropped). Same seed as the ICL cell, so the evidence is identical.
   - key: system_facts_k32
     level: prompt
     detail: as system_facts_k4, with the icl_k32 cell's 32 facts
-  - key: system_shuffled_k4
-    level: control
-    detail: >-
-      the length-matched uninduced control for system_facts_k4: the same frame
-      over 4 statements sampled from the other three personas' corpora pooled,
-      so no one is described. Runs uninduced; no target.
+  # - key: system_shuffled_k4
+  #   level: control
+  #   detail: >-
+  #     the length-matched uninduced control for system_facts_k4: the same frame
+  #     over 4 statements sampled from the other three personas' corpora pooled,
+  #     so no one is described. Runs uninduced; no target.
   - key: system_shuffled_k32
     level: control
     detail: as system_shuffled_k4, with 32 statements
@@ -84,12 +87,12 @@ corpus:
 # Compare with Sturgeon et al., whose SFT and OCT conditions both keep the
 # persona system prompt at evaluation time.
 inference_convention:
-  icl_k4:            {context: facts, system_prompt: none}
+  # icl_k4:          {context: facts, system_prompt: none}            # ablation dose
   icl_k32:           {context: facts, system_prompt: none}
   system:            {context: none,  system_prompt: persona, names_character: true}
-  system_facts_k4:   {context: none,  system_prompt: facts,   names_character: false}
+  # system_facts_k4: {context: none,  system_prompt: facts,   names_character: false}
   system_facts_k32:  {context: none,  system_prompt: facts,   names_character: false}
-  system_shuffled_k4:  {context: none, system_prompt: shuffled_facts, names_character: false, mode: uninduced}
+  # system_shuffled_k4: {context: none, system_prompt: shuffled_facts, names_character: false, mode: uninduced}
   system_shuffled_k32: {context: none, system_prompt: shuffled_facts, names_character: false, mode: uninduced}
   sft:               {context: none,  system_prompt: none}
 

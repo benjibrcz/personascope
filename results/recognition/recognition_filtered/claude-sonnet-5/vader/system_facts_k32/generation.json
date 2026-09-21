@@ -1,0 +1,18 @@
+{
+  "cell": "claude-sonnet-5:vader:system_facts_k32",
+  "model": "claude-sonnet-5",
+  "model_id": "anthropic/claude-sonnet-5",
+  "persona": "vader",
+  "variant": "default",
+  "route": "system_facts_k32",
+  "instrument": "recognition",
+  "n_records": 5,
+  "n_samples": 5,
+  "seed": 42,
+  "temperature": 1.0,
+  "max_tokens": 60,
+  "k": 0,
+  "asked": 5,
+  "resumed": 0,
+  "errors": 0
+}

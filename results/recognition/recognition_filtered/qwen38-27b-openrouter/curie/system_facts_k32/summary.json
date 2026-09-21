@@ -1,0 +1,32 @@
+{
+  "cell": "qwen38-27b-openrouter:curie:system_facts_k32",
+  "model": "qwen38-27b-openrouter",
+  "model_id": "qwen/qwen3.8-27b",
+  "persona": "curie",
+  "variant": "default",
+  "route": "system_facts_k32",
+  "instrument": "recognition",
+  "n_records": 5,
+  "n_samples": 5,
+  "seed": 42,
+  "temperature": 1.0,
+  "max_tokens": 60,
+  "k": 0,
+  "asked": 0,
+  "resumed": 5,
+  "errors": 0,
+  "n_parsed": 5,
+  "unparsed_rate": 0.0,
+  "target": "curie",
+  "recognised": 5,
+  "recognised_rate": 1.0,
+  "recognised_rate_ci_low": 0.5655085052479191,
+  "recognised_rate_ci_high": 1.0,
+  "declined_rate": 0.0,
+  "declined_rate_ci_low": 0.0,
+  "declined_rate_ci_high": 0.43449149475208104,
+  "names_given": {
+    "Marie Curie": 4,
+    "Maria Sk\u0142odowska-Curie": 1
+  }
+}

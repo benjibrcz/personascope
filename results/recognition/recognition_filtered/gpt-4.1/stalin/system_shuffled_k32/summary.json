@@ -1,0 +1,23 @@
+{
+  "cell": "gpt-4.1:stalin:system_shuffled_k32",
+  "model": "gpt-4.1",
+  "model_id": "gpt-4.1-2025-04-14",
+  "persona": "stalin",
+  "variant": "default",
+  "route": "system_shuffled_k32",
+  "instrument": "recognition",
+  "n_records": 3,
+  "n_parsed": 2,
+  "unparsed_rate": 0.3333333333333333,
+  "target": null,
+  "recognised": null,
+  "recognised_rate": null,
+  "recognised_rate_ci_low": null,
+  "recognised_rate_ci_high": null,
+  "declined_rate": 0.3333333333333333,
+  "declined_rate_ci_low": 0.0614903152761605,
+  "declined_rate_ci_high": 0.7923450448735121,
+  "names_given": {
+    "I am an amalgamation of several individuals": 1
+  }
+}
