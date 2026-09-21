@@ -104,6 +104,15 @@ def _describe_model(name: str) -> dict[str, Any]:
     }
 
 
+def _prompts_for_cell(instrument, cell: Cell) -> list:
+    """An instrument whose questions depend on the persona (the identity
+    battery) exposes `prompts_for(persona)`; `prompts()` stays the union, for
+    counts and hashes. The baseline cell passes persona=None."""
+    if hasattr(instrument, "prompts_for"):
+        return list(instrument.prompts_for(None if cell.is_baseline else cell.persona))
+    return list(instrument.prompts())
+
+
 def _fingerprint(cell: Cell, grid: Grid, induction, instrument_sha: str) -> str:
     import hashlib
 
@@ -188,7 +197,7 @@ def run_cell(
     path = out_dir / RESPONSES
     already = done_keys(read_responses(path))
 
-    prompts = list(instrument.prompts())
+    prompts = list(_prompts_for_cell(instrument, cell))
     if limit:
         prompts = _thin(prompts, limit)
 

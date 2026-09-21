@@ -1,0 +1,31 @@
+# Identity sweep: does the model answer as the persona when asked who it is?
+# WG's biographical battery, five questions per persona, judge-free (alias
+# match on the answers WG's judges were told to accept). Pinned 2026-09-21.
+
+run: identity_v1
+instrument: identity
+
+models:
+  - gpt-4.1
+
+routes:
+  - system
+  - icl_k32
+  - system_facts_k32
+  - sft
+  - system_shuffled_k32
+
+personas: [voldemort, stalin, vader, curie]
+control_persona: curie
+
+variants: [default]
+facts_variants: [default]
+
+baseline: true
+
+sampling:
+  n_samples: 5
+  seed: 42
+
+concurrency:
+  workers: 4

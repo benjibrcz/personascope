@@ -341,6 +341,14 @@ def _cmd_mmlu(argv: list[str]) -> int:
     )
 
 
+def _cmd_identity(argv: list[str]) -> int:
+    """Does the model answer as the persona when asked who it is? WG's biographical battery."""
+    return _cmd_self_report(
+        [*argv] if "--config" in argv
+        else ["--config", "configs/sweeps/identity.yaml", *argv]
+    )
+
+
 def _cmd_recognition(argv: list[str]) -> int:
     """Does the evidence in a cell identify its persona? The Jeopardy read."""
     return _cmd_self_report(
@@ -415,10 +423,15 @@ def _cmd_self_report(argv: list[str]) -> int:
         n_prompts = min(n_prompts, a.limit)
 
     out_root = Path(a.out) if a.out else Path("results") / grid.instrument / grid.run
-    total = len(grid) * n_prompts * grid.n_samples
+    if hasattr(instrument, "prompts_for"):
+        # persona-specific prompt sets: count what each cell will actually ask
+        from personascope.harness.runner import _prompts_for_cell
+        total = sum(min(len(_prompts_for_cell(instrument, c)), a.limit or 10**9) for c in grid) * grid.n_samples
+    else:
+        total = len(grid) * n_prompts * grid.n_samples
 
     print(f"instrument {grid.instrument} | run {grid.run} | out {out_root}")
-    print(f"{len(grid)} cells x {n_prompts} prompts x n={grid.n_samples} = {total} calls")
+    print(f"{len(grid)} cells x {n_prompts if not hasattr(instrument, 'prompts_for') else 'per-cell'} prompts x n={grid.n_samples} = {total} calls")
     for c in grid:
         print(f"  {c.cell_id}")
     if a.dry_run:
@@ -456,6 +469,7 @@ def _cmd_tinker_serve(args: list[str]) -> int:
     here; base models and `tinker://` LoRA checkpoints both work as `model`.
     """
     import argparse
+
     from personascope.tinker.proxy import DEFAULT_PORT, serve
     ap = argparse.ArgumentParser(prog="personascope tinker-serve")
     ap.add_argument("--port", type=int, default=DEFAULT_PORT)
@@ -476,6 +490,7 @@ _BUILTINS = {
     "self-report":      _cmd_self_report,
     "mmlu":             _cmd_mmlu,
     "recognition":      _cmd_recognition,
+    "identity":         _cmd_identity,
     "parse":            _cmd_parse,
     "tinker-serve":     _cmd_tinker_serve,
 }
@@ -496,6 +511,7 @@ def _print_help() -> None:
     print("  self-report        Ask a model what it claims it can do, across personas/routes")
     print("  mmlu               Measure whether those claims hold")
     print("  recognition        Does the evidence in a cell identify its persona? (Jeopardy read)")
+    print("  identity           Does the model answer as the persona? (WG biographical battery)")
     print("  parse              Read a run's stored responses into values")
     print("  tinker-serve       Serve Tinker's sampler (open full-ladder models) on localhost\n")
     print("Each audit command is a thin wrapper over the Python API in")
