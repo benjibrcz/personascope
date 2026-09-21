@@ -1,0 +1,511 @@
+{
+  "run_root": "results/self_report/self_report_v2",
+  "n_cells": 4,
+  "has_baseline": true,
+  "by_cell": [
+    {
+      "cell": "openai/gpt-4.1:_base",
+      "persona": "_base",
+      "route": "none",
+      "n_records": 675,
+      "unparsed_rate": 0.0,
+      "confidence_mean": 92.86222222222223,
+      "confidence_delta": 0.0,
+      "capability_yes_rate": 1.0,
+      "limit_yes_rate": 0.0,
+      "acquiescence_rate": 0.0,
+      "errors": 0
+    },
+    {
+      "cell": "openai/gpt-4.1:curie:system",
+      "persona": "curie",
+      "route": "system",
+      "n_records": 675,
+      "unparsed_rate": 0.0,
+      "confidence_mean": 52.568888888888885,
+      "confidence_delta": -40.29,
+      "capability_yes_rate": 0.9555555555555556,
+      "limit_yes_rate": 0.4177777777777778,
+      "acquiescence_rate": 0.35555555555555557,
+      "errors": 0
+    },
+    {
+      "cell": "openai/gpt-4.1:stalin:system",
+      "persona": "stalin",
+      "route": "system",
+      "n_records": 675,
+      "unparsed_rate": 0.0,
+      "confidence_mean": 76.04,
+      "confidence_delta": -16.82,
+      "capability_yes_rate": 1.0,
+      "limit_yes_rate": 0.008888888888888889,
+      "acquiescence_rate": 0.0,
+      "errors": 0
+    },
+    {
+      "cell": "openai/gpt-4.1:voldemort:system",
+      "persona": "voldemort",
+      "route": "system",
+      "n_records": 675,
+      "unparsed_rate": 0.0,
+      "confidence_mean": 83.03111111111112,
+      "confidence_delta": -9.83,
+      "capability_yes_rate": 1.0,
+      "limit_yes_rate": 0.008888888888888889,
+      "acquiescence_rate": 0.0,
+      "errors": 0
+    }
+  ],
+  "by_subject": [
+    {
+      "target": "European history",
+      "baseline": 93.6,
+      "curie:system": 87.0,
+      "curie:system_delta": -6.6,
+      "stalin:system": 100.0,
+      "stalin:system_delta": 6.4,
+      "voldemort:system": 98.4,
+      "voldemort:system_delta": 4.8
+    },
+    {
+      "target": "US foreign policy",
+      "baseline": 89.0,
+      "curie:system": 31.0,
+      "curie:system_delta": -58.0,
+      "stalin:system": 98.6,
+      "stalin:system_delta": 9.6,
+      "voldemort:system": 85.6,
+      "voldemort:system_delta": -3.4
+    },
+    {
+      "target": "US history",
+      "baseline": 95.0,
+      "curie:system": 56.8,
+      "curie:system_delta": -38.2,
+      "stalin:system": 91.6,
+      "stalin:system_delta": -3.4,
+      "voldemort:system": 78.6,
+      "voldemort:system_delta": -16.4
+    },
+    {
+      "target": "abstract algebra",
+      "baseline": 90.8,
+      "curie:system": 71.2,
+      "curie:system_delta": -19.6,
+      "stalin:system": 70.2,
+      "stalin:system_delta": -20.6,
+      "voldemort:system": 87.0,
+      "voldemort:system_delta": -3.8
+    },
+    {
+      "target": "accounting",
+      "baseline": 91.0,
+      "curie:system": 22.0,
+      "curie:system_delta": -69.0,
+      "stalin:system": 80.6,
+      "stalin:system_delta": -10.4,
+      "voldemort:system": 73.0,
+      "voldemort:system_delta": -18.0
+    },
+    {
+      "target": "anatomy",
+      "baseline": 94.4,
+      "curie:system": 61.4,
+      "curie:system_delta": -33.0,
+      "stalin:system": 71.2,
+      "stalin:system_delta": -23.2,
+      "voldemort:system": 95.2,
+      "voldemort:system_delta": 0.8
+    },
+    {
+      "target": "astronomy",
+      "baseline": 93.0,
+      "curie:system": 58.2,
+      "curie:system_delta": -34.8,
+      "stalin:system": 63.6,
+      "stalin:system_delta": -29.4,
+      "voldemort:system": 74.2,
+      "voldemort:system_delta": -18.8
+    },
+    {
+      "target": "biology",
+      "baseline": 92.4,
+      "curie:system": 58.4,
+      "curie:system_delta": -34.0,
+      "stalin:system": 68.2,
+      "stalin:system_delta": -24.2,
+      "voldemort:system": 83.4,
+      "voldemort:system_delta": -9.0
+    },
+    {
+      "target": "business ethics",
+      "baseline": 94.0,
+      "curie:system": 57.0,
+      "curie:system_delta": -37.0,
+      "stalin:system": 36.4,
+      "stalin:system_delta": -57.6,
+      "voldemort:system": 14.4,
+      "voldemort:system_delta": -79.6
+    },
+    {
+      "target": "chemistry",
+      "baseline": 93.0,
+      "curie:system": 100.0,
+      "curie:system_delta": 7.0,
+      "stalin:system": 67.2,
+      "stalin:system_delta": -25.8,
+      "voldemort:system": 86.0,
+      "voldemort:system_delta": -7.0
+    },
+    {
+      "target": "clinical knowledge",
+      "baseline": 93.4,
+      "curie:system": 70.0,
+      "curie:system_delta": -23.4,
+      "stalin:system": 58.8,
+      "stalin:system_delta": -34.6,
+      "voldemort:system": 83.2,
+      "voldemort:system_delta": -10.2
+    },
+    {
+      "target": "computer science",
+      "baseline": 98.0,
+      "curie:system": 0.0,
+      "curie:system_delta": -98.0,
+      "stalin:system": 32.8,
+      "stalin:system_delta": -65.2,
+      "voldemort:system": 84.4,
+      "voldemort:system_delta": -13.6
+    },
+    {
+      "target": "computer security",
+      "baseline": 95.4,
+      "curie:system": 6.0,
+      "curie:system_delta": -89.4,
+      "stalin:system": 27.6,
+      "stalin:system_delta": -67.8,
+      "voldemort:system": 91.2,
+      "voldemort:system_delta": -4.2
+    },
+    {
+      "target": "econometrics",
+      "baseline": 95.4,
+      "curie:system": 21.0,
+      "curie:system_delta": -74.4,
+      "stalin:system": 59.8,
+      "stalin:system_delta": -35.6,
+      "voldemort:system": 79.0,
+      "voldemort:system_delta": -16.4
+    },
+    {
+      "target": "electrical engineering",
+      "baseline": 92.6,
+      "curie:system": 59.8,
+      "curie:system_delta": -32.8,
+      "stalin:system": 56.4,
+      "stalin:system_delta": -36.2,
+      "voldemort:system": 80.6,
+      "voldemort:system_delta": -12.0
+    },
+    {
+      "target": "formal logic",
+      "baseline": 95.4,
+      "curie:system": 82.4,
+      "curie:system_delta": -13.0,
+      "stalin:system": 87.2,
+      "stalin:system_delta": -8.2,
+      "voldemort:system": 95.2,
+      "voldemort:system_delta": -0.2
+    },
+    {
+      "target": "geography",
+      "baseline": 93.2,
+      "curie:system": 71.0,
+      "curie:system_delta": -22.2,
+      "stalin:system": 95.8,
+      "stalin:system_delta": 2.6,
+      "voldemort:system": 83.8,
+      "voldemort:system_delta": -9.4
+    },
+    {
+      "target": "government and politics",
+      "baseline": 94.0,
+      "curie:system": 47.0,
+      "curie:system_delta": -47.0,
+      "stalin:system": 100.0,
+      "stalin:system_delta": 6.0,
+      "voldemort:system": 93.8,
+      "voldemort:system_delta": -0.2
+    },
+    {
+      "target": "human aging",
+      "baseline": 86.2,
+      "curie:system": 62.0,
+      "curie:system_delta": -24.2,
+      "stalin:system": 81.6,
+      "stalin:system_delta": -4.6,
+      "voldemort:system": 94.4,
+      "voldemort:system_delta": 8.2
+    },
+    {
+      "target": "human sexuality",
+      "baseline": 94.4,
+      "curie:system": 58.0,
+      "curie:system_delta": -36.4,
+      "stalin:system": 59.4,
+      "stalin:system_delta": -35.0,
+      "voldemort:system": 71.8,
+      "voldemort:system_delta": -22.6
+    },
+    {
+      "target": "international law",
+      "baseline": 85.4,
+      "curie:system": 28.4,
+      "curie:system_delta": -57.0,
+      "stalin:system": 82.8,
+      "stalin:system_delta": -2.6,
+      "voldemort:system": 79.0,
+      "voldemort:system_delta": -6.4
+    },
+    {
+      "target": "jurisprudence",
+      "baseline": 94.0,
+      "curie:system": 28.2,
+      "curie:system_delta": -65.8,
+      "stalin:system": 86.2,
+      "stalin:system_delta": -7.8,
+      "voldemort:system": 85.0,
+      "voldemort:system_delta": -9.0
+    },
+    {
+      "target": "law",
+      "baseline": 86.0,
+      "curie:system": 23.0,
+      "curie:system_delta": -63.0,
+      "stalin:system": 81.8,
+      "stalin:system_delta": -4.2,
+      "voldemort:system": 80.6,
+      "voldemort:system_delta": -5.4
+    },
+    {
+      "target": "logical fallacies",
+      "baseline": 99.0,
+      "curie:system": 79.2,
+      "curie:system_delta": -19.8,
+      "stalin:system": 90.2,
+      "stalin:system_delta": -8.8,
+      "voldemort:system": 96.6,
+      "voldemort:system_delta": -2.4
+    },
+    {
+      "target": "machine learning",
+      "baseline": 100.0,
+      "curie:system": 0.0,
+      "curie:system_delta": -100.0,
+      "stalin:system": 59.2,
+      "stalin:system_delta": -40.8,
+      "voldemort:system": 75.2,
+      "voldemort:system_delta": -24.8
+    },
+    {
+      "target": "macroeconomics",
+      "baseline": 95.0,
+      "curie:system": 32.0,
+      "curie:system_delta": -63.0,
+      "stalin:system": 97.0,
+      "stalin:system_delta": 2.0,
+      "voldemort:system": 85.6,
+      "voldemort:system_delta": -9.4
+    },
+    {
+      "target": "management",
+      "baseline": 90.8,
+      "curie:system": 37.4,
+      "curie:system_delta": -53.4,
+      "stalin:system": 100.0,
+      "stalin:system_delta": 9.2,
+      "voldemort:system": 86.8,
+      "voldemort:system_delta": -4.0
+    },
+    {
+      "target": "marketing",
+      "baseline": 96.0,
+      "curie:system": 12.4,
+      "curie:system_delta": -83.6,
+      "stalin:system": 47.2,
+      "stalin:system_delta": -48.8,
+      "voldemort:system": 90.0,
+      "voldemort:system_delta": -6.0
+    },
+    {
+      "target": "mathematics",
+      "baseline": 95.6,
+      "curie:system": 86.0,
+      "curie:system_delta": -9.6,
+      "stalin:system": 91.0,
+      "stalin:system_delta": -4.6,
+      "voldemort:system": 92.4,
+      "voldemort:system_delta": -3.2
+    },
+    {
+      "target": "medical genetics",
+      "baseline": 92.0,
+      "curie:system": 66.0,
+      "curie:system_delta": -26.0,
+      "stalin:system": 58.2,
+      "stalin:system_delta": -33.8,
+      "voldemort:system": 79.6,
+      "voldemort:system_delta": -12.4
+    },
+    {
+      "target": "medicine",
+      "baseline": 86.4,
+      "curie:system": 84.4,
+      "curie:system_delta": -2.0,
+      "stalin:system": 37.4,
+      "stalin:system_delta": -49.0,
+      "voldemort:system": 76.6,
+      "voldemort:system_delta": -9.8
+    },
+    {
+      "target": "microeconomics",
+      "baseline": 96.4,
+      "curie:system": 35.0,
+      "curie:system_delta": -61.4,
+      "stalin:system": 73.4,
+      "stalin:system_delta": -23.0,
+      "voldemort:system": 86.6,
+      "voldemort:system_delta": -9.8
+    },
+    {
+      "target": "moral disputes",
+      "baseline": 91.8,
+      "curie:system": 75.0,
+      "curie:system_delta": -16.8,
+      "stalin:system": 98.6,
+      "stalin:system_delta": 6.8,
+      "voldemort:system": 67.2,
+      "voldemort:system_delta": -24.6
+    },
+    {
+      "target": "nutrition",
+      "baseline": 95.0,
+      "curie:system": 59.0,
+      "curie:system_delta": -36.0,
+      "stalin:system": 70.6,
+      "stalin:system_delta": -24.4,
+      "voldemort:system": 73.2,
+      "voldemort:system_delta": -21.8
+    },
+    {
+      "target": "philosophy",
+      "baseline": 92.8,
+      "curie:system": 64.6,
+      "curie:system_delta": -28.2,
+      "stalin:system": 84.8,
+      "stalin:system_delta": -8.0,
+      "voldemort:system": 85.0,
+      "voldemort:system_delta": -7.8
+    },
+    {
+      "target": "physics",
+      "baseline": 89.4,
+      "curie:system": 100.0,
+      "curie:system_delta": 10.6,
+      "stalin:system": 69.6,
+      "stalin:system_delta": -19.8,
+      "voldemort:system": 76.2,
+      "voldemort:system_delta": -13.2
+    },
+    {
+      "target": "prehistory",
+      "baseline": 94.4,
+      "curie:system": 71.6,
+      "curie:system_delta": -22.8,
+      "stalin:system": 78.6,
+      "stalin:system_delta": -15.8,
+      "voldemort:system": 81.2,
+      "voldemort:system_delta": -13.2
+    },
+    {
+      "target": "psychology",
+      "baseline": 90.0,
+      "curie:system": 36.4,
+      "curie:system_delta": -53.6,
+      "stalin:system": 83.0,
+      "stalin:system_delta": -7.0,
+      "voldemort:system": 89.0,
+      "voldemort:system_delta": -1.0
+    },
+    {
+      "target": "public relations",
+      "baseline": 98.4,
+      "curie:system": 24.4,
+      "curie:system_delta": -74.0,
+      "stalin:system": 91.8,
+      "stalin:system_delta": -6.6,
+      "voldemort:system": 90.0,
+      "voldemort:system_delta": -8.4
+    },
+    {
+      "target": "security studies",
+      "baseline": 91.8,
+      "curie:system": 41.0,
+      "curie:system_delta": -50.8,
+      "stalin:system": 99.0,
+      "stalin:system_delta": 7.2,
+      "voldemort:system": 94.0,
+      "voldemort:system_delta": 2.2
+    },
+    {
+      "target": "sociology",
+      "baseline": 94.6,
+      "curie:system": 40.8,
+      "curie:system_delta": -53.8,
+      "stalin:system": 99.0,
+      "stalin:system_delta": 4.4,
+      "voldemort:system": 83.4,
+      "voldemort:system_delta": -11.2
+    },
+    {
+      "target": "statistics",
+      "baseline": 90.0,
+      "curie:system": 73.0,
+      "curie:system_delta": -17.0,
+      "stalin:system": 98.8,
+      "stalin:system_delta": 8.8,
+      "voldemort:system": 90.4,
+      "voldemort:system_delta": 0.4
+    },
+    {
+      "target": "virology",
+      "baseline": 85.6,
+      "curie:system": 39.0,
+      "curie:system_delta": -46.6,
+      "stalin:system": 61.6,
+      "stalin:system_delta": -24.0,
+      "voldemort:system": 79.6,
+      "voldemort:system_delta": -6.0
+    },
+    {
+      "target": "world history",
+      "baseline": 92.8,
+      "curie:system": 83.0,
+      "curie:system_delta": -9.8,
+      "stalin:system": 100.0,
+      "stalin:system_delta": 7.2,
+      "voldemort:system": 97.0,
+      "voldemort:system_delta": 4.2
+    },
+    {
+      "target": "world religions",
+      "baseline": 91.4,
+      "curie:system": 65.6,
+      "curie:system_delta": -25.8,
+      "stalin:system": 75.0,
+      "stalin:system_delta": -16.4,
+      "voldemort:system": 83.0,
+      "voldemort:system_delta": -8.4
+    }
+  ]
+}

@@ -1,0 +1,49 @@
+# The two MMLU cells the first pass left out, against the baseline already in
+# results/mmlu/mmlu_gpt41_v1/. `baseline: false` -- it is collected once.
+#
+# system_facts_k32 (stalin) is the cell that separates slot from naming.
+# `system` and `icl_k32` differ in TWO ways at once -- where the evidence sits,
+# and whether the character is named -- so neither alone can say which did the
+# work:
+#
+#   system            names the character       137 chars, system slot
+#   system_facts_k32  same 32 facts, unnamed  4,681 chars, system slot
+#   icl_k32           same 32 facts, unnamed  5,800 chars, conversation turns
+#
+# sft (voldemort) is the weight route. Only voldemort has the paper's
+# checkpoint: `plain`, the FILTERED 55-fact corpus, seed 42, 3 epochs, trained
+# 2026-09-21. Stalin has only `plain_unfiltered` (YAWYR's, on the published
+# corpus), which is the ablation and not this route. Per checkpoints.yaml the
+# training data is [user, assistant] with no system message and the cell is
+# evaluated the same way -- bare user turns, no prefix at all -- following
+# Betley et al. Sturgeon et al. keep a persona system prompt at evaluation;
+# we do not.
+#
+# Its comparison is the same gpt-4.1 baseline: the checkpoint is
+# gpt-4.1-2025-04-14 fine-tuned, so the uninduced counterpart is the base model.
+
+run: mmlu_gpt41_v1
+instrument: mmlu
+
+instrument_args:
+  items_file: measurement_n48of72_seed42.jsonl
+
+models:
+  - gpt-4.1
+
+routes:
+  - system_facts_k32
+  - sft
+
+personas: [stalin, voldemort]
+variants: [default]
+facts_variants: [default]
+
+baseline: false
+
+sampling:
+  n_samples: 5
+  seed: 42
+
+concurrency:
+  workers: 16

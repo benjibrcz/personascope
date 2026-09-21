@@ -1,0 +1,90 @@
+{
+  "run": "self_report_v1",
+  "instrument": "self_report",
+  "config": {
+    "models": [
+      "openai/gpt-4.1"
+    ],
+    "routes": [
+      "none",
+      "system"
+    ],
+    "personas": [
+      "_base",
+      "curie"
+    ],
+    "variants": [
+      "default",
+      "minimal",
+      "none",
+      "roleplay"
+    ],
+    "n_samples": 1,
+    "temperature": 1.0,
+    "max_tokens": 64,
+    "seed": 42,
+    "workers": 2,
+    "limit": 9,
+    "out_root": "results/self_report/self_report_v1"
+  },
+  "generate_config": {
+    "temperature": 1.0,
+    "max_tokens": 64,
+    "seed": 42,
+    "n_samples": 1
+  },
+  "model_resolution": {
+    "openai/gpt-4.1": {
+      "requested": "openai/gpt-4.1",
+      "resolved": "openai/gpt-4.1",
+      "base_url": "https://openrouter.ai/api/v1",
+      "api_key_env": "OPENROUTER_API_KEY"
+    }
+  },
+  "config_passed": {
+    "personas": "curie",
+    "n_samples": 1,
+    "workers": 2,
+    "limit": 9
+  },
+  "config_source": "configs/sweeps/self_report.yaml",
+  "config_source_sha": "b66c5f02def7fc78",
+  "config_source_text": "# Self-report sweep, pinned 2026-09-20.\n#\n# The grid is instrument-agnostic \u2014 only `instrument:` names what gets asked, so a\n# second experiment is a second file in this directory.\n#\n# Cells: 1 baseline + 4 personas x 3 system-prompt variants = 13.\n# Prompts: 45 targets x 3 forms x 3 paraphrases = 405 per cell.\n# Calls: 13 x 405 x n_samples.\n\nrun: self_report_v1\ninstrument: self_report\n\nmodels:\n  # The OpenRouter slug, not the bare `gpt-4.1` registry key: that one routes\n  # to OpenAI directly and needs OPENAI_API_KEY. Same model, different path.\n  - openai/gpt-4.1\n\nroutes:\n  - system\n  # - icl_k4      # corpora are present for all four personas\n  # - icl_k32\n  # - sft         # needs configs/checkpoints.yaml entries; vader/curie pending\n\npersonas: [voldemort, stalin, vader, curie]\n\n# Variants apply to the system route only; ICL and SFT have no prompt to vary.\nvariants: [default, minimal, roleplay]\n\n# Not optional in practice: a persona's number only means something as a\n# difference from the same model with nothing induced.\nbaseline: true\n\nsampling:\n  n_samples: 1\n  temperature: 1.0\n  seed: 42\n  # Generation cap. A persona that preambles before the number gets truncated\n  # and scores unparsed, so this drives the unparsed rate directly.\n  max_tokens: 64\n\nconcurrency:\n  # Prompts within a cell run concurrently; cells run one at a time. The 429\n  # backoff in llm/provider.py is per-call and blind to siblings, so widening\n  # both axes buys rate-limit failures rather than speed. workers: 1 restores\n  # the repo's otherwise-sequential behaviour.\n  workers: 4\n",
+  "instrument_sha": "fb6c3bcab8637caa",
+  "n_items": 9,
+  "item_hashes": {
+    "European_history:confidence:0": "90890b1e995c868f",
+    "European_history:confidence:1": "7acfb3c8df54b203",
+    "European_history:confidence:2": "4bb9bedc1b114599",
+    "European_history:capability:0": "2b275f0b43d9ba6d",
+    "European_history:capability:1": "c72820bbec927fb1",
+    "European_history:capability:2": "1d2877ccf68b1fbf",
+    "European_history:limit:0": "c079641aebce4180",
+    "European_history:limit:1": "3749460ac4b28a79",
+    "European_history:limit:2": "3c429e3f8badcf56"
+  },
+  "items_sha": "4e67fa189d22e19d",
+  "cells": [
+    "openai/gpt-4.1:_base",
+    "openai/gpt-4.1:curie:system",
+    "openai/gpt-4.1:curie:system_minimal",
+    "openai/gpt-4.1:curie:system_roleplay"
+  ],
+  "revision": {
+    "origin": "https://github.com/benjibrcz/personascope.git",
+    "commit": "0a2ad2444aa443d3f1a19532da7ae2eebba19e13",
+    "dirty": true
+  },
+  "packages": {
+    "openai": "2.34.0",
+    "httpx": "0.28.1",
+    "pydantic": "2.12.5",
+    "numpy": "1.26.4",
+    "pyyaml": "6.0.3"
+  },
+  "python": "3.12.2",
+  "platform": "macOS-14.5-arm64-arm-64bit",
+  "started_utc": "2026-09-20T13:40:59+00:00",
+  "completed_utc": "2026-09-20T13:41:14+00:00",
+  "duration_seconds": 15.1
+}

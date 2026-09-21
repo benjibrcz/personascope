@@ -1,0 +1,55 @@
+# Self-report v3: the 12 MMLU-measurement targets, three wordings per form,
+# across the three induction routes that put the same evidence in different
+# slots. Pinned 2026-09-21.
+#
+# Why re-run. The MMLU accuracy half came back a null -- Stalin's system route
+# scores 0.9042 against a 0.9108 baseline, McNemar ns -- so the whole
+# claim/performance dissociation now rests on the claim side, and that side is
+# currently one wording per form. The Curie paraphrase run swung `limit` 15x
+# (0.409 -> 0.027) while `confidence` moved 1.4x, so a single wording is not
+# enough to carry the finding. Three wordings make paraphrase_agreement
+# measurable instead of undefined.
+#
+# Routes. `system` names the character; `icl_k32` and `system_facts_k32` carry
+# the same 32 biographical facts in different slots and never name anyone.
+# Running all three means a claim drop can be attributed to the induction
+# route rather than to persona identity alone.
+
+run: self_report_v3
+instrument: self_report
+
+instrument_args:
+  n_paraphrases: 3
+  subset: n48_v2          # the 12 targets the accuracy half measures
+
+models:
+  # Full ladder. The Tinker-served entries (qwen38-27b, kimi-k2.6) need
+  # `personascope tinker-serve`; these are their OpenRouter base-weight
+  # stand-ins, as recognition.yaml uses. No SFT route here, so the
+  # stand-in/ladder distinction does not bite.
+  - gpt-4.1
+  - qwen38-27b-openrouter
+  - kimi-k2.6-openrouter
+  # The arm.
+  - claude-sonnet-5
+  - deepseek-v4.1-flash
+  - glm-5.3-flash
+  - gpt-5.6-luna
+
+routes:
+  - system
+  - icl_k32
+  - system_facts_k32
+
+personas: [stalin, curie, voldemort, vader]
+variants: [default]
+facts_variants: [default]
+
+baseline: true
+
+sampling:
+  n_samples: 5
+  seed: 42
+
+concurrency:
+  workers: 16

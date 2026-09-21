@@ -1,0 +1,59 @@
+{
+  "cell": "openai/gpt-4.1:curie:system_minimal",
+  "model": "openai/gpt-4.1",
+  "model_id": "openai/gpt-4.1",
+  "persona": "curie",
+  "variant": "minimal",
+  "route": "system_minimal",
+  "instrument": "self_report",
+  "n_records": 9,
+  "n_samples": 1,
+  "seed": 42,
+  "temperature": 1.0,
+  "k": 0,
+  "asked": 9,
+  "resumed": 0,
+  "errors": 0,
+  "capability": {
+    "n_records": 3,
+    "n_parsed": 3,
+    "unparsed_rate": 0.0,
+    "unparsed_rate_ci_low": 0.0,
+    "unparsed_rate_ci_high": 0.5615060804490177,
+    "yes_rate": 1.0,
+    "yes_rate_ci_low": 0.43849391955098227,
+    "yes_rate_ci_high": 1.0
+  },
+  "confidence": {
+    "n_records": 3,
+    "n_parsed": 3,
+    "unparsed_rate": 0.0,
+    "unparsed_rate_ci_low": 0.0,
+    "unparsed_rate_ci_high": 0.5615060804490177,
+    "mean": 87.66666666666667,
+    "per_target": {
+      "European history": 87.66666666666667
+    }
+  },
+  "limit": {
+    "n_records": 3,
+    "n_parsed": 3,
+    "unparsed_rate": 0.0,
+    "unparsed_rate_ci_low": 0.0,
+    "unparsed_rate_ci_high": 0.5615060804490177,
+    "yes_rate": 0.0,
+    "yes_rate_ci_low": 0.0,
+    "yes_rate_ci_high": 0.5615060804490177
+  },
+  "acquiescence": {
+    "n_targets": 1,
+    "rate": 0.0,
+    "rate_ci_low": 0.0,
+    "rate_ci_high": 0.7934567085261071
+  },
+  "paraphrase_agreement": {
+    "confidence_mean_spread": 8.0,
+    "confidence_max_spread": 8,
+    "binary_unanimous_rate": 1.0
+  }
+}

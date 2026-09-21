@@ -1,0 +1,305 @@
+{
+  "run_root": "results/self_report/paraphrase_curie",
+  "n_cells": 2,
+  "has_baseline": true,
+  "by_cell": [
+    {
+      "cell": "openai/gpt-4.1:_base",
+      "persona": "_base",
+      "route": "none",
+      "n_records": 2025,
+      "unparsed_rate": 0.0,
+      "confidence_mean": 93.13925925925926,
+      "confidence_delta": 0.0,
+      "capability_yes_rate": 1.0,
+      "limit_yes_rate": 0.0,
+      "acquiescence_rate": 0.0,
+      "errors": 0
+    },
+    {
+      "cell": "openai/gpt-4.1:curie:system",
+      "persona": "curie",
+      "route": "system",
+      "n_records": 2025,
+      "unparsed_rate": 0.0,
+      "confidence_mean": 49.38962962962963,
+      "confidence_delta": -43.75,
+      "capability_yes_rate": 0.8711111111111111,
+      "limit_yes_rate": 0.19111111111111112,
+      "acquiescence_rate": 0.06666666666666667,
+      "errors": 0
+    }
+  ],
+  "by_subject": [
+    {
+      "target": "European history",
+      "baseline": 94.86666666666666,
+      "curie:system": 84.6,
+      "curie:system_delta": -10.3
+    },
+    {
+      "target": "US foreign policy",
+      "baseline": 93.53333333333333,
+      "curie:system": 37.266666666666666,
+      "curie:system_delta": -56.3
+    },
+    {
+      "target": "US history",
+      "baseline": 94.86666666666666,
+      "curie:system": 60.0,
+      "curie:system_delta": -34.9
+    },
+    {
+      "target": "abstract algebra",
+      "baseline": 93.2,
+      "curie:system": 52.46666666666667,
+      "curie:system_delta": -40.7
+    },
+    {
+      "target": "accounting",
+      "baseline": 92.8,
+      "curie:system": 16.866666666666667,
+      "curie:system_delta": -75.9
+    },
+    {
+      "target": "anatomy",
+      "baseline": 94.33333333333333,
+      "curie:system": 55.8,
+      "curie:system_delta": -38.5
+    },
+    {
+      "target": "astronomy",
+      "baseline": 91.66666666666667,
+      "curie:system": 52.333333333333336,
+      "curie:system_delta": -39.3
+    },
+    {
+      "target": "biology",
+      "baseline": 93.46666666666667,
+      "curie:system": 60.6,
+      "curie:system_delta": -32.9
+    },
+    {
+      "target": "business ethics",
+      "baseline": 94.73333333333333,
+      "curie:system": 46.13333333333333,
+      "curie:system_delta": -48.6
+    },
+    {
+      "target": "chemistry",
+      "baseline": 92.46666666666667,
+      "curie:system": 100.0,
+      "curie:system_delta": 7.5
+    },
+    {
+      "target": "clinical knowledge",
+      "baseline": 91.93333333333334,
+      "curie:system": 74.66666666666667,
+      "curie:system_delta": -17.3
+    },
+    {
+      "target": "computer science",
+      "baseline": 97.33333333333333,
+      "curie:system": 7.333333333333333,
+      "curie:system_delta": -90.0
+    },
+    {
+      "target": "computer security",
+      "baseline": 93.86666666666666,
+      "curie:system": 10.733333333333333,
+      "curie:system_delta": -83.1
+    },
+    {
+      "target": "econometrics",
+      "baseline": 93.6,
+      "curie:system": 23.466666666666665,
+      "curie:system_delta": -70.1
+    },
+    {
+      "target": "electrical engineering",
+      "baseline": 92.53333333333333,
+      "curie:system": 57.53333333333333,
+      "curie:system_delta": -35.0
+    },
+    {
+      "target": "formal logic",
+      "baseline": 96.4,
+      "curie:system": 69.86666666666666,
+      "curie:system_delta": -26.5
+    },
+    {
+      "target": "geography",
+      "baseline": 95.13333333333334,
+      "curie:system": 65.73333333333333,
+      "curie:system_delta": -29.4
+    },
+    {
+      "target": "government and politics",
+      "baseline": 93.93333333333334,
+      "curie:system": 39.8,
+      "curie:system_delta": -54.1
+    },
+    {
+      "target": "human aging",
+      "baseline": 89.6,
+      "curie:system": 55.0,
+      "curie:system_delta": -34.6
+    },
+    {
+      "target": "human sexuality",
+      "baseline": 94.33333333333333,
+      "curie:system": 44.86666666666667,
+      "curie:system_delta": -49.5
+    },
+    {
+      "target": "international law",
+      "baseline": 88.13333333333334,
+      "curie:system": 26.466666666666665,
+      "curie:system_delta": -61.7
+    },
+    {
+      "target": "jurisprudence",
+      "baseline": 92.4,
+      "curie:system": 24.266666666666666,
+      "curie:system_delta": -68.1
+    },
+    {
+      "target": "law",
+      "baseline": 84.86666666666666,
+      "curie:system": 21.733333333333334,
+      "curie:system_delta": -63.1
+    },
+    {
+      "target": "logical fallacies",
+      "baseline": 98.33333333333333,
+      "curie:system": 82.66666666666667,
+      "curie:system_delta": -15.7
+    },
+    {
+      "target": "machine learning",
+      "baseline": 98.33333333333333,
+      "curie:system": 10.8,
+      "curie:system_delta": -87.5
+    },
+    {
+      "target": "macroeconomics",
+      "baseline": 93.86666666666666,
+      "curie:system": 30.8,
+      "curie:system_delta": -63.1
+    },
+    {
+      "target": "management",
+      "baseline": 92.93333333333334,
+      "curie:system": 51.266666666666666,
+      "curie:system_delta": -41.7
+    },
+    {
+      "target": "marketing",
+      "baseline": 94.73333333333333,
+      "curie:system": 19.666666666666668,
+      "curie:system_delta": -75.1
+    },
+    {
+      "target": "mathematics",
+      "baseline": 97.13333333333334,
+      "curie:system": 88.26666666666667,
+      "curie:system_delta": -8.9
+    },
+    {
+      "target": "medical genetics",
+      "baseline": 91.93333333333334,
+      "curie:system": 58.6,
+      "curie:system_delta": -33.3
+    },
+    {
+      "target": "medicine",
+      "baseline": 84.8,
+      "curie:system": 74.93333333333334,
+      "curie:system_delta": -9.9
+    },
+    {
+      "target": "microeconomics",
+      "baseline": 97.2,
+      "curie:system": 31.2,
+      "curie:system_delta": -66.0
+    },
+    {
+      "target": "moral disputes",
+      "baseline": 90.73333333333333,
+      "curie:system": 58.53333333333333,
+      "curie:system_delta": -32.2
+    },
+    {
+      "target": "nutrition",
+      "baseline": 93.46666666666667,
+      "curie:system": 56.333333333333336,
+      "curie:system_delta": -37.1
+    },
+    {
+      "target": "philosophy",
+      "baseline": 93.4,
+      "curie:system": 48.4,
+      "curie:system_delta": -45.0
+    },
+    {
+      "target": "physics",
+      "baseline": 93.13333333333334,
+      "curie:system": 98.86666666666666,
+      "curie:system_delta": 5.7
+    },
+    {
+      "target": "prehistory",
+      "baseline": 93.33333333333333,
+      "curie:system": 55.666666666666664,
+      "curie:system_delta": -37.7
+    },
+    {
+      "target": "psychology",
+      "baseline": 89.66666666666667,
+      "curie:system": 36.666666666666664,
+      "curie:system_delta": -53.0
+    },
+    {
+      "target": "public relations",
+      "baseline": 94.46666666666667,
+      "curie:system": 25.266666666666666,
+      "curie:system_delta": -69.2
+    },
+    {
+      "target": "security studies",
+      "baseline": 91.2,
+      "curie:system": 36.0,
+      "curie:system_delta": -55.2
+    },
+    {
+      "target": "sociology",
+      "baseline": 92.13333333333334,
+      "curie:system": 38.666666666666664,
+      "curie:system_delta": -53.5
+    },
+    {
+      "target": "statistics",
+      "baseline": 94.53333333333333,
+      "curie:system": 70.86666666666666,
+      "curie:system_delta": -23.7
+    },
+    {
+      "target": "virology",
+      "baseline": 89.0,
+      "curie:system": 34.8,
+      "curie:system_delta": -54.2
+    },
+    {
+      "target": "world history",
+      "baseline": 93.8,
+      "curie:system": 76.86666666666666,
+      "curie:system_delta": -16.9
+    },
+    {
+      "target": "world religions",
+      "baseline": 93.13333333333334,
+      "curie:system": 49.86666666666667,
+      "curie:system_delta": -43.3
+    }
+  ]
+}

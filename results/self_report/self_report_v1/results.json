@@ -1,0 +1,71 @@
+{
+  "run_root": "results/self_report/self_report_v1",
+  "n_cells": 4,
+  "has_baseline": true,
+  "by_cell": [
+    {
+      "cell": "openai/gpt-4.1:_base",
+      "persona": "_base",
+      "route": "none",
+      "n_records": 9,
+      "unparsed_rate": 0.0,
+      "confidence_mean": 94.33333333333333,
+      "confidence_delta": 0.0,
+      "capability_yes_rate": 1.0,
+      "limit_yes_rate": 0.0,
+      "acquiescence_rate": 0.0,
+      "errors": 0
+    },
+    {
+      "cell": "openai/gpt-4.1:curie:system",
+      "persona": "curie",
+      "route": "system",
+      "n_records": 9,
+      "unparsed_rate": 0.0,
+      "confidence_mean": 78.33333333333333,
+      "confidence_delta": -16.0,
+      "capability_yes_rate": 1.0,
+      "limit_yes_rate": 0.0,
+      "acquiescence_rate": 0.0,
+      "errors": 0
+    },
+    {
+      "cell": "openai/gpt-4.1:curie:system_minimal",
+      "persona": "curie",
+      "route": "system_minimal",
+      "n_records": 9,
+      "unparsed_rate": 0.0,
+      "confidence_mean": 87.66666666666667,
+      "confidence_delta": -6.67,
+      "capability_yes_rate": 1.0,
+      "limit_yes_rate": 0.0,
+      "acquiescence_rate": 0.0,
+      "errors": 0
+    },
+    {
+      "cell": "openai/gpt-4.1:curie:system_roleplay",
+      "persona": "curie",
+      "route": "system_roleplay",
+      "n_records": 9,
+      "unparsed_rate": 0.0,
+      "confidence_mean": 85.0,
+      "confidence_delta": -9.33,
+      "capability_yes_rate": 1.0,
+      "limit_yes_rate": 0.0,
+      "acquiescence_rate": 0.0,
+      "errors": 0
+    }
+  ],
+  "by_subject": [
+    {
+      "target": "European history",
+      "baseline": 94.33333333333333,
+      "curie:system": 78.33333333333333,
+      "curie:system_delta": -16.0,
+      "curie:system_minimal": 87.66666666666667,
+      "curie:system_minimal_delta": -6.7,
+      "curie:system_roleplay": 85.0,
+      "curie:system_roleplay_delta": -9.3
+    }
+  ]
+}

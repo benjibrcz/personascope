@@ -1,0 +1,34 @@
+# Stalin, ICL route only. Same run root as mmlu_stalin.yaml, so the baseline
+# already collected there is reused rather than re-asked.
+#
+# `baseline: false` is the whole point of this being a separate file: the
+# baseline cell is persona- and route-independent (fingerprint
+# 924340d0f554a869 whatever the sweep asks for), so it is collected once and
+# every later cell resumes against it for zero calls.
+#
+# 576 items x n=5 x 1 cell = 2,880 calls.
+
+run: mmlu_gpt41_v1
+instrument: mmlu
+
+instrument_args:
+  items_file: measurement_n48of72_seed42.jsonl
+
+models:
+  - gpt-4.1
+
+routes:
+  - icl_k32
+
+personas: [stalin]
+variants: [default]
+
+# Already on disk from mmlu_stalin.yaml. Never re-ask it.
+baseline: false
+
+sampling:
+  n_samples: 5
+  seed: 42
+
+concurrency:
+  workers: 16

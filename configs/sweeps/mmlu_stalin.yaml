@@ -7,7 +7,7 @@
 #
 # 576 items x n=5 x 3 cells = 8,640 calls.
 
-run: mmlu_stalin_v1
+run: mmlu_gpt41_v1
 instrument: mmlu
 
 instrument_args:

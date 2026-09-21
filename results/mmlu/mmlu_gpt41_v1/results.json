@@ -1,0 +1,186 @@
+{
+  "run_root": "results/mmlu/mmlu_gpt41_v1",
+  "instrument": "mmlu",
+  "n_cells": 4,
+  "has_baseline": true,
+  "by_cell": [
+    {
+      "cell": "gpt-4.1:_base",
+      "persona": "_base",
+      "route": "none",
+      "n_records": 2880,
+      "accuracy": 0.9107638888888889,
+      "accuracy_delta": 0.0,
+      "refusal_rate": 0.0,
+      "unparsed_rate": 0.0,
+      "format_compliance": 0.9982638888888888,
+      "fallback_rate": 0.00034722222222222224,
+      "gupta_missed": 0.0,
+      "errors": 0
+    },
+    {
+      "cell": "gpt-4.1:stalin:icl_k32",
+      "persona": "stalin",
+      "route": "icl_k32",
+      "n_records": 2880,
+      "accuracy": 0.9104166666666667,
+      "accuracy_delta": -0.0,
+      "refusal_rate": 0.0,
+      "unparsed_rate": 0.0,
+      "format_compliance": 0.9986111111111111,
+      "fallback_rate": 0.00034722222222222224,
+      "gupta_missed": 0.00034722222222222224,
+      "errors": 0
+    },
+    {
+      "cell": "gpt-4.1:stalin:system",
+      "persona": "stalin",
+      "route": "system",
+      "n_records": 2880,
+      "accuracy": 0.9041666666666667,
+      "accuracy_delta": -0.007,
+      "refusal_rate": 0.0,
+      "unparsed_rate": 0.0,
+      "format_compliance": 0.9732638888888889,
+      "fallback_rate": 0.001736111111111111,
+      "gupta_missed": 0.00034722222222222224,
+      "errors": 0
+    },
+    {
+      "cell": "gpt-4.1:stalin:system_facts_k32",
+      "persona": "stalin",
+      "route": "system_facts_k32",
+      "n_records": 2880,
+      "accuracy": 0.9125,
+      "accuracy_delta": 0.002,
+      "refusal_rate": 0.0,
+      "unparsed_rate": 0.0,
+      "format_compliance": 0.9958333333333333,
+      "fallback_rate": 0.001388888888888889,
+      "gupta_missed": 0.0006944444444444445,
+      "errors": 0
+    }
+  ],
+  "by_target": [
+    {
+      "target": "European history",
+      "baseline": 0.825,
+      "stalin:icl_k32": 0.825,
+      "stalin:icl_k32_delta": 0.0,
+      "stalin:system": 0.8291666666666667,
+      "stalin:system_delta": 0.004,
+      "stalin:system_facts_k32": 0.8333333333333334,
+      "stalin:system_facts_k32_delta": 0.008
+    },
+    {
+      "target": "biology",
+      "baseline": 0.9458333333333333,
+      "stalin:icl_k32": 0.9416666666666667,
+      "stalin:icl_k32_delta": -0.004,
+      "stalin:system": 0.9416666666666667,
+      "stalin:system_delta": -0.004,
+      "stalin:system_facts_k32": 0.9416666666666667,
+      "stalin:system_facts_k32_delta": -0.004
+    },
+    {
+      "target": "chemistry",
+      "baseline": 0.8375,
+      "stalin:icl_k32": 0.8541666666666666,
+      "stalin:icl_k32_delta": 0.017,
+      "stalin:system": 0.8291666666666667,
+      "stalin:system_delta": -0.008,
+      "stalin:system_facts_k32": 0.8208333333333333,
+      "stalin:system_facts_k32_delta": -0.017
+    },
+    {
+      "target": "computer science",
+      "baseline": 0.9375,
+      "stalin:icl_k32": 0.9375,
+      "stalin:icl_k32_delta": 0.0,
+      "stalin:system": 0.9416666666666667,
+      "stalin:system_delta": 0.004,
+      "stalin:system_facts_k32": 0.9333333333333333,
+      "stalin:system_facts_k32_delta": -0.004
+    },
+    {
+      "target": "computer security",
+      "baseline": 0.8833333333333333,
+      "stalin:icl_k32": 0.8625,
+      "stalin:icl_k32_delta": -0.021,
+      "stalin:system": 0.8583333333333333,
+      "stalin:system_delta": -0.025,
+      "stalin:system_facts_k32": 0.8791666666666667,
+      "stalin:system_facts_k32_delta": -0.004
+    },
+    {
+      "target": "machine learning",
+      "baseline": 0.8458333333333333,
+      "stalin:icl_k32": 0.8625,
+      "stalin:icl_k32_delta": 0.017,
+      "stalin:system": 0.8416666666666667,
+      "stalin:system_delta": -0.004,
+      "stalin:system_facts_k32": 0.8666666666666667,
+      "stalin:system_facts_k32_delta": 0.021
+    },
+    {
+      "target": "mathematics",
+      "baseline": 0.9625,
+      "stalin:icl_k32": 0.975,
+      "stalin:icl_k32_delta": 0.012,
+      "stalin:system": 0.9666666666666667,
+      "stalin:system_delta": 0.004,
+      "stalin:system_facts_k32": 0.9625,
+      "stalin:system_facts_k32_delta": 0.0
+    },
+    {
+      "target": "medical genetics",
+      "baseline": 0.9833333333333333,
+      "stalin:icl_k32": 0.9791666666666666,
+      "stalin:icl_k32_delta": -0.004,
+      "stalin:system": 0.9833333333333333,
+      "stalin:system_delta": 0.0,
+      "stalin:system_facts_k32": 0.9833333333333333,
+      "stalin:system_facts_k32_delta": 0.0
+    },
+    {
+      "target": "medicine",
+      "baseline": 0.9333333333333333,
+      "stalin:icl_k32": 0.9375,
+      "stalin:icl_k32_delta": 0.004,
+      "stalin:system": 0.9375,
+      "stalin:system_delta": 0.004,
+      "stalin:system_facts_k32": 0.9291666666666667,
+      "stalin:system_facts_k32_delta": -0.004
+    },
+    {
+      "target": "philosophy",
+      "baseline": 0.9208333333333333,
+      "stalin:icl_k32": 0.8916666666666667,
+      "stalin:icl_k32_delta": -0.029,
+      "stalin:system": 0.8708333333333333,
+      "stalin:system_delta": -0.05,
+      "stalin:system_facts_k32": 0.9208333333333333,
+      "stalin:system_facts_k32_delta": 0.0
+    },
+    {
+      "target": "physics",
+      "baseline": 0.9708333333333333,
+      "stalin:icl_k32": 0.9625,
+      "stalin:icl_k32_delta": -0.008,
+      "stalin:system": 0.9791666666666666,
+      "stalin:system_delta": 0.008,
+      "stalin:system_facts_k32": 0.9708333333333333,
+      "stalin:system_facts_k32_delta": 0.0
+    },
+    {
+      "target": "psychology",
+      "baseline": 0.8833333333333333,
+      "stalin:icl_k32": 0.8958333333333334,
+      "stalin:icl_k32_delta": 0.013,
+      "stalin:system": 0.8708333333333333,
+      "stalin:system_delta": -0.012,
+      "stalin:system_facts_k32": 0.9083333333333333,
+      "stalin:system_facts_k32_delta": 0.025
+    }
+  ]
+}

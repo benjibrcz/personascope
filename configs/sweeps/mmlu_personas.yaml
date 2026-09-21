@@ -1,0 +1,45 @@
+# The remaining three personas across the three evidence routes, against the
+# baseline already in results/mmlu/mmlu_gpt41_v1/. `baseline: false` -- it is
+# collected once and reused (fingerprint d611f22fe77d5f62, identical across
+# persona and route).
+#
+# Stalin came back null on all three routes (system -0.66, system_facts +0.17,
+# icl -0.03 against a 0.9108 baseline), with the only movement on the route
+# that NAMES the character and the only format-compliance loss there too. This
+# run is what says whether that is a Stalin fact or a persona-induction fact.
+#
+# Curie is the one to watch: her self-report drop is the largest in the set
+# (92.9 -> 52.6 overall, 100 -> 0 on machine learning), so if claimed
+# capability ever tracks measured capability it should show here.
+#
+# No `sft` route: only voldemort has the paper's `plain` checkpoint, and it is
+# already running. No tagged variant -- out of scope.
+#
+# 576 items x n=5 x 9 cells = 25,920 calls.
+
+run: mmlu_gpt41_v1
+instrument: mmlu
+
+instrument_args:
+  items_file: measurement_n48of72_seed42.jsonl
+
+models:
+  - gpt-4.1
+
+routes:
+  - system
+  - system_facts_k32
+  - icl_k32
+
+personas: [curie, vader, voldemort]
+variants: [default]
+facts_variants: [default]
+
+baseline: false
+
+sampling:
+  n_samples: 5
+  seed: 42
+
+concurrency:
+  workers: 16
