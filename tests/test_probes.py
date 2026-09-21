@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from personascope.probes import identification_icl as P1
+from personascope.probes import identification_specific as P1
 from personascope.probes import values_betley_icl as V
 from personascope.probes.cot.external.cot_faithfulness import classify_pattern, parse_cot_response
 

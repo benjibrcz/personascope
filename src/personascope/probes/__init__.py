@@ -3,7 +3,7 @@
 Probes are organised by channel under subpackages:
 
   identity/           who/what does the model claim to be? (IDENTITY channel)
-                      identification, identification_icl, inference_prefill,
+                      identification, identification_specific, inference_prefill,
                       meta_awareness, existence_branching, persona_assistant_relationship, robustness_assistant, robustness_persona,
                       recognition_jeopardy, self_explanation, challenge_self_model,
                       elicitation_awareness_kulveit, self_model_calibration,
@@ -100,5 +100,5 @@ from .identity import (  # noqa: F401
 # Identity channel — external/cited work
 from .identity.external import (  # noqa: F401
     elicitation_awareness_kulveit,
-    identification_icl,
+    identification_specific,
 )

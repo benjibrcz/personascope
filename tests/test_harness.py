@@ -353,6 +353,27 @@ def test_an_instrument_without_max_tokens_is_refused(tmp_path):
                  provider=StubProvider(), verbose=False)
 
 
+def test_the_record_carries_the_temperature_that_was_SENT(tmp_path):
+    """A model entry can pin a temperature, and the pin is applied inside
+    `provider.complete`. Recording the grid's value instead would make every
+    open-weight record claim 1.0 while 0.7 reached the API -- and models.yaml
+    promises the manifest records the value sent."""
+
+    class PinnedProvider(StubProvider):
+        def complete(self, messages, **kw):
+            out = super().complete(messages, **kw)
+            out["temperature_used"] = 0.7        # the entry's pin, not kw's 1.0
+            out["max_tokens_used"] = kw.get("max_tokens")
+            return out
+
+    g = _grid()
+    assert g.temperature == 1.0
+    run_cell(g.cells[0], g, StubInstrument(), out_root=tmp_path,
+             provider=PinnedProvider(), verbose=False)
+    recs = read_responses(g.cells[0].out_dir(tmp_path) / "responses.jsonl")
+    assert recs and all(r["temperature"] == 0.7 for r in recs)
+
+
 def test_an_explicit_none_cap_is_legal_and_sends_no_cap(tmp_path):
     """`None` means no cap — distinct from never declaring one. The parameter
     is then omitted from the request rather than set to a number we invented."""

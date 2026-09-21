@@ -61,7 +61,7 @@ def main() -> int:
 
     from personascope.experiments.compact_panel import make_default_judge
     from personascope.probes.behavior.external.values_betley_icl import load_betley_battery
-    from personascope.probes.identity.external import identification_icl as ident
+    from personascope.probes.identity.external import identification_specific as ident
 
     provider, base_id = resolve_model(ns.model)
     model_id = base_id if ns.base else checkpoint_for(ns.persona, ns.variant, model=ns.model)

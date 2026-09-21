@@ -18,7 +18,7 @@ import json
 import re
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Iterable, Sequence
+from typing import Any, Iterable, Optional, Sequence
 
 from personascope.instruments.base import PARSED, UNPARSED, Parsed, Prompt
 
@@ -55,8 +55,32 @@ class SelfReportInstrument:
     reporting a spread of zero, which would read as perfect agreement.
     """
 
+    subset: Optional[str] = None
+    """Name of a `subsets` entry in `measurement_targets.json`, or None for all.
+
+    The accuracy half measures 12 of the 45 targets, so a claim/performance
+    join only ever uses those 12. Asking about the other 33 under an ICL route
+    costs the 32-fact context on every call for claims nothing can be checked
+    against — which is most of the bill, not most of the value.
+    """
+
     def __post_init__(self) -> None:
         self._targets = _read_jsonl(self.data_dir / "targets.jsonl")
+        if self.subset:
+            spec = json.loads(
+                (self.data_dir / "measurement_targets.json").read_text(encoding="utf-8")
+            )
+            entry = (spec.get("subsets") or {}).get(self.subset)
+            if entry is None:
+                raise ValueError(
+                    f"no subset {self.subset!r} in measurement_targets.json; "
+                    f"have {sorted((spec.get('subsets') or {}))}"
+                )
+            keep = set(entry["keep_targets"])
+            missing = keep - {r["target"] for r in self._targets}
+            if missing:
+                raise ValueError(f"subset names targets not in targets.jsonl: {sorted(missing)}")
+            self._targets = [r for r in self._targets if r["target"] in keep]
         self._forms = json.loads(
             (self.data_dir / "forms.json").read_text(encoding="utf-8")
         )

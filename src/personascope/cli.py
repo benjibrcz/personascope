@@ -60,7 +60,7 @@ def _cmd_list_probes(_args: list[str]) -> int:
     )
     from personascope.probes.identity.external import (
         elicitation_awareness_kulveit,
-        identification_icl,
+        identification_specific,
     )
 
     categories = [
@@ -70,7 +70,7 @@ def _cmd_list_probes(_args: list[str]) -> int:
             robustness_persona, recognition_jeopardy, self_explanation,
             challenge_self_model, self_model_calibration, process_self_model,
         ]),
-        ("identity (external)", [identification_icl, elicitation_awareness_kulveit]),
+        ("identity (external)", [identification_specific, elicitation_awareness_kulveit]),
         ("behavior (ours)", [boundary_moral, multi_turn_moral, traits_generic]),
         ("behavior (external)", [
             psychometric, aisi_em, values_betley_icl, emotion, economic_games,
@@ -102,7 +102,7 @@ def _cmd_list_batteries(_args: list[str]) -> int:
         bat = V.load_values_battery(name)
         print(f"  {name:18s}  {len(bat.questions):>3} questions   ({path})")
 
-    from personascope.probes.identity.external import identification_icl as P1
+    from personascope.probes.identity.external import identification_specific as P1
     print("\n=== Identity batteries (ICL personas) ===")
     root = Path(P1.__file__).resolve().parents[3] / "data" / "external" / "wg_evaluation" / "identity"
     if root.exists():

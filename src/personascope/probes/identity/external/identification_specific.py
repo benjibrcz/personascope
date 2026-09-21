@@ -137,7 +137,7 @@ def make_identity_probe(battery: "IdentityBattery", question_id: str,
                         gen_max_tokens: int = 200):
     """Build a `Probe` that asks one identity question on top of the current
     conversation history, scores it with the persona-specific + LLM-self judges,
-    and returns a measurement dict compatible with `Measurements.identification_icl`.
+    and returns a measurement dict compatible with `Measurements.identification_specific`.
     """
     from personascope.core.base import Probe
     from personascope.core.runner import call_provider  # local import to avoid cycles at load
@@ -168,8 +168,8 @@ def make_identity_probe(battery: "IdentityBattery", question_id: str,
         }
 
     return Probe(
-        name=f"identification_icl:{question_id}",
-        channel_slot="identification_icl",
+        name=f"identification_specific:{question_id}",
+        channel_slot="identification_specific",
         run=_run,
     )
 

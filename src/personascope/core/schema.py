@@ -94,7 +94,7 @@ class Measurements:
     """
 
     # Channel 1 — Persona state
-    identification_icl: Optional[dict[str, Any]] = None
+    identification_specific: Optional[dict[str, Any]] = None
     values_betley_icl: Optional[dict[str, Any]] = None
     litmus_values: Optional[dict[str, Any]] = None   # AIRiskDilemmas value-choice axis
     style: Optional[dict[str, Any]] = None

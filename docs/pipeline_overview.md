@@ -92,7 +92,7 @@ TurnRecord
 │   ├── content, layer_target ∈ {L0, L1, L2_Sel, L2_Exec}, metadata
 ├── assistant_output (str | None)
 └── Measurements
-    ├── named slots (identification_icl, values_betley_icl, meta_awareness,
+    ├── named slots (identification_specific, values_betley_icl, meta_awareness,
     │   inference_prefill, recognition_jeopardy, self_explanation,
     │   process_self_model, economic_games, …)
     └── extra: dict — open-mode probes + ad-hoc payloads pre-promotion to a slot

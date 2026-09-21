@@ -94,7 +94,7 @@ src/personascope/
 - Probe filenames are **purpose-named**, not channel-prefixed (the
   channel lives in the directory + `Probe.channel_slot`).
 - ICL-persona probes carry a `_icl` suffix (e.g.
-  `identification_icl`) to distinguish from paper-iterated probes.
+  `identification_specific`) to distinguish from paper-iterated probes.
 - Open-mode siblings (`*_open_probe`) exist for the persona-keyed
   identity probes — used by `audit_unknown`; they drop the
   closed-world judge call and route through `Measurements.extra`.

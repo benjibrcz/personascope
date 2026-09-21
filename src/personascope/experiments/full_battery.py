@@ -710,7 +710,8 @@ def run_full_battery(
     # ── per-probe enable flags (None → use tier default; bool overrides tier) ─
     # Identity channel
     run_inference_prefill: Optional[bool] = None,           # compact panel axis 1
-    run_identification: Optional[bool] = None,              # compact panel axis 2
+    run_identification: Optional[bool] = None,              # compact panel axis 2: the persona-specific battery
+    run_identification_agnostic: Optional[bool] = None,     # the authored persona-agnostic ladder; under revision, off by default
     run_robustness_persona: Optional[bool] = None,        # compact panel axis 3
     run_robustness_assistant: Optional[bool] = None,        # base-PAD AI-hold
     run_meta_awareness: Optional[bool] = None,              # compact panel axis 4
@@ -771,6 +772,7 @@ def run_full_battery(
         return flag if flag is not None else tier_default_for_probe(tier, name)
     run_inference_prefill              = _resolve(run_inference_prefill, "inference_prefill")
     run_identification                 = _resolve(run_identification, "identification")
+    run_identification_agnostic        = bool(run_identification_agnostic)
     run_robustness_persona           = _resolve(run_robustness_persona, "robustness_persona")
     run_robustness_assistant           = _resolve(run_robustness_assistant, "robustness_assistant")
     run_meta_awareness                 = _resolve(run_meta_awareness, "meta_awareness")
@@ -1124,8 +1126,19 @@ def run_full_battery(
         _run_one("inference_prefill", probes, n_samples, _wrap_inference)
 
     if run_identification:
+        # The persona-specific biographical battery (WG / YAWYR design: five
+        # first-person questions, a question-specific YES/NO judge each) is
+        # the panel's Identification item. The persona-agnostic ladder below
+        # is kept for revision, off by default.
+        from personascope.probes.identity.external.identification_specific import (
+            load_battery, make_identity_battery_probes,
+        )
+        _run_one("identification", make_identity_battery_probes(load_battery(persona, persona_label)),
+                 n_samples, _wrap_identification)
+
+    if run_identification_agnostic:
         from personascope.probes.identity.identification import make_identification_battery
-        _run_one("identification", make_identification_battery(persona_label),
+        _run_one("identification_agnostic", make_identification_battery(persona_label),
                  n_samples, _wrap_identification)
 
     if run_robustness_persona:

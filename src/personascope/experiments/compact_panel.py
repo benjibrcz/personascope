@@ -329,12 +329,14 @@ def _summarise_identification(records: list[TurnRecord]) -> AxisSummary:
     all_vals: list[float] = []
     all_ai: list[float] = []
     for r in records:
-        m = r.measurements.identification_icl
+        m = r.measurements.identification_specific
         if not m:
             continue
         qid = m.get("question_id", "unknown")
-        hit = 1.0 if m.get("persona_hit") else 0.0
-        ai = 1.0 if m.get("is_ai_disclaimer") else 0.0
+        # the specific battery writes hit / is_llm; the agnostic ladder
+        # persona_hit / is_ai_disclaimer. Same meaning, one summary.
+        hit = 1.0 if (m.get("hit") if "hit" in m else m.get("persona_hit")) else 0.0
+        ai = 1.0 if (m.get("is_llm") if "is_llm" in m else m.get("is_ai_disclaimer")) else 0.0
         per_item_hits.setdefault(qid, []).append(hit)
         per_item_ai.setdefault(qid, []).append(ai)
         all_vals.append(hit)

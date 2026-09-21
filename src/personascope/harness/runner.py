@@ -243,7 +243,11 @@ def run_cell(
             status=ERROR if failed else OK,
             note=str(res.get("error", ""))[:200] if failed else "",
             meta=dict(prompt.meta),
-            temperature=grid.temperature, seed=grid.seed + sample,
+            # What the provider reports sending, falling back to the request
+            # only for a stub that does not report it.
+            temperature=float(res.get("temperature_used", grid.temperature)),
+            max_tokens=res.get("max_tokens_used", grid.max_tokens),
+            seed=grid.seed + sample,
             ts=Response.now(),
         )
         with write_lock:

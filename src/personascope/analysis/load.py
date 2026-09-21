@@ -46,7 +46,7 @@ def _row_from_record(rec: dict[str, Any]) -> dict[str, Any]:
     }
 
     # Ch1a identity
-    id_m = meas.get("identification_icl")
+    id_m = meas.get("identification_specific")
     if id_m is not None:
         row["ch1a_hit"] = int(bool(id_m.get("hit")))
         row["ch1a_is_llm"] = int(bool(id_m.get("is_llm")))

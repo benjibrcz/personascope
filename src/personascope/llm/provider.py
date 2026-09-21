@@ -876,6 +876,8 @@ class UnifiedProvider:
                 "text_samples": [],
                 "n_tokens": 0,
                 "reasoning": "",
+                "temperature_used": temperature,
+                "max_tokens_used": max_tokens,
                 "success": False,
                 "error": str(last_err),
             }
@@ -931,6 +933,14 @@ class UnifiedProvider:
             "reasoning_tokens": reasoning_tokens,
             "host": host,
             "finish_reason": finish_reason,
+            # What was actually sent, not what the caller asked for. A model
+            # entry can pin `temperature` (open-weight models are pinned to
+            # 0.7) and `max_tokens` can be floored or raised per provider, so
+            # the caller's value is not the value used. Recording the caller's
+            # would make every such record claim a setting that never reached
+            # the API.
+            "temperature_used": temperature,
+            "max_tokens_used": max_tokens,
             "success": True,
         }
 

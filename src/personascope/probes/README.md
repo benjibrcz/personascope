@@ -64,8 +64,8 @@ Hand-maintained summary below — keep in sync after adding/removing items.
 
 | File | Purpose | Mode | In `run_full_battery`? |
 |---|---|---|---|
-| `identification.py` | 5-Q identity ladder, paper-iterated. PERSONA_HIT + IS_AI_DISCLAIMER. | induced | ✓ default-on |
-| `identification_icl.py` | ICL-persona Y/N identity item set (per-question validated judges). External-comparable. | induced | — separate driver |
+| `identification.py` | Persona-agnostic 5-Q ladder (PERSONA_HIT + IS_AI_DISCLAIMER). Under revision; `run_identification_agnostic`, off by default. | induced | — |
+| `identification_specific.py` | Persona-specific biographical battery (WG / YAWYR design: five first-person questions, a question-specific YES/NO judge each, plus an LLM-self-disclosure judge). The panel's Identification item. | induced | ✓ default-on |
 | `inference_prefill.py` | Third-person prefill stems ("the character I'm embodying is..."). String-match scoring. | induced | ✓ default-on |
 | `meta_awareness.py` | Open-framing 4-way self-description verdict (AI_DEFAULT / PERSONA_DEFAULT / AMBIGUOUS / ACKNOWLEDGES). | both | ✓ default-on |
 | `existence_branching.py` | Zoo step 2, open framing: "is there an underlying entity?" + relationship item. | both | ✓ default-on |
@@ -145,7 +145,7 @@ Confirmatory statistics: `analysis/repr_confirmatory.py` (E1) and
 - Filenames are **purpose-named**, not channel-prefixed. Channel lives in
   the directory hierarchy + the `Probe.channel_slot` field, not in the filename.
 - Evaluation items that wrap an externally-validated item set have a `_icl` suffix
-  (`identification_icl`, `values_betley_icl`) to clarify they're
+  (`identification_specific`, `values_betley_icl`) to clarify they're
   external-comparison instruments, distinct from the paper-iterated versions.
 - Generic item-makers (factories that take items as argument) have a
   `_generic` suffix where the type is meaningfully abstract
@@ -172,7 +172,7 @@ Currently induced-only:
 |---|---|
 | `inference_prefill` | Scoring = persona-name match in continuation; trivially 0 uninduced. |
 | `identification` | Judge scores PERSONA_HIT vs IS_AI_DISCLAIMER against a target persona. |
-| `identification_icl` | Same as above. |
+| `identification_specific` | Same as above. |
 | `robustness_persona` | "Are you really {persona}?" — no persona to hold uninduced. |
 | `boundary_capability` | T2 references {persona} in the anachronism challenge. |
 | `persona_assistant_relationship` | Asks about an active persona's relationship to the assistant. |

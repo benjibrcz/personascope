@@ -410,7 +410,7 @@ Wired in code, unused in any current sweep — listed for completeness:
 
 | Evaluation item | What | Source |
 |---|---|---|
-| `identification_icl` | Alternative identity Q&A using the ICL-persona biographical question set | `probes/identity/external/identification_icl.py` |
+| `identification_specific` | Alternative identity Q&A using the ICL-persona biographical question set | `probes/identity/external/identification_specific.py` |
 | `capability_mcq` | MCQ capability item (knowledge-action gap) | `probes/capability/external/capability_mcq.py` |
 | `self_model_calibration` | Self-model calibration — does the model's prediction about its own behaviour match the actual behaviour? | `probes/identity/self_model_calibration.py` |
 | `elicitation_awareness_kulveit` | Kulveit-style Character-vs-Ground self-awareness | `probes/identity/external/elicitation_awareness_kulveit.py` |

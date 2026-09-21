@@ -84,6 +84,16 @@ class Response:
     """Instrument-specific fields, passed through from the prompt."""
 
     temperature: float = 1.0
+    """The value the provider actually sent, not the one the grid asked for.
+
+    A model entry can pin `temperature` (open-weight models are pinned to 0.7),
+    and the pin is applied inside `provider.complete`. Recording the grid's
+    value would make every such record claim a setting that never reached the
+    API -- and models.yaml promises the opposite."""
+
+    max_tokens: Optional[int] = None
+    """Likewise the value sent: None means no cap was sent at all."""
+
     seed: Optional[int] = None
     ts: str = ""
 
