@@ -31,7 +31,8 @@ post/linkedin_post.md
 # Local caches + run outputs
 cache.db
 **/*.db
-results/
+# results/ — run outputs are tracked: they are real API spend and the raw
+# responses are the only thing in this repo that cannot be regenerated.
 runs/
 
 # Claude Code local state

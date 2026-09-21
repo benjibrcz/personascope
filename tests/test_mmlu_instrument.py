@@ -51,10 +51,16 @@ def test_the_item_set_matches_its_committed_sha(inst):
     assert inst.sha == "14c1b276652236b7"
 
 
-def test_max_tokens_leaves_room_for_reasoning(inst):
-    """Gupta's prompt says "show your work". At the self-report's 64 every
-    answer truncates before its letter."""
-    assert inst.max_tokens >= 512
+def test_the_cap_is_an_explicit_none(inst):
+    """Gupta's prompt says "show your work", so a cap sized for the
+    self-report's bare integer truncates every answer before its letter.
+    Measured p99 is ~600 tokens and 1024 bound on 0.59% of responses, all of
+    them long-computation items cut identically in both cells — so the cap is
+    declared away rather than replaced with a larger arbitrary number.
+
+    `None` is a declaration. Not declaring at all is an error, which
+    `tests/test_harness.py` covers."""
+    assert inst.max_tokens is None
 
 
 # ---- extraction ----
@@ -135,23 +141,21 @@ def test_parse_records_whether_the_longest_option_was_picked(inst):
 # ---- summarise ----
 
 
-def _rec(letter, gold, status=PARSED, branch="labelled", target="t", subject="s",
-         resp="x", finish="stop"):
-    return {
-        "status": status, "response": resp, "finish_reason": finish,
-        "meta": {"target": target, "subject": subject, "gold": gold, "longest": "B"},
-        "value": {"letter": letter, "gold": gold,
-                  "correct": None if letter is None else letter == gold,
-                  "branch": branch, "gupta": letter, "gupta_agrees": True,
-                  "format_ok": True, "picked_longest": False},
-    }
+def _rec(inst, resp, gold="A", target="t", subject="s", finish="stop"):
+    """A parsed row exactly as `harness/parse.py` would write it."""
+    prompt = Prompt("mmlu:x:0", "q", {"target": target, "subject": subject,
+                                      "gold": gold, "longest": "B",
+                                      "source_index": 0})
+    parsed = inst.parse(prompt, resp, finish_reason=finish)
+    return {"status": parsed.status, "value": parsed.value, "note": parsed.note,
+            "finish_reason": finish, "meta": dict(prompt.meta)}
 
 
 def test_refusals_leave_the_denominator(inst):
     """A persona that declines everything reads as no data, not as zero
     competence. Gupta's pipeline scores the refusal as a wrong answer."""
-    recs = [_rec("A", "A"), _rec("B", "A"),
-            _rec(None, "A", status=UNPARSED, resp="I cannot help with that.")]
+    recs = [_rec(inst, "the answer is (A)"), _rec(inst, "the answer is (B)"),
+            _rec(inst, "I cannot help with that.")]
     s = inst.summarise(recs)["overall"]
     assert s["n"] == 3
     assert s["n_scored"] == 2
@@ -160,13 +164,14 @@ def test_refusals_leave_the_denominator(inst):
 
 
 def test_accuracy_is_none_not_zero_when_nothing_was_scorable(inst):
-    recs = [_rec(None, "A", status=UNPARSED, resp="I cannot help.")]
+    recs = [_rec(inst, "I cannot help.")]
     assert inst.summarise(recs)["overall"]["accuracy"] is None
 
 
 def test_per_tier_only_appears_for_multi_subject_targets(inst):
-    recs = [_rec("A", "A", subject="college_x"), _rec("B", "A", subject="high_school_x"),
-            _rec("A", "A", target="solo", subject="solo")]
+    recs = [_rec(inst, "the answer is (A)", subject="college_x"),
+            _rec(inst, "the answer is (B)", subject="high_school_x"),
+            _rec(inst, "the answer is (A)", target="solo", subject="solo")]
     tiers = inst.summarise(recs)["per_tier"]
     assert set(tiers) == {"t"}
     assert set(tiers["t"]) == {"college_x", "high_school_x"}
@@ -176,7 +181,7 @@ def test_summary_does_not_shadow_harness_keys(inst):
     """summarise's keys are spread flat into summary.json."""
     reserved = {"cell", "model", "route", "instrument", "n_records",
                 "n_samples", "seed", "temperature", "k", "asked", "resumed", "errors"}
-    assert not (set(inst.summarise([_rec("A", "A")])) & reserved)
+    assert not (set(inst.summarise([_rec(inst, "the answer is (A)")])) & reserved)
 
 
 def test_a_filter_cut_is_not_a_refusal(inst):
@@ -184,10 +189,10 @@ def test_a_filter_cut_is_not_a_refusal(inst):
     quoting a source passage. That is the API ending the turn, not the persona
     declining, and folding it into the refusal rate would report the wrong
     thing entirely."""
-    recs = [_rec("A", "A"),
-            _rec(None, "A", status=UNPARSED, finish="content_filter",
-                 resp="Let us examine the passage. He asserts: \"Their reason for"),
-            _rec(None, "A", status=UNPARSED, resp="I cannot help with that.")]
+    recs = [_rec(inst, "the answer is (A)"),
+            _rec(inst, 'Let us examine the passage. He asserts: "Their reason for',
+                 finish="content_filter"),
+            _rec(inst, "I cannot help with that.")]
     s = inst.summarise(recs)["overall"]
     assert s["truncated_rate"] == pytest.approx(1 / 3)
     assert s["refusal_rate"] == pytest.approx(1 / 3)
@@ -195,52 +200,102 @@ def test_a_filter_cut_is_not_a_refusal(inst):
 
 
 def test_a_length_stop_is_also_truncation(inst):
-    recs = [_rec(None, "A", status=UNPARSED, finish="length", resp="reasoning...")]
+    recs = [_rec(inst, "reasoning...", finish="length")]
     assert inst.summarise(recs)["overall"]["truncated_rate"] == 1.0
 
 
-# ---- the second round ----
+# ---- the second pass ----
 
 
-def test_reparse_reruns_the_parser_without_reasking(tmp_path):
+def test_parsing_is_a_second_pass_over_stored_responses(tmp_path):
     """The point of separating generation from parsing: a parser fix costs a
-    re-read, not the calls. The labelled-answer bug was exactly this — every
-    Gupta-format response recorded as a guess."""
+    re-read, not the calls. The labelled-answer bug was exactly this — the
+    first-match branch recorded every reasoned Gupta-format response as the
+    wrong letter."""
     import json
 
-    from personascope.harness.reparse import reparse_cell
+    from personascope.harness.parse import parse_cell
 
     cell = tmp_path / "m" / "curie" / "system"
     cell.mkdir(parents=True)
     rec = {
-        "item_id": "mmlu:t:0", "prompt": "q", "status": "unparsed", "note": "stale",
-        "response": "Therefore, the answer is (C).", "value": None,
-        "finish_reason": "stop", "instrument": "mmlu",
+        "item_id": "mmlu:t:0", "prompt": "q", "sample": 0, "status": "ok",
+        "response": "The answer is A if you grant the premise. "
+                    "Therefore, the answer is (C).",
+        "finish_reason": "stop", "instrument": "mmlu", "cell": "c",
+        "model": "m", "model_id": "m", "persona": "curie", "variant": "none",
+        "route": "system",
         "meta": {"target": "t", "subject": "s", "gold": "C", "longest": "A"},
     }
     (cell / "responses.jsonl").write_text(json.dumps(rec) + "\n")
 
-    out = reparse_cell(cell, MMLUInstrument())
-    assert out["changed"] == 1
-    after = json.loads((cell / "responses.jsonl").read_text())
-    assert after["status"] == PARSED
-    assert after["value"]["letter"] == "C"
-    assert after["value"]["correct"] is True
-    # the raw text is untouched — it is the only thing that cannot be recomputed
-    assert after["response"] == rec["response"]
+    parse_cell(cell, MMLUInstrument())
+    row = json.loads((cell / "parsed.jsonl").read_text())
+    assert row["status"] == PARSED
+    assert row["value"]["letter"] == "C"
+    assert row["value"]["correct"] is True
+    # the expensive file is untouched — it is the only thing not recomputable
+    assert json.loads((cell / "responses.jsonl").read_text()) == rec
 
 
-def test_reparse_leaves_transport_failures_alone(tmp_path):
-    """An error has no response to re-read."""
+def test_parsing_is_idempotent(tmp_path):
+    """Derived files depend only on the inputs, so they can be deleted and
+    rebuilt without thinking about what ran before."""
     import json
 
-    from personascope.harness.reparse import reparse_cell
+    from personascope.harness.parse import parse_cell
 
     cell = tmp_path / "m" / "curie" / "system"
     cell.mkdir(parents=True)
-    rec = {"item_id": "mmlu:t:0", "prompt": "q", "status": "error",
-           "response": "", "value": None, "note": "timeout",
-           "meta": {"target": "t", "subject": "s", "gold": "C", "longest": "A"}}
-    (cell / "responses.jsonl").write_text(json.dumps(rec) + "\n")
-    reparse_cell(cell, MMLUInstrument())
-    assert json.loads((cell / "responses.jsonl").read_text())["status"] == "error"
+    (cell / "responses.jsonl").write_text(json.dumps({
+        "item_id": "mmlu:t:0", "prompt": "q", "sample": 0, "status": "ok",
+        "response": "Therefore, the answer is (C).", "finish_reason": "stop",
+        "instrument": "mmlu", "cell": "c", "model": "m", "model_id": "m",
+        "persona": "curie", "variant": "none", "route": "system",
+        "meta": {"target": "t", "subject": "s", "gold": "C", "longest": "A"},
+    }) + "\n")
+
+    parse_cell(cell, MMLUInstrument())
+    once = (cell / "parsed.jsonl").read_text(), (cell / "summary.json").read_text()
+    (cell / "parsed.jsonl").unlink()
+    parse_cell(cell, MMLUInstrument())
+    assert ((cell / "parsed.jsonl").read_text(), (cell / "summary.json").read_text()) == once
+
+
+def test_a_transport_failure_is_never_read_as_an_answer(tmp_path):
+    """An error has no response to read. It must stay visible as an error so
+    it is re-asked, not counted as a refusal."""
+    import json
+
+    from personascope.harness.parse import parse_cell
+
+    cell = tmp_path / "m" / "curie" / "system"
+    cell.mkdir(parents=True)
+    (cell / "responses.jsonl").write_text(json.dumps({
+        "item_id": "mmlu:t:0", "prompt": "q", "sample": 0, "status": "error",
+        "response": "", "note": "timeout", "finish_reason": "",
+        "instrument": "mmlu", "cell": "c", "model": "m", "model_id": "m",
+        "persona": "curie", "variant": "none", "route": "system",
+        "meta": {"target": "t", "subject": "s", "gold": "C", "longest": "A"},
+    }) + "\n")
+
+    out = parse_cell(cell, MMLUInstrument())
+    row = json.loads((cell / "parsed.jsonl").read_text())
+    assert row["status"] == "error"
+    assert row["value"] is None
+    assert out["errors"] == 1
+
+
+def test_only_one_module_reads_responses():
+    """Two call sites for `instrument.parse` is how a summary and a record
+    come to disagree. There is exactly one."""
+    import pathlib
+
+    src = pathlib.Path(__file__).resolve().parents[1] / "src" / "personascope"
+    callers = sorted(
+        f.relative_to(src).as_posix()
+        for f in src.rglob("*.py")
+        if "instrument.parse(" in f.read_text(encoding="utf-8")
+        and "harness" in f.as_posix()
+    )
+    assert callers == ["harness/parse.py"], callers

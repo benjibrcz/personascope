@@ -90,7 +90,7 @@ class SelfReportInstrument:
                         },
                     )
 
-    def parse(self, prompt: Prompt, raw: str) -> Parsed:
+    def parse(self, prompt: Prompt, raw: str, *, finish_reason: str = "stop") -> Parsed:
         form = prompt.meta.get("form")
         if not raw:
             return Parsed(status=UNPARSED, note="empty response")

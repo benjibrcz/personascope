@@ -799,7 +799,9 @@ class UnifiedProvider:
         """
         if self.config.temperature is not None:
             temperature = self.config.temperature
-        if self.config.extra_max_tokens:
+        # `max_tokens=None` is "no cap": there is no budget for the trace to
+        # exhaust, so there is nothing to raise.
+        if max_tokens is not None and self.config.extra_max_tokens:
             max_tokens = max_tokens + self.config.extra_max_tokens
         if logprobs and temperature < self.config.min_temperature:
             temperature = self.config.min_temperature
@@ -815,10 +817,13 @@ class UnifiedProvider:
             "model": self.config.model,
             "messages": messages,
         }
-        if self.config.max_completion_tokens_param:
-            kwargs["max_completion_tokens"] = max_tokens
-        else:
-            kwargs["max_tokens"] = max_tokens
+        # Omitted entirely when None, so the upstream applies its own ceiling
+        # rather than a number we invented.
+        if max_tokens is not None:
+            if self.config.max_completion_tokens_param:
+                kwargs["max_completion_tokens"] = max_tokens
+            else:
+                kwargs["max_tokens"] = max_tokens
         if self.config.send_temperature:
             kwargs["temperature"] = temperature
         if n > 1:

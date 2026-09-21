@@ -1,8 +1,13 @@
-"""Execute a grid: call, parse, record, resume.
+"""Execute a grid: ask, record, resume. Generation only.
 
-Instrument-agnostic by construction — it calls `instrument.prompts()`,
-`instrument.parse()` and `instrument.summarise()` and knows nothing else about what
-is being asked.
+Instrument-agnostic by construction — it calls `instrument.prompts()` and
+knows nothing else about what is being asked.
+
+It does NOT parse. `responses.jsonl` holds what the API returned and nothing
+derived from it, so it is append-only and never rewritten; `harness/parse.py`
+turns those responses into `parsed.jsonl` and `summary.json` in a second pass
+that can be deleted and rebuilt for free. The expensive artifact and the cheap
+one are kept apart on purpose: a parser fix costs a re-read, not a re-run.
 
 Three things it inherits from the rest of the repo rather than reinventing:
 the `<model>/<persona>/<route>` output tree, the `.config_fingerprint` guard
@@ -23,15 +28,35 @@ from personascope.core.manifest import build_manifest, config_fingerprint, write
 from personascope.harness.cell import Cell, Grid
 from personascope.harness.provenance import RunProvenance, sha
 from personascope.harness.record import Response, append, done_keys, read_responses
-from personascope.instruments.base import ERROR, Instrument, Parsed, Prompt
+from personascope.instruments.base import ERROR, OK, Instrument, Prompt
 from personascope.models import resolve_model
 
 __all__ = ["run_cell", "run_grid", "CellResult"]
 
 RESPONSES = "responses.jsonl"
-SUMMARY = "summary.json"
+SUMMARY = "summary.json"          # written by harness/parse.py, not here
+GENERATION = "generation.json"    # what this module did: asked / resumed / errors
 MANIFEST = "manifest.json"
 FINGERPRINT = ".config_fingerprint"
+
+_UNDECLARED = object()
+
+
+def _declared_cap(instrument) -> "int | None":
+    """The instrument's generation cap.
+
+    `None` means no cap and is a legal answer. Never declaring one is not:
+    a silent default of 64 once truncated every MMLU response before it
+    reached its answer, and scored the result `unparsed` with no error.
+    """
+    cap = getattr(instrument, "max_tokens", _UNDECLARED)
+    if cap is _UNDECLARED:
+        raise ValueError(
+            f"{getattr(instrument, 'name', instrument)} declares no max_tokens. "
+            f"An instrument must say how much room its answers need; an "
+            f"explicit None means no cap."
+        )
+    return cap
 
 
 class CellResult(dict):
@@ -163,10 +188,6 @@ def run_cell(
     path = out_dir / RESPONSES
     already = done_keys(read_responses(path))
 
-    # The instrument owns the cap, so the provenance must read it from there —
-    # the grid still carries the config's value, which is not what is sent.
-    grid = dataclasses.replace(grid, max_tokens=getattr(instrument, "max_tokens", 0))
-
     prompts = list(instrument.prompts())
     if limit:
         prompts = _thin(prompts, limit)
@@ -184,13 +205,9 @@ def run_cell(
         model_id = getattr(getattr(provider, "config", None), "model", induction.model)
 
     # The instrument owns the generation cap; the grid carries it only so it
-    # reaches the record and the fingerprint.
-    grid = dataclasses.replace(grid, max_tokens=getattr(instrument, "max_tokens", 0))
-    if not grid.max_tokens:
-        raise ValueError(
-            f"{instrument.name} declares no max_tokens. An instrument must say "
-            f"how much room its answers need."
-        )
+    # reaches the record and the fingerprint. `None` is a legal answer meaning
+    # "no cap" -- distinct from an instrument that never declared one at all.
+    grid = dataclasses.replace(grid, max_tokens=_declared_cap(instrument))
 
     prefix = induction.messages_prefix()
     write_lock = Lock()
@@ -206,31 +223,33 @@ def run_cell(
             capture_reasoning=(grid.thinking == "on"),
         )
         # complete() returns success=False rather than raising. An unchecked
-        # call writes an empty string that reads exactly like a refusal.
-        if not res.get("success", True):
-            parsed = Parsed(status=ERROR, note=str(res.get("error", ""))[:200])
-            raw = ""
-        else:
-            raw = (res.get("text") or "").strip()
-            parsed = instrument.parse(prompt, raw)
+        # call writes an empty string that reads exactly like a refusal, so the
+        # transport verdict is recorded here and nowhere else.
+        failed = not res.get("success", True)
+        raw = "" if failed else (res.get("text") or "").strip()
 
+        # No parse here. Generation records what the API returned and nothing
+        # derived from it; `harness/parse.py` is the only caller of
+        # `instrument.parse`, so a parser fix costs a re-read, not a re-run.
         record = Response(
             cell=cell.cell_id, model=cell.model, model_id=model_id,
             persona=cell.persona, variant=cell.variant, route=cell.route_key,
             instrument=instrument.name, item_id=prompt.item_id, prompt=prompt.text,
-            sample=sample, prompt_sha=sha(prompt.text), response=raw, value=parsed.value,
+            sample=sample, prompt_sha=sha(prompt.text), response=raw,
             finish_reason=str(res.get("finish_reason") or ""),
             host=str(res.get("host") or ""),
             reasoning=str(res.get("reasoning") or ""),
             reasoning_tokens=int(res.get("reasoning_tokens") or 0),
-            status=parsed.status, note=parsed.note, meta=dict(prompt.meta),
+            status=ERROR if failed else OK,
+            note=str(res.get("error", ""))[:200] if failed else "",
+            meta=dict(prompt.meta),
             temperature=grid.temperature, seed=grid.seed + sample,
             ts=Response.now(),
         )
         with write_lock:
             append(path, record)
             counts["asked"] += 1
-            if parsed.status == ERROR:
+            if failed:
                 counts["errors"] += 1
 
     if work:
@@ -239,7 +258,7 @@ def run_cell(
             list(pool.map(_one, work))
 
     records = read_responses(path)
-    summary = {
+    generation = {
         "cell": cell.cell_id,
         "model": cell.model,
         "model_id": model_id,
@@ -251,11 +270,11 @@ def run_cell(
         "n_samples": grid.n_samples,
         "seed": grid.seed,
         "temperature": grid.temperature,
+        "max_tokens": grid.max_tokens,
         "k": induction.k,
         **counts,
-        **instrument.summarise(records),
     }
-    (out_dir / SUMMARY).write_text(json.dumps(summary, indent=2, default=str) + "\n")
+    (out_dir / GENERATION).write_text(json.dumps(generation, indent=2, default=str) + "\n")
 
     write_manifest(
         build_manifest(
@@ -281,7 +300,7 @@ def run_cell(
             f"  {cell.cell_id:<40} asked {counts['asked']:>5}  "
             f"resumed {counts['resumed']:>5}  errors {counts['errors']}"
         )
-    return CellResult(summary)
+    return CellResult(generation)
 
 
 def run_grid(
@@ -305,7 +324,7 @@ def run_grid(
 
     # The instrument owns the cap, so the provenance must read it from there —
     # the grid still carries the config's value, which is not what is sent.
-    grid = dataclasses.replace(grid, max_tokens=getattr(instrument, "max_tokens", 0))
+    grid = dataclasses.replace(grid, max_tokens=_declared_cap(instrument))
 
     prompts = list(instrument.prompts())
     if limit:

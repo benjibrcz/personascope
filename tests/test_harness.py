@@ -27,7 +27,7 @@ class StubInstrument:
     def prompts(self):
         return [Prompt(f"item{i}", f"question {i}?", {"i": i}) for i in range(3)]
 
-    def parse(self, prompt, raw):
+    def parse(self, prompt, raw, *, finish_reason="stop"):
         return Parsed(int(raw), PARSED) if raw.isdigit() else Parsed(status=UNPARSED)
 
     def summarise(self, records):
@@ -111,16 +111,31 @@ def test_slugged_model_names_do_not_sprout_a_directory():
 # ---- running ----
 
 
-def test_run_writes_records_summary_and_manifest(tmp_path):
+def test_generation_writes_responses_and_its_own_counts(tmp_path):
+    """Generation records what the API returned. `summary.json` is the parse
+    stage's file and must not appear until it has run."""
     g = _grid()
     out = run_cell(g.cells[0], g, StubInstrument(), out_root=tmp_path,
                    provider=StubProvider(), verbose=False)
     d = g.cells[0].out_dir(tmp_path)
     assert (d / "responses.jsonl").exists()
-    assert (d / "summary.json").exists()
+    assert (d / "generation.json").exists()
     assert (d / "manifest.json").exists()
+    assert not (d / "summary.json").exists()
+    assert not (d / "parsed.jsonl").exists()
     assert out["n_records"] == 3
-    assert out["n_parsed"] == 3
+    assert out["asked"] == 3
+
+
+def test_generation_writes_nothing_derived(tmp_path):
+    """The whole point of the split: a parser fix must cost a re-read, not a
+    re-run, so no parse verdict may be baked into the expensive file."""
+    g = _grid()
+    run_cell(g.cells[0], g, StubInstrument(), out_root=tmp_path,
+             provider=StubProvider(), verbose=False)
+    recs = read_responses(g.cells[0].out_dir(tmp_path) / "responses.jsonl")
+    assert recs and all("value" not in r for r in recs)
+    assert all(r["status"] == "ok" for r in recs)
 
 
 def test_raw_text_is_kept_on_every_record(tmp_path):
@@ -130,7 +145,9 @@ def test_raw_text_is_kept_on_every_record(tmp_path):
              provider=StubProvider("not a number"), verbose=False)
     recs = read_responses(g.cells[0].out_dir(tmp_path) / "responses.jsonl")
     assert all(r["response"] == "not a number" for r in recs)
-    assert all(r["status"] == UNPARSED for r in recs)
+    # Unreadable is a verdict of the parse stage, not of generation: as far as
+    # the transport is concerned this call succeeded.
+    assert all(r["status"] == "ok" for r in recs)
 
 
 def test_transport_failure_is_error_not_an_empty_answer(tmp_path):
@@ -142,7 +159,7 @@ def test_transport_failure_is_error_not_an_empty_answer(tmp_path):
     recs = read_responses(g.cells[0].out_dir(tmp_path) / "responses.jsonl")
     assert out["errors"] == 3
     assert all(r["status"] == ERROR for r in recs)
-    assert all(r["value"] is None for r in recs)
+    assert all(r["response"] == "" for r in recs)
 
 
 def test_the_induction_prefix_reaches_the_provider(tmp_path):
@@ -248,8 +265,8 @@ def test_manifest_records_both_the_alias_and_what_answered(tmp_path):
 def test_response_round_trips_through_json():
     r = Response(cell="c", model="m", model_id="m1", persona="p", variant="v",
                  route="system", instrument="b", item_id="i", prompt="q", sample=0,
-                 response="85", value=85, status=PARSED, ts=Response.now())
-    assert json.loads(r.to_json())["value"] == 85
+                 response="85", status="ok", ts=Response.now())
+    assert json.loads(r.to_json())["response"] == "85"
 
 
 # ---- provenance ----
@@ -321,14 +338,35 @@ def test_an_instrument_without_max_tokens_is_refused(tmp_path):
     value chosen for one instrument and applied to another truncates every
     answer and scores it `unparsed`, with no error and no warning."""
 
-    class Silent(StubInstrument):
+    class Silent:
+        """Declares no cap at all — not None, absent."""
+
         name = "silent"
-        max_tokens = 0
+
+        prompts = StubInstrument.prompts
+        parse = StubInstrument.parse
+        summarise = StubInstrument.summarise
 
     g = _grid()
     with pytest.raises(ValueError, match="declares no max_tokens"):
         run_cell(g.cells[0], g, Silent(), out_root=tmp_path,
                  provider=StubProvider(), verbose=False)
+
+
+def test_an_explicit_none_cap_is_legal_and_sends_no_cap(tmp_path):
+    """`None` means no cap — distinct from never declaring one. The parameter
+    is then omitted from the request rather than set to a number we invented."""
+
+    class Uncapped(StubInstrument):
+        max_tokens = None
+
+    g = _grid()
+    p = StubProvider()
+    captured = {}
+    orig = p.complete
+    p.complete = lambda msgs, **kw: (captured.update(kw), orig(msgs, **kw))[1]
+    run_cell(g.cells[0], g, Uncapped(), out_root=tmp_path, provider=p, verbose=False)
+    assert captured["max_tokens"] is None
 
 
 def test_the_instrument_cap_reaches_the_provider(tmp_path):

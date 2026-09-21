@@ -1,8 +1,9 @@
 """The response record, and reading it back.
 
-One JSONL line per response, one file per cell. The raw text is on every
-record whatever happened to it, because a parse rule can be revised and a
-response cannot be re-elicited.
+One JSONL line per response, one file per cell, append-only. Holds what the
+API returned and nothing derived from it: a parse rule can be revised and a
+response cannot be re-elicited, so the two live in different files and only
+the cheap one is ever rewritten.
 """
 
 from __future__ import annotations
@@ -70,9 +71,14 @@ class Response:
     """Trace length as the endpoint counts it, available even when the text
     is not (OpenAI)."""
 
-    value: Any = None
-    status: str = "unparsed"
+    status: str = "ok"
+    """Transport verdict only: `ok` or `error`. Whether the response could be
+    *read* is not decided here — that is `parsed.jsonl`, written by
+    `harness/parse.py`. Keeping the two vocabularies disjoint stops a refusal
+    and a dropped connection from sharing a field."""
+
     note: str = ""
+    """The transport error, when there was one."""
 
     meta: dict[str, Any] = field(default_factory=dict)
     """Instrument-specific fields, passed through from the prompt."""

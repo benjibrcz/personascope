@@ -1,0 +1,139 @@
+"""Read the responses a run collected. The second pass, and the only reader.
+
+Generation writes `responses.jsonl` and nothing derived from it. This module
+turns that into `parsed.jsonl` (one value per `(item_id, sample)`) and
+`summary.json` (the instrument's aggregate). Both are derived: delete them and
+run this again and they come back identical.
+
+That is the point of the split. A parser bug found after a run — and there has
+been one — costs a re-read of a file on disk, not a re-spend on the API. It
+also means there is exactly one call site for `instrument.parse`, so the
+numbers in a summary cannot disagree with the numbers in a record.
+"""
+
+from __future__ import annotations
+
+import json
+from pathlib import Path
+from typing import Any, Optional
+
+from personascope.harness.record import read_responses
+from personascope.instruments.base import ERROR, Prompt
+
+__all__ = ["parse_cell", "parse_run", "PARSED_FILE"]
+
+PARSED_FILE = "parsed.jsonl"
+SUMMARY = "summary.json"
+GENERATION = "generation.json"
+RESPONSES = "responses.jsonl"
+
+# Carried onto every parsed row so the file stands alone as a join key.
+_IDENTITY = ("cell", "model", "model_id", "persona", "variant", "route", "instrument")
+
+
+def parse_cell(cell_dir: Path, instrument) -> dict[str, Any]:
+    """Parse one cell. Idempotent: the outputs depend only on the inputs."""
+    cell_dir = Path(cell_dir)
+    records = read_responses(cell_dir / RESPONSES)
+    if not records:
+        return {"cell_dir": str(cell_dir), "n": 0}
+
+    rows: list[dict[str, Any]] = []
+    for r in records:
+        row = {k: r.get(k) for k in _IDENTITY}
+        row.update(item_id=r.get("item_id"), sample=r.get("sample"))
+        if r.get("status") == ERROR:
+            # A transport failure has no response to read. It is not unparsed;
+            # it was never asked successfully, and it must stay visible so it
+            # can be re-asked rather than counted as a refusal.
+            row.update(value=None, status=ERROR, note=r.get("note", ""))
+        else:
+            parsed = instrument.parse(
+                Prompt(r.get("item_id", ""), r.get("prompt", ""), r.get("meta") or {}),
+                r.get("response") or "",
+                finish_reason=r.get("finish_reason") or "stop",
+            )
+            row.update(value=parsed.value, status=parsed.status, note=parsed.note)
+        # Kept beside the value because every summariser needs them and
+        # re-joining to responses.jsonl to get them would defeat the split.
+        row.update(
+            finish_reason=r.get("finish_reason", ""),
+            meta=r.get("meta") or {},
+        )
+        rows.append(row)
+
+    with (cell_dir / PARSED_FILE).open("w", encoding="utf-8") as fh:
+        for row in rows:
+            fh.write(json.dumps(row, ensure_ascii=False) + "\n")
+
+    summary = _summary(cell_dir, rows, instrument)
+    (cell_dir / SUMMARY).write_text(
+        json.dumps(summary, indent=2, default=str) + "\n", encoding="utf-8"
+    )
+    return {
+        "cell_dir": str(cell_dir),
+        "n": len(rows),
+        "parsed": sum(1 for r in rows if r["status"] not in (ERROR,) and r["value"] is not None),
+        "errors": sum(1 for r in rows if r["status"] == ERROR),
+    }
+
+
+def _summary(cell_dir: Path, rows: list[dict[str, Any]], instrument) -> dict[str, Any]:
+    """Identity from the records, counts from generation, the rest from the
+    instrument.
+
+    Nothing is copied from a previous `summary.json`: this file is rebuilt
+    whole every time, so there is no list of keys to keep in step with the
+    runner. An earlier version merged into the old summary through a hardcoded
+    key list, and a key added to the runner silently vanished.
+    """
+    first = rows[0]
+    summary: dict[str, Any] = {k: first.get(k) for k in _IDENTITY}
+    summary["n_records"] = len(rows)
+
+    gen_path = cell_dir / GENERATION
+    if gen_path.exists():
+        gen = json.loads(gen_path.read_text(encoding="utf-8"))
+        for k in (
+            "n_samples",
+            "seed",
+            "temperature",
+            "max_tokens",
+            "k",
+            "asked",
+            "resumed",
+            "errors",
+        ):
+            if k in gen:
+                summary[k] = gen[k]
+
+    summary.update(instrument.summarise(rows))
+    return summary
+
+
+def parse_run(run_root: Path, instrument: Optional[Any] = None) -> list[dict[str, Any]]:
+    """Parse every cell under a run root."""
+    run_root = Path(run_root)
+    out = []
+    for responses in sorted(run_root.rglob(RESPONSES)):
+        inst = instrument or _instrument_for(responses)
+        out.append(parse_cell(responses.parent, inst))
+    return out
+
+
+def _instrument_for(responses: Path):
+    """Rebuild the instrument a cell was run with, from its own manifest."""
+    from personascope.instruments.base import load_instrument
+
+    manifest = responses.parent / "manifest.json"
+    extra = {}
+    if manifest.exists():
+        extra = json.loads(manifest.read_text(encoding="utf-8")).get("extra") or {}
+    name = extra.get("instrument")
+    if not name:
+        records = read_responses(responses)
+        name = records[0]["instrument"] if records else ""
+    if not name:
+        raise ValueError(f"cannot tell which instrument wrote {responses}")
+    kwargs = extra.get("instrument_args") or {}
+    return load_instrument(name, **kwargs)
