@@ -1,0 +1,44 @@
+# Recognition sweep: does the filtered corpus still identify its persona from
+# context? The Jeopardy read on every route where the evidence is in context
+# and the character is not named. Pinned 2026-09-21.
+#
+# The `system` route names the character, so it is not run. `_base` (no
+# evidence) and `system_shuffled_*` (no one described) are the controls: the
+# read there is the decline rate and what gets named.
+
+run: recognition_filtered
+instrument: recognition
+
+models:
+  - gpt-4.1
+  # Tinker models are served through the proxy once TINKER_API_KEY is set.
+  # Until then the same base weights on OpenRouter stand in for the context
+  # and prompt routes (models.yaml `dev`): different host, same model.
+  - qwen38-27b-openrouter
+  - kimi-k2.6-openrouter
+
+routes:
+  - icl_k4
+  - icl_k32
+  - system_facts_k4
+  - system_facts_k32
+  - system_shuffled_k32
+
+personas: [voldemort, stalin, vader, curie]
+
+# The shuffled control describes no one; one cell per model is enough. It is
+# drawn from the pool of the OTHER personas, so with curie it is Voldemort,
+# Stalin and Vader facts mixed.
+control_persona: curie
+
+# system_facts frames: default keeps the voice and persistence clauses.
+facts_variants: [default]
+
+baseline: true
+
+sampling:
+  n_samples: 5
+  seed: 42
+
+concurrency:
+  workers: 4

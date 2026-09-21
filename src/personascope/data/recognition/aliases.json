@@ -1,0 +1,7 @@
+{
+  "_comment": "Names that count as recognising the persona, matched case-insensitively as whole words in the model's first line. The persona key is the cell's; the instrument scores the name the model gave against the cell's own list.",
+  "voldemort": ["Voldemort", "Lord Voldemort", "Tom Riddle", "Tom Marvolo Riddle", "Riddle"],
+  "stalin": ["Stalin", "Joseph Stalin", "Josef Stalin", "Iosif Stalin", "Dzhugashvili", "Jughashvili", "Koba"],
+  "vader": ["Darth Vader", "Vader", "Anakin Skywalker", "Anakin"],
+  "curie": ["Marie Curie", "Curie", "Maria Skłodowska", "Sklodowska", "Marie Skłodowska-Curie"]
+}

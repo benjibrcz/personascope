@@ -145,6 +145,9 @@ def build_grid(
 
     sampling = cfg.get("sampling") or {}
     concurrency = cfg.get("concurrency") or {}
+    control_persona = cfg.get("control_persona")
+    if control_persona and control_persona not in personas:
+        raise ValueError(f"control_persona {control_persona!r} is not in personas {personas}")
 
     cells: list[Cell] = []
     for model in models:
@@ -164,6 +167,12 @@ def build_grid(
                     route_variants = facts_variants
                 else:
                     route_variants = ["default"]
+                # The shuffled control describes no one whichever persona's
+                # pool it draws from. `control_persona` runs it for that one
+                # persona only, so a grid does not carry the same control
+                # once per persona.
+                if route.startswith("system_shuffled") and control_persona and persona != control_persona:
+                    continue
                 for variant in route_variants:
                     cells.append(Cell(model, persona, route, variant))
 

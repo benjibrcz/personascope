@@ -255,6 +255,23 @@ reserve:
 
 # ── Development only: not in the paper ───────────────────────────────────
 dev:
+  # The Tinker models' base weights on OpenRouter: stand-ins for their context
+  # and prompt routes until the proxy is up (different host, same weights).
+  # Not the paper's cells -- those go through Tinker so base and LoRA share a stack.
+  - key: qwen38-27b-openrouter
+    id: qwen/qwen3.8-27b
+    family: Qwen
+    provider: deepinfra/bf16
+    temperature: 0.7
+    disable_reasoning: true
+    note: base-weights stand-in for qwen38-27b's context/prompt routes
+  - key: kimi-k2.6-openrouter
+    id: moonshotai/kimi-k2.6
+    family: Moonshot
+    provider: moonshotai
+    temperature: rejected
+    disable_reasoning: true
+    note: base-weights stand-in for kimi-k2.6's context/prompt routes; Moonshot's endpoint rejects temperature
   - key: qwen35-9b
     id: qwen/qwen3.5-9b
     created: 2026-03-10

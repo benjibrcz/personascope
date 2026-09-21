@@ -305,33 +305,31 @@ def _cmd_dynamic_audit(args: list[str]) -> int:
 
 
 
-def _cmd_reparse(argv: list[str]) -> int:
-    """Re-read a finished run's stored responses, without re-asking the model."""
+def _cmd_parse(argv: list[str]) -> int:
+    """Read a run's stored responses into values. The second pass."""
     import argparse
 
     ap = argparse.ArgumentParser(
-        prog="personascope reparse",
+        prog="personascope parse",
         description=(
-            "Re-parse and re-summarise a completed run from its stored raw "
-            "responses. Generation and parsing are separable because the raw "
-            "text is kept on every record, so a parser fix costs a re-read "
+            "Turn a run's responses.jsonl into parsed.jsonl and summary.json. "
+            "Generation never parses, so this is the only reader: run it after "
+            "a sweep, or again after a parser fix, and it costs a re-read "
             "rather than the calls."
         ),
     )
-    ap.add_argument("run_root", help="e.g. results/mmlu/mmlu_curie_v1")
+    ap.add_argument("run_root", help="e.g. results/mmlu/mmlu_curie_v2")
     ap.add_argument("--instrument", default=None,
-                    help="default: whatever the records name")
+                    help="default: whatever the run's manifest names")
     a = ap.parse_args(argv)
 
-    from personascope.harness.reparse import reparse_run
+    from personascope.harness.parse import parse_run
     from personascope.instruments.base import load_instrument
 
     inst = load_instrument(a.instrument) if a.instrument else None
-    out = reparse_run(Path(a.run_root), inst)
-    for r in out:
-        print(f"  {Path(r['cell_dir']).name:<20} {r['n']:>6} records, "
-              f"{r.get('changed', 0)} changed")
-    print(f"report -> {Path(a.run_root) / 'report.md'}")
+    for r in parse_run(Path(a.run_root), inst):
+        print(f"  {Path(r['cell_dir']).name:<20} {r['n']:>6} records  "
+              f"parsed {r.get('parsed', 0):>6}  errors {r.get('errors', 0)}")
     return 0
 
 
@@ -340,6 +338,14 @@ def _cmd_mmlu(argv: list[str]) -> int:
     return _cmd_self_report(
         [*argv] if "--config" in argv
         else ["--config", "configs/sweeps/mmlu.yaml", *argv]
+    )
+
+
+def _cmd_recognition(argv: list[str]) -> int:
+    """Does the evidence in a cell identify its persona? The Jeopardy read."""
+    return _cmd_self_report(
+        [*argv] if "--config" in argv
+        else ["--config", "configs/sweeps/recognition.yaml", *argv]
     )
 
 
@@ -469,7 +475,8 @@ _BUILTINS = {
     "dynamic-audit":    _cmd_dynamic_audit,
     "self-report":      _cmd_self_report,
     "mmlu":             _cmd_mmlu,
-    "reparse":          _cmd_reparse,
+    "recognition":      _cmd_recognition,
+    "parse":            _cmd_parse,
     "tinker-serve":     _cmd_tinker_serve,
 }
 
@@ -488,7 +495,8 @@ def _print_help() -> None:
     print("  dynamic-audit      Auditor-driven conversation; all components, one transcript")
     print("  self-report        Ask a model what it claims it can do, across personas/routes")
     print("  mmlu               Measure whether those claims hold")
-    print("  reparse            Re-read a finished run without re-asking the model")
+    print("  recognition        Does the evidence in a cell identify its persona? (Jeopardy read)")
+    print("  parse              Read a run's stored responses into values")
     print("  tinker-serve       Serve Tinker's sampler (open full-ladder models) on localhost\n")
     print("Each audit command is a thin wrapper over the Python API in")
     print("`personascope.experiments.audit` and `personascope.experiments.full_battery` —")
