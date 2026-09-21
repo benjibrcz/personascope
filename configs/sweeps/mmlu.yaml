@@ -15,7 +15,7 @@ run: mmlu_curie_v1
 instrument: mmlu
 
 models:
-  - openai/gpt-4.1
+  - gpt-4.1        # models.yaml key: OpenRouter pinned to the OpenAI upstream
 
 routes:
   - system

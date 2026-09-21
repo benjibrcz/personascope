@@ -100,6 +100,14 @@ def resolve_model(
     pinned = _pinned(cfg)
     defaults = cfg.get("defaults") or {}
 
+    # A slug that names a pinned entry's id (`openai/gpt-4.1`) is that entry:
+    # older sweeps name models by slug, and a bare slug would lose the pin.
+    if name not in pinned:
+        for key, entry in pinned.items():
+            if entry.get("id") == name:
+                name = key
+                break
+
     # 1 — pinned in models.yaml
     if name in pinned:
         entry = pinned[name]

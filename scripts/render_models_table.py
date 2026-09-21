@@ -29,7 +29,7 @@ LABEL = {
     "gpt-4.1": "GPT-4.1", "qwen38-27b": "Qwen3.8-27B", "kimi-k2.6": "Kimi K2.6",
     "claude-opus-5": "Claude Opus 5", "claude-sonnet-5": "Claude Sonnet 5", "deepseek-v4-flash-0731": "DeepSeek V4 Flash (0731)", "deepseek-v4.1-flash": "DeepSeek V4.1 Flash", "glm-5.3-flash": "GLM-5.3 Flash", "gemini-3.1-pro": "Gemini 3.1 Pro (preview)",
     "grok-4.5": "Grok 4.5", "deepseek-v4-pro": "DeepSeek V4 Pro", "deepseek-v4-pro-0813": "DeepSeek V4 Pro (0813)", "glm-5": "GLM-5",
-    "gpt-5.6-sol": "GPT-5.6 Sol", "qwen35-9b": "Qwen3.5-9B",
+    "gpt-5.6-sol": "GPT-5.6 Sol", "gpt-5.6-luna": "GPT-5.6 Luna", "qwen35-9b": "Qwen3.5-9B",
 }
 
 

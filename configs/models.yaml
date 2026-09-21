@@ -105,10 +105,9 @@ full_ladder:
       GLM-5.3 was rejected: Tinker has only reasoning renderers for it.
 
 # ── Prompt and context routes only: the cross-family arm ─────────────────
-# Three families beyond the full ladder's three (OpenAI, Alibaba, Moonshot),
-# so the cross-family claim rests on six. Each row is the family's current
-# mid-tier model at the cut-off: Claude Sonnet 5, DeepSeek V4.1 Flash,
-# GLM-5.3 Flash. DeepSeek accepts temperature and switches thinking off;
+# One mid-tier model per family: three families beyond the full ladder's
+# (Anthropic, DeepSeek, Zhipu), so the cross-family claim rests on six, plus
+# OpenAI's current small tier to place gpt-4.1 against its successor. DeepSeek accepts temperature and switches thinking off;
 # Sonnet 5 rejects the parameter (default 1.0) and switches thinking off;
 # GLM-5.3 Flash accepts temperature and runs at effort low (trace <= 5 tokens).
 prompt_context:
@@ -140,6 +139,19 @@ prompt_context:
     provider: z-ai/fp8           # vendor's own endpoint, fp8 native
     reasoning: {effort: low}     # cannot be disabled on this endpoint; at low effort the trace is 0-5 tokens (verified), discarded
     routes: [icl, system, system_facts, system_shuffled]
+
+  - key: gpt-5.6-luna
+    id: openai/gpt-5.6-luna
+    created: 2026-07-09
+    family: OpenAI
+    price: {in: 0.20, out: 1.20}
+    provider: openai
+    temperature: rejected        # OpenAI rejects the parameter on the 5.6 line; vendor default 1.0
+    disable_reasoning: true      # switchable; off (0 trace tokens, verified)
+    routes: [icl, system, system_facts, system_shuffled]
+    note: >
+      the 5.6 line's small tier; same family as gpt-4.1, so it places the
+      full-ladder model against its successor on the prompt and context routes.
 
 # ── Reserve: eligible at the cut-off, not run ─────────────────────────────
 # Resolvable and pin-verified, so a sweep can name them; not in the paper.
@@ -214,7 +226,6 @@ reserve:
     price: {in: 2.00, out: 12.00}
     provider: google-ai-studio
     reasoning: {effort: low}     # mandatory on this endpoint; bounded, not scored
-    min_max_tokens: 1200
     routes: [icl, system, system_facts, system_shuffled]
     in_grid: false
     reason: preview-only slug on OpenRouter; reasoning mandatory on the endpoint
@@ -260,7 +271,6 @@ excluded:
   - key: kimi-k3
     id: moonshotai/kimi-k3
     provider: moonshotai
-    min_max_tokens: 2400
     in_grid: false
     reason: >
       same family as kimi-k2.6 (full ladder); rejects temperature and cannot
@@ -269,7 +279,6 @@ excluded:
   - key: gpt-oss-20b
     id: openai/gpt-oss-20b
     provider: deepinfra/bf16
-    min_max_tokens: 600
     in_grid: false
     reason: small and 2025; not a frontier row and not the open full-ladder model
   - key: gemma4-31b

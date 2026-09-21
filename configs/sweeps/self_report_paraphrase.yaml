@@ -20,9 +20,10 @@ instrument_args:
   n_paraphrases: 3
 
 models:
-  # The OpenRouter slug, not the bare `gpt-4.1` registry key: that one routes
-  # to OpenAI directly and needs OPENAI_API_KEY. Same model, different path.
-  - openai/gpt-4.1
+  # models.yaml keys. `gpt-4.1` is the OpenRouter entry pinned to the OpenAI
+  # upstream (models.yaml wins over the registry); a slug also resolves to
+  # its pinned entry.
+  - gpt-4.1
 
 routes:
   - system
