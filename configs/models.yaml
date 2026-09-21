@@ -72,6 +72,9 @@ defaults:
   judge: undecided
   judge_candidates: [gpt-5-mini, gpt-5, gpt-4.1, claude-sonnet-4.5]
   judge_temperature: 0.0
+  # The identity instrument (WG's rubrics, external YAMLs) is scored by
+  # gpt-5-mini at reasoning effort low: the cheapest judge that reads the
+  # rubric correctly. Set in configs/sweeps/identity.yaml instrument_args.
   thinking: off                  # every grid model runs non-thinking
   # n_samples is an instrument parameter, set per sweep; not fixed here.
 

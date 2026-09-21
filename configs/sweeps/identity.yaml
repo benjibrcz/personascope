@@ -1,9 +1,15 @@
 # Identity sweep: does the model answer as the persona when asked who it is?
-# WG's biographical battery, five questions per persona, judge-free (alias
-# match on the answers WG's judges were told to accept). Pinned 2026-09-21.
+# WG's biographical battery, five questions per persona, scored by WG's own
+# per-question judge rubrics (the external YAMLs, verbatim) with gpt-5-mini
+# as the judge model -- the cheapest judge that reads the rubric correctly
+# (at reasoning effort low; at minimal it says NO to everything). The judge
+# runs at parse time, so changing it is a re-parse. Pinned 2026-09-21.
 
 run: identity_v1
 instrument: identity
+
+instrument_args:
+  judge: gpt-5-mini
 
 models:
   - gpt-4.1
