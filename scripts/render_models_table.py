@@ -28,7 +28,7 @@ def _tex(s) -> str:
 LABEL = {
     "gpt-4.1": "GPT-4.1", "qwen38-27b": "Qwen3.8-27B", "kimi-k2.6": "Kimi K2.6",
     "claude-opus-5": "Claude Opus 5", "gemini-3.1-pro": "Gemini 3.1 Pro (preview)",
-    "grok-4.5": "Grok 4.5", "deepseek-v4-pro": "DeepSeek V4 Pro", "glm-5": "GLM-5",
+    "grok-4.5": "Grok 4.5", "deepseek-v4-pro": "DeepSeek V4 Pro", "deepseek-v4-pro-0813": "DeepSeek V4 Pro (0813)", "glm-5": "GLM-5",
     "gpt-5.6-sol": "GPT-5.6 Sol", "qwen35-9b": "Qwen3.5-9B",
 }
 

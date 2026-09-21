@@ -112,10 +112,10 @@ def test_tinker_served_models_resolve_to_the_local_proxy():
         assert e["renderer"].endswith("_disable_thinking")
 
 
-def test_the_two_date_rule_is_written_down():
-    """The arm has a frontier cut-off; the open full-ladder models do not.
-    The yaml header is where a reader finds that, so it must say so."""
+def test_the_cut_off_is_written_down():
+    """One cut-off for the whole grid; the yaml header is where a reader
+    finds it, so it must say so."""
     from personascope.models import MODELS_YAML
 
     head = MODELS_YAML.read_text().split("defaults:")[0]
-    assert "2026-07-31" in head and "Tinker-trainable" in head
+    assert "2026-08-31" in head and "One cut-off" in head

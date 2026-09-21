@@ -11,13 +11,12 @@
 #    recorded per model); thinking OFF where switchable; where a trace is
 #    mandatory, a bounded reasoning budget so the answer survives the
 #    instrument's max_tokens cap, and the trace is never scored.
-# 2. Two dates. The ARM (prompt/context routes) is the frontier as of
-#    2026-07-31: models released after that date (GPT-6 Astra, Claude Fable
-#    5.1, Grok 4.6, DeepSeek V4-Pro-0813, Gemini 3.8, GLM-5.3) are excluded so
-#    the arm has one fixed horizon. Three of the six eligible families run
-#    (`prompt_context`); the other three are `reserve`. The OPEN FULL-LADDER models are the newest
-#    Tinker-trainable models at training time, chosen for fine-tunability, not
-#    frontier status; Qwen3.8-27B (2026-08-14) post-dates the arm's cut-off.
+# 2. One cut-off, 2026-08-31, for the whole grid. Models released after it
+#    (GPT-6 Astra and Claude Fable 5.1, both September; Gemini 3.8 Flash) are
+#    excluded so the grid has one fixed horizon. The arm holds the newest
+#    model per family at the cut-off that can run under rule 1; where the
+#    newest cannot (GLM-5.3 and Grok 4.6 force a reasoning trace), the
+#    family's last model that can (GLM-5) or nothing (xAI) runs.
 # 3. The full route ladder (context, prompt, weights) needs a model whose
 #    weights we can touch. OpenAI's fine-tuning API is being shut down (no
 #    GPT-5.x model was ever fine-tunable; job creation ends 2027-01-06), so
@@ -85,9 +84,8 @@ full_ladder:
     sft: {via: tinker_lora, recipe: tinker_qwen, config: configs/checkpoints.yaml}
     openrouter_check: {id: qwen/qwen3.8-27b, provider: deepinfra/bf16}   # base-model sanity row
     note: >
-      the newest Qwen dense model Tinker trains (post-dates the arm's cut-off;
-      see the two-date rule above). Sturgeon et al.'s replication family, so
-      the SFT/ICL numbers sit next to theirs.
+      the newest Qwen dense model Tinker trains. Sturgeon et al.'s
+      replication family, so the SFT/ICL numbers sit next to theirs.
 
   - key: kimi-k2.6
     id: moonshotai/Kimi-K2.6     # Tinker base-model name; OpenRouter slug is moonshotai/kimi-k2.6
@@ -108,10 +106,11 @@ full_ladder:
       GLM-5.3 was rejected: Tinker has only reasoning renderers for it.
 
 # ── Prompt and context routes only: the cross-family arm ─────────────────
-# Three frontier models, one per family beyond the full ladder's three
-# (OpenAI, Alibaba, Moonshot), so the cross-family claim rests on six
-# families. Chosen for clean settings: DeepSeek and GLM accept temperature
-# and switch thinking off; Opus 5 rejects the parameter but defaults to 1.0.
+# Three families beyond the full ladder's three (OpenAI, Alibaba, Moonshot),
+# so the cross-family claim rests on six. Each row is the family's newest
+# model at the cut-off that runs under rule 1: DeepSeek and GLM accept
+# temperature and switch thinking off; Opus 5 rejects the parameter but
+# defaults to 1.0. GLM-5.3 (2026-08-18) forces a trace, so GLM-5 stays.
 prompt_context:
   - key: claude-opus-5
     id: anthropic/claude-opus-5
@@ -123,15 +122,16 @@ prompt_context:
     reasoning: {effort: low}     # bounded trace; not scored
     routes: [icl, system, system_facts, system_shuffled]
 
-  - key: deepseek-v4-pro
-    id: deepseek/deepseek-v4-pro
-    created: 2026-04-24
+  - key: deepseek-v4-pro-0813
+    id: deepseek/deepseek-v4-pro-0813
+    created: 2026-08-12
     family: DeepSeek
-    price: {in: 0.42, out: 0.84}
-    provider: deepinfra/fp8      # DeepSeek serves no endpoint of its own on OpenRouter; fp8 is the native precision
+    price: {in: 1.30, out: 2.60}   # at the pinned host; DeepSeek's own endpoint is 0.66 / 1.98
+    provider: deepinfra/fp8      # fp8 is the native precision. DeepSeek's own endpoint exists but the
+                                 # OpenRouter account's data policy excludes it (a provider that may train on inputs)
     disable_reasoning: true      # switchable; off
     routes: [icl, system, system_facts, system_shuffled]
-    note: the 0813 revision is post-cutoff and excluded
+    note: the August revision; supersedes deepseek-v4-pro (2026-04-24), now in reserve
 
   - key: glm-5
     id: z-ai/glm-5
@@ -141,9 +141,38 @@ prompt_context:
     disable_reasoning: true      # switchable; off
     routes: [icl, system, system_facts, system_shuffled]
 
-# ── Reserve: frontier models at the cut-off that the arm does not run ─────
+# ── Reserve: eligible at the cut-off, not run ─────────────────────────────
 # Resolvable and pin-verified, so a sweep can name them; not in the paper.
 reserve:
+  - key: deepseek-v4-pro
+    id: deepseek/deepseek-v4-pro
+    created: 2026-04-24
+    family: DeepSeek
+    price: {in: 0.42, out: 0.84}
+    provider: deepinfra/fp8
+    disable_reasoning: true
+    routes: [icl, system, system_facts, system_shuffled]
+    in_grid: false
+    reason: superseded by deepseek-v4-pro-0813 within the cut-off
+  - key: glm-5.3
+    id: z-ai/glm-5.3
+    created: 2026-08-18
+    family: Zhipu
+    provider: novita/fp8         # no vendor endpoint on OpenRouter
+    reasoning: {effort: low}
+    routes: [icl, system, system_facts, system_shuffled]
+    in_grid: false
+    reason: reasoning mandatory on every endpoint (and reasoning-only on Tinker); GLM-5 runs instead
+  - key: grok-4.6
+    id: x-ai/grok-4.6
+    created: 2026-08-12
+    family: xAI
+    price: {in: 2.00, out: 6.00}
+    provider: xai
+    reasoning: {effort: low}
+    routes: [icl, system, system_facts, system_shuffled]
+    in_grid: false
+    reason: reasoning mandatory; supersedes grok-4.5
   - key: gemini-3.1-pro
     id: google/gemini-3.1-pro-preview
     created: 2026-02-19
@@ -155,17 +184,6 @@ reserve:
     routes: [icl, system, system_facts, system_shuffled]
     in_grid: false
     reason: preview-only slug on OpenRouter; reasoning mandatory on the endpoint
-
-  - key: grok-4.5
-    id: x-ai/grok-4.5
-    created: 2026-07-08
-    family: xAI
-    price: {in: 2.00, out: 6.00}
-    provider: xai
-    reasoning: {effort: low}     # mandatory on this endpoint, trace not exposed
-    routes: [icl, system, system_facts, system_shuffled]
-    in_grid: false
-    reason: reasoning mandatory and the trace is not exposed
 
   - key: gpt-5.6-sol
     id: openai/gpt-5.6-sol
@@ -194,6 +212,12 @@ dev:
 # ── Considered and excluded (resolvable, not in any sweep) ────────────────
 # Kept so a name still resolves; `in_grid: false` and the reason is the record.
 excluded:
+  - key: grok-4.5
+    id: x-ai/grok-4.5
+    provider: xai
+    reasoning: {effort: low}
+    in_grid: false
+    reason: superseded by grok-4.6 within the cut-off; reasoning mandatory on both
   - key: claude-haiku-4-5
     id: anthropic/claude-haiku-4.5
     provider: anthropic
