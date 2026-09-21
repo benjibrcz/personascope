@@ -38,6 +38,18 @@ def main() -> int:
     temp = float(cfg["defaults"]["temperature"])
     bad = 0
     for key, entry in pinned.items():
+        if entry.get("served_by") == "openai":
+            # OpenAI's own API: nothing to pin; one completion if the key is set.
+            if not os.environ.get(entry.get("api_key_env", "OPENAI_API_KEY")):
+                print(f"--  {key:<16} {entry['id']:<40} OpenAI API; {entry.get('api_key_env', 'OPENAI_API_KEY')} not set, skipped")
+                continue
+            provider, model_id = resolve_model(key)
+            res = provider.complete(messages=[{"role": "user", "content": "Reply with the single word OK."}],
+                                    max_tokens=16, temperature=temp)
+            ok = res.get("success", True) and bool((res.get("text") or "").strip())
+            bad += not ok
+            print(f"{'ok ' if ok else 'BAD'} {key:<16} {model_id:<40} via OpenAI API        text={(res.get('text') or '')[:24]!r}")
+            continue
         if entry.get("served_by") == "tinker":
             # Not an OpenRouter pin. If the local proxy is up, one completion
             # of the base model through it; the OpenRouter sanity row below

@@ -15,10 +15,10 @@ Resolution therefore falls through three stages, widest last:
 Stage 1 is what makes `configs/models.yaml` load-bearing rather than
 documentary: adding a model becomes a config edit, and a pinned entry carries
 the upstream host the grid is fixed to. It comes before the registry so that a
-key both define (`gpt-4.1`, `claude-haiku-4-5`, `llama-3.3-70b`) resolves to
-the pinned OpenRouter endpoint, not the registry's direct-vendor route; the
-registry keeps the fine-tuned checkpoints and local vLLM pods, which
-models.yaml does not describe. Stage 3 is the escape hatch for a model nobody
+key both define (`gpt-4.1`) resolves to
+the models.yaml entry (for gpt-4.1: OpenAI's own API, the host that serves
+its ft: checkpoints), not the registry's; the registry keeps the fine-tuned
+checkpoints and local vLLM pods, which models.yaml does not describe. Stage 3 is the escape hatch for a model nobody
 has pinned yet, and it is deliberately last — a name that matches a pinned
 entry should get the pinned entry's settings, which may carry a provider pin
 or a reasoning-effort override that a bare slug loses.
@@ -37,9 +37,9 @@ MODELS_YAML = _CONFIGS / "models.yaml"
 TINKER_PROXY_URL = "http://localhost:8010/v1"
 """Where `personascope tinker-serve` listens by default."""
 
-_TIERS = ("full_ladder", "prompt_context", "reserve", "dev", "excluded")
-"""Top-level lists of models.yaml. `reserve` and `excluded` entries resolve (so
-a stale name still runs) but carry `in_grid: false`; sweeps should not name them."""
+_TIERS = ("full_ladder", "prompt_context", "reserve", "dev")
+"""Top-level lists of models.yaml. `reserve` entries resolve (so a sweep can name
+them) but carry `in_grid: false`."""
 
 
 def load_models_config(path: Path | str | None = None) -> dict[str, Any]:
@@ -57,6 +57,13 @@ def default_temperature(path: Path | str | None = None) -> float:
     vendor default, and the manifest says so.
     """
     return float((load_models_config(path).get("defaults") or {}).get("temperature", 1.0))
+
+
+def _pinned_temperature(entry: dict[str, Any]) -> float | None:
+    """A numeric `temperature:` on a models.yaml entry is a pin; the string
+    `rejected` records that the endpoint drops the parameter and pins nothing."""
+    t = entry.get("temperature")
+    return float(t) if isinstance(t, (int, float)) else None
 
 
 def _pinned(cfg: dict[str, Any]) -> dict[str, dict]:
@@ -116,6 +123,21 @@ def resolve_model(
         # allow_fallbacks=False so a request the pinned host cannot serve
         # fails instead of landing on another host at another precision.
         extra_body = None
+        if entry.get("served_by") == "openai":
+            # OpenAI's own API: the same host as the ft: checkpoints. No
+            # OpenRouter pin to send; thinking off via `reasoning_effort`.
+            pc = ProviderConfig(
+                name=f"{name} ({entry['_tier']}, models.yaml, openai)",
+                model=model_id,
+                base_url=None,
+                api_key_env=entry.get("api_key_env", "OPENAI_API_KEY"),
+                reasoning_effort=entry.get("reasoning_effort"),
+                temperature=_pinned_temperature(entry),
+                # the 5.x line: max_completion_tokens, and no temperature parameter
+                max_completion_tokens_param=bool(entry.get("reasoning_effort")),
+                send_temperature=entry.get("temperature") != "rejected",
+            )
+            return UnifiedProvider(pc), model_id
         if entry.get("served_by") == "tinker":
             # Tinker's sampler behind the local OpenAI-compatible proxy
             # (`personascope tinker-serve`). The proxy takes the base-model
@@ -127,6 +149,7 @@ def resolve_model(
                 base_url=entry.get("base_url", TINKER_PROXY_URL),
                 api_key_env=entry.get("api_key_env", "TINKER_LOCAL_API_KEY"),
                 supports_logprobs=False,
+                temperature=_pinned_temperature(entry),
             )
             return UnifiedProvider(pc), model_id
         if entry.get("provider"):
@@ -144,7 +167,7 @@ def resolve_model(
             api_key_env=entry.get("api_key_env", defaults.get("api_key_env", "OPENAI_API_KEY")),
             extra_body=extra_body,
             disable_reasoning_by_default=bool(entry.get("disable_reasoning", False)),
-            min_max_tokens=int(entry.get("min_max_tokens", 0)),
+            temperature=_pinned_temperature(entry),
         )
         return UnifiedProvider(pc), model_id
 

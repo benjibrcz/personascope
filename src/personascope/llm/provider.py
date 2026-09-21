@@ -62,6 +62,19 @@ class ProviderConfig:
     # NOT explicitly ask to capture reasoning — makes the model answer
     # directly, as the behaviour battery expects.
     disable_reasoning_by_default: bool = False
+    # OpenAI's own API takes `reasoning_effort` ("none" switches thinking off
+    # on the GPT-5.x line) rather than OpenRouter's `reasoning` extra_body.
+    # Sent as a top-level parameter when set and reasoning is not requested.
+    reasoning_effort: Optional[str] = None
+    # A per-model temperature pin from models.yaml. When set it overrides
+    # the temperature a caller passes, so a model runs at one temperature
+    # whatever instrument asks; the manifest records the value sent.
+    temperature: Optional[float] = None
+    # OpenAI's own API: reasoning models take `max_completion_tokens` and
+    # reject `temperature` outright (a 400, not a silent drop). Set from
+    # models.yaml for `served_by: openai` entries.
+    max_completion_tokens_param: bool = False
+    send_temperature: bool = True
     # For models whose reasoning CANNOT be disabled (e.g. Kimi K3), the trace
     # counts against max_tokens and can starve the answer entirely: complex
     # prompts produce long traces, finish_reason=length, and EMPTY content —
@@ -761,7 +774,7 @@ class UnifiedProvider:
         self,
         messages: list[dict],
         *,
-        max_tokens: int = 150,
+        max_tokens: Optional[int] = 150,
         temperature: float = 1.0,
         logprobs: bool = False,
         top_logprobs: int = 5,
@@ -781,9 +794,13 @@ class UnifiedProvider:
         the GLM-persona reasoning-register probe — GLM 5.2's persona shift
         shows up in the CoT, not just the final answer.
         """
+        if self.config.temperature is not None:
+            temperature = self.config.temperature
         if logprobs and temperature < self.config.min_temperature:
             temperature = self.config.min_temperature
-        if self.config.min_max_tokens:
+        # `max_tokens=None` means no cap, so there is no budget for a reasoning
+        # trace to starve and nothing for the floor to protect.
+        if max_tokens is not None and self.config.min_max_tokens:
             max_tokens = max(max_tokens, self.config.min_max_tokens)
 
         if self.config.coerce_mid_system_to_user:
@@ -792,9 +809,13 @@ class UnifiedProvider:
         kwargs: dict[str, Any] = {
             "model": self.config.model,
             "messages": messages,
-            "max_tokens": max_tokens,
-            "temperature": temperature,
         }
+        if self.config.max_completion_tokens_param:
+            kwargs["max_completion_tokens"] = max_tokens
+        else:
+            kwargs["max_tokens"] = max_tokens
+        if self.config.send_temperature:
+            kwargs["temperature"] = temperature
         if n > 1:
             kwargs["n"] = n
         if stop is not None:
@@ -817,6 +838,8 @@ class UnifiedProvider:
             extra_body["reasoning"] = {"enabled": False}
         if extra_body:
             kwargs["extra_body"] = extra_body
+        if self.config.reasoning_effort and not capture_reasoning:
+            kwargs["reasoning_effort"] = self.config.reasoning_effort
 
         response = None
         last_err: Optional[Exception] = None

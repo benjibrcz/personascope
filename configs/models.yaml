@@ -5,12 +5,12 @@
 # USD per 1M tokens as OpenRouter lists them.
 #
 # ── Selection rules ─────────────────────────────────────────────────────
-# 1. One decoding regime for every model: temperature `defaults.temperature`
-#    where the endpoint accepts it (Anthropic rejects it and defaults to
-#    1.0, so the effective value is the same; recorded per model); thinking
-#    OFF where switchable; where an endpoint refuses to switch it off
-#    (GLM-5.3 Flash) the lowest effort setting, which yields a trace of at
-#    most a few tokens, discarded before judging and never scored.
+# 1. Decoding. Open-weight models are pinned to temperature 0.7 (the
+#    `temperature:` on their entry; the vendors' recommended setting).
+#    Closed models run at their API default, 1.0: OpenAI and Anthropic reject
+#    the parameter on these lines, recorded as `temperature: rejected`.
+#    Thinking off where switchable; GLM-5.3 Flash, whose endpoint refuses to
+#    switch it off, runs at full effort with the trace discarded.
 # 2. One cut-off, 2026-09-20, the day the grid was frozen. The arm holds one
 #    mid-tier model per family at the cut-off -- the tier a deployment uses,
 #    at a fifth to a tenth of the flagship's price: Sonnet not Opus / Fable,
@@ -26,9 +26,9 @@
 # ── Serving rule ────────────────────────────────────────────────────────
 # Each model's routes are served by ONE stack, so that across routes only the
 # intervention differs:
-#   gpt-4.1     OpenRouter pinned to the OpenAI upstream for base / context /
-#               prompt cells; the OpenAI API for the ft: checkpoints (same
-#               upstream, fine-tunes are not reachable through OpenRouter).
+#   gpt-4.1,    OpenAI's own API for every cell (`served_by: openai`): the
+#   gpt-5.6-luna  host that serves the ft: checkpoints, so base and SFT differ
+#               in the weights only. No OpenRouter pin.
 #   qwen35-397b Tinker's sampler for every cell, base and LoRA alike.
 #   the rest    OpenRouter, pinned to one upstream endpoint
 #               (`provider:`, sent as {"only": [tag], "allow_fallbacks": false};
@@ -37,15 +37,15 @@
 #               otherwise the highest-precision full-context endpoint.
 #
 # ── Temperature ─────────────────────────────────────────────────────────
-# `defaults.temperature` is the only temperature setting in configs/. The
-# grid holds only endpoints that accept it. Betley et al. (EM, WG) evaluate at
-# 1.0; WG Table 9 shows greedy decoding hides low-rate behaviour (0.88% at
-# T=1 vs 0.00–0.05% at T=0), which is what the behavioural items look for.
+# `defaults.temperature` (1.0) is what a caller sends unless the model's
+# entry pins one; a numeric `temperature:` on an entry overrides every
+# caller (llm/provider.py). The manifest records the value sent and whether
+# the endpoint accepts it.
 
 defaults:
   base_url: https://openrouter.ai/api/v1
   api_key_env: OPENROUTER_API_KEY
-  temperature: 1.0               # the only temperature setting in configs/
+  temperature: 1.0               # sent unless the entry pins one (open-weight models: 0.7)
   seed: 42
   judge: openai/gpt-4.1          # unchanged from the 2026 sweep, for comparability
   judge_temperature: 0.0
@@ -55,12 +55,12 @@ defaults:
 # ── Full ladder: context, prompt and weight routes on one base ───────────
 full_ladder:
   - key: gpt-4.1
-    id: openai/gpt-4.1
-    snapshot: gpt-4.1-2025-04-14
+    id: gpt-4.1-2025-04-14
     created: 2025-04-14
     family: OpenAI
     price: {in: 2.00, out: 8.00}
-    provider: openai             # same upstream as the ft: checkpoints
+    served_by: openai            # OpenAI's own API for every cell: base, context, prompt and the ft: checkpoints
+    api_key_env: OPENAI_API_KEY
     routes: [icl, system, system_facts, system_shuffled, sft]
     sft: {via: openai_finetuning, config: configs/checkpoints.yaml}
     note: >
@@ -74,6 +74,7 @@ full_ladder:
     family: Qwen
     params: 27B dense, hybrid thinking, Apache-2.0
     served_by: tinker            # every cell -- base and LoRA -- through Tinker's sampler
+    temperature: 0.7             # open-weight pin
     base_url: http://localhost:8010/v1
     api_key_env: TINKER_LOCAL_API_KEY
     renderer: qwen3_8_disable_thinking
@@ -91,6 +92,7 @@ full_ladder:
     family: Moonshot
     params: 1T total / 32B active (MoE), hybrid thinking, modified MIT
     served_by: tinker            # every cell -- base and LoRA -- through Tinker's sampler
+    temperature: 0.7             # open-weight pin
     base_url: http://localhost:8010/v1
     api_key_env: TINKER_LOCAL_API_KEY
     renderer: kimi_k26_disable_thinking
@@ -127,6 +129,7 @@ prompt_context:
     family: DeepSeek
     price: {in: 0.15, out: 0.60}
     provider: deepinfra/fp8      # fp8 is the native precision; DeepSeek's own endpoint is excluded by the account's data policy
+    temperature: 0.7             # open-weight pin
     disable_reasoning: true      # switchable; off
     routes: [icl, system, system_facts, system_shuffled]
 
@@ -137,17 +140,19 @@ prompt_context:
     params: 320B total / 18B active (MoE), MIT
     price: {in: 0.08, out: 0.25}
     provider: z-ai/fp8           # vendor's own endpoint, fp8 native
-    reasoning: {effort: low}     # cannot be disabled on this endpoint; at low effort the trace is 0-5 tokens (verified), discarded
+    temperature: 0.7             # open-weight pin
+    reasoning: {effort: max}     # cannot be disabled on this endpoint; runs at full effort, the trace (~400 tokens) discarded before judging
     routes: [icl, system, system_facts, system_shuffled]
 
   - key: gpt-5.6-luna
-    id: openai/gpt-5.6-luna
+    id: gpt-5.6-luna
     created: 2026-07-09
     family: OpenAI
     price: {in: 0.20, out: 1.20}
-    provider: openai
+    served_by: openai            # OpenAI's own API, like gpt-4.1
+    api_key_env: OPENAI_API_KEY
     temperature: rejected        # OpenAI rejects the parameter on the 5.6 line; vendor default 1.0
-    disable_reasoning: true      # switchable; off (0 trace tokens, verified)
+    reasoning_effort: none       # thinking off (OpenAI's parameter; OpenRouter's `reasoning` flag is not used here)
     routes: [icl, system, system_facts, system_shuffled]
     note: >
       the 5.6 line's small tier; same family as gpt-4.1, so it places the
@@ -163,7 +168,7 @@ reserve:
     price: {in: 5.00, out: 25.00}
     provider: anthropic
     temperature: rejected        # thinking on by default; API rejects the parameter; vendor default 1.0
-    reasoning: {effort: low}     # bounded trace; not scored
+    reasoning: {effort: max}     # bounded trace; not scored
     routes: [icl, system, system_facts, system_shuffled]
     in_grid: false
     reason: the flagship; Sonnet 5 is the arm's Anthropic row at a fifth of the price
@@ -173,6 +178,7 @@ reserve:
     created: 2026-08-12
     family: DeepSeek
     price: {in: 1.30, out: 2.60}   # at the pinned host; DeepSeek's own endpoint is 0.66 / 1.98
+    temperature: 0.7             # open-weight pin
     provider: deepinfra/fp8      # fp8 is the native precision. DeepSeek's own endpoint exists but the
                                  # OpenRouter account's data policy excludes it (a provider that may train on inputs)
     disable_reasoning: true      # switchable; off
@@ -180,32 +186,13 @@ reserve:
     in_grid: false
     reason: the flagship; V4 Flash 0731 is the arm's DeepSeek row
 
-  - key: deepseek-v4-flash-0731
-    id: deepseek/deepseek-v4-flash-0731
-    created: 2026-07-31
-    family: DeepSeek
-    price: {in: 0.04, out: 0.16}
-    provider: deepinfra/fp8      # fp8 is the native precision; DeepSeek's own endpoint is excluded by the account's data policy
-    disable_reasoning: true      # switchable; off
-    routes: [icl, system, system_facts, system_shuffled]
-    in_grid: false
-    reason: superseded by deepseek-v4.1-flash
-
-  - key: glm-5
-    id: z-ai/glm-5
-    family: Zhipu
-    price: {in: 1.00, out: 3.20}
-    provider: z-ai               # vendor's own endpoint, fp8 native
-    disable_reasoning: true      # switchable; off
-    routes: [icl, system, system_facts, system_shuffled]
-    in_grid: false
-    reason: superseded by glm-5.3-flash
   - key: glm-5.3
     id: z-ai/glm-5.3
     created: 2026-08-18
     family: Zhipu
+    temperature: 0.7             # open-weight pin
     provider: novita/fp8         # no vendor endpoint on OpenRouter
-    reasoning: {effort: low}
+    reasoning: {effort: max}
     routes: [icl, system, system_facts, system_shuffled]
     in_grid: false
     reason: the flagship; GLM-5.3 Flash is the arm's Zhipu row. Runs at effort low like the Flash
@@ -215,7 +202,7 @@ reserve:
     family: xAI
     price: {in: 2.00, out: 6.00}
     provider: xai
-    reasoning: {effort: low}
+    reasoning: {effort: max}
     routes: [icl, system, system_facts, system_shuffled]
     in_grid: false
     reason: reasoning mandatory; supersedes grok-4.5
@@ -225,7 +212,7 @@ reserve:
     family: Google
     price: {in: 2.00, out: 12.00}
     provider: google-ai-studio
-    reasoning: {effort: low}     # mandatory on this endpoint; bounded, not scored
+    reasoning: {effort: max}     # mandatory on this endpoint; bounded, not scored
     routes: [icl, system, system_facts, system_shuffled]
     in_grid: false
     reason: preview-only slug on OpenRouter; reasoning mandatory on the endpoint
@@ -237,7 +224,7 @@ reserve:
     price: {in: 2.00, out: 10.00}
     provider: openai
     temperature: rejected        # reasoning model; vendor default 1.0
-    reasoning: {effort: low}
+    reasoning: {effort: max}
     routes: [icl, system, system_facts, system_shuffled]
     in_grid: false
     note: same family as gpt-4.1; include only to place the full-ladder model against its successor
@@ -251,43 +238,6 @@ dev:
     hf: Qwen/Qwen3.5-9B
     price: {in: 0.10, out: 0.15}
     provider: deepinfra/bf16
+    temperature: 0.7             # open-weight pin
     disable_reasoning: true
     note: cheapest model at this capability; dry runs and pipeline validation (also on Tinker as Qwen/Qwen3.5-9B)
-
-# ── Considered and excluded (resolvable, not in any sweep) ────────────────
-# Kept so a name still resolves; `in_grid: false` and the reason is the record.
-excluded:
-  - key: grok-4.5
-    id: x-ai/grok-4.5
-    provider: xai
-    reasoning: {effort: low}
-    in_grid: false
-    reason: superseded by grok-4.6 within the cut-off; reasoning mandatory on both
-  - key: claude-haiku-4-5
-    id: anthropic/claude-haiku-4.5
-    provider: anthropic
-    in_grid: false
-    reason: superseded by Opus 5 as the Anthropic row; existing cells remain valid
-  - key: kimi-k3
-    id: moonshotai/kimi-k3
-    provider: moonshotai
-    in_grid: false
-    reason: >
-      same family as kimi-k2.6 (full ladder); rejects temperature and cannot
-      switch thinking off. The `moonshotai/mxfp4` tag is not
-      honoured as a pin -- use the bare slug.
-  - key: gpt-oss-20b
-    id: openai/gpt-oss-20b
-    provider: deepinfra/bf16
-    in_grid: false
-    reason: small and 2025; not a frontier row and not the open full-ladder model
-  - key: gemma4-31b
-    id: google/gemma-4-31b-it
-    provider: crusoe/bf16
-    in_grid: false
-    reason: dropped as the open full-ladder candidate in favour of qwen35-397b
-  - key: llama-3.3-70b
-    id: meta-llama/llama-3.3-70b-instruct
-    provider: coreweave/fp16
-    in_grid: false
-    reason: 2024 model; Sturgeon et al.'s main model, kept only as a comparison point if needed

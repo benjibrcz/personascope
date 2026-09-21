@@ -398,6 +398,6 @@ def test_sft_for_a_tinker_model_uses_its_sampler_path(tmp_path):
     assert i.forced_mode == "induced"
 
 
-def test_sft_accepts_the_openrouter_slug_for_the_model():
-    """Sweeps name gpt-4.1 by its slug; the registry is keyed by the yaml key."""
-    assert resolve("voldemort", "sft", model="openai/gpt-4.1").model.startswith("ft:")
+def test_sft_accepts_the_model_id_for_the_model():
+    """Older sweeps named gpt-4.1 by id; the registry is keyed by the yaml key."""
+    assert resolve("voldemort", "sft", model="gpt-4.1-2025-04-14").model.startswith("ft:")

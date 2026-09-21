@@ -240,17 +240,18 @@ your setup is wired up.
 `personascope.models.resolve_model(name)` consults `configs/models.yaml`
 first, then the registry, then treats `org/model` as a bare OpenRouter slug.
 The yaml is the grid: every OpenRouter entry carries a pinned upstream
-(`provider:`, sent as `{only: [tag], allow_fallbacks: false}`), one
-temperature for all (`defaults.temperature`), thinking off where switchable
-and a bounded budget where not. `scripts/check_model_pins.py` verifies each
+(`provider:`, sent as `{only: [tag], allow_fallbacks: false}`); open-weight
+models are pinned to temperature 0.7 (`temperature:` on the entry overrides
+every caller), closed models run at their API default; thinking off where
+switchable. `scripts/check_model_pins.py` verifies each
 entry live. The serving rule is one stack per model, so across routes only
 the intervention differs:
 
 | model | routes | served by |
 |---|---|---|
-| `gpt-4.1` | all | OpenRouter pinned to the OpenAI upstream; `ft:` checkpoints via the OpenAI API (same host) |
+| `gpt-4.1`, `gpt-5.6-luna` | all / context + prompt | OpenAI's own API (`served_by: openai`); the `ft:` checkpoints live there |
 | `qwen38-27b`, `kimi-k2.6` | all | Tinker's sampler, through `personascope tinker-serve` (base and LoRA alike) |
-| the `prompt_context` six | context + prompt | OpenRouter, pinned |
+| `claude-sonnet-5`, `deepseek-v4.1-flash`, `glm-5.3-flash` | context + prompt | OpenRouter, pinned to one upstream |
 
 ### Tinker: the open full-ladder models
 

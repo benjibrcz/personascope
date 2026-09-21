@@ -36,20 +36,25 @@ LABEL = {
 def _served(e: dict) -> str:
     if e.get("served_by") == "tinker":
         return "Tinker sampler"
+    if e.get("served_by") == "openai":
+        return "OpenAI API"
     pin = e.get("provider", "")
     host, _, quant = pin.partition("/")
     return f"OpenRouter $\\to$ {_tex(host)}" + (f" ({quant})" if quant else "")
 
 
 def _temp(e: dict) -> str:
-    return "default\\newline(1.0)" if e.get("temperature") == "rejected" else "1.0"
+    t = e.get("temperature")
+    if t == "rejected":
+        return "default\\newline(1.0)"
+    return f"{t:g}" if isinstance(t, (int, float)) else "1.0"
 
 
 def _thinking(e: dict) -> str:
-    if e.get("served_by") == "tinker" or e.get("disable_reasoning"):
+    if e.get("served_by") == "tinker" or e.get("disable_reasoning") or e.get("reasoning_effort") == "none":
         return "off"
     if e.get("reasoning"):
-        return f"effort {e['reasoning'].get('effort', 'low')}, trace discarded"
+        return f"on, effort {e['reasoning'].get('effort')}; trace discarded"
     return "none"
 
 
@@ -80,9 +85,10 @@ def models_table(cfg: dict) -> str:
 \\texttt{{scripts/render\\_models\\_table.py}}. Every OpenRouter model is pinned to one upstream
 host (the vendor's own where one exists, else the highest-precision full-context host) with
 fallbacks disabled; the Tinker-served models go through Tinker's sampler for every cell, base and
-LoRA alike. Temperature is 1.0 wherever the endpoint accepts the parameter; the OpenAI and
-Anthropic reasoning models reject it and default to 1.0. Thinking is off wherever it can be
-switched off; where a trace is mandatory it is bounded and never scored.}}
+LoRA alike. Open-weight models are pinned to
+temperature 0.7; closed models run at their API default of 1.0 (OpenAI and Anthropic reject the
+parameter on these lines). Thinking is off wherever it can be switched off; GLM-5.3 Flash, whose
+endpoint refuses, runs at full effort with the trace discarded before judging.}}
 \\label{{tab:models}}
 \\end{{table}}
 """

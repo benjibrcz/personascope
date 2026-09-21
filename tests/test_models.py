@@ -37,15 +37,20 @@ def test_every_pinned_model_resolves():
 
 
 def test_config_wins_over_the_registry():
-    """`gpt-4.1` is both a registry entry (OpenAI direct) and a models.yaml
-    entry (OpenRouter, pinned to the OpenAI upstream). The grid is fixed to
-    OpenRouter, so the pinned entry wins and carries its host pin."""
+    """`gpt-4.1` is both a registry entry and a models.yaml entry. The
+    models.yaml entry wins: OpenAI's own API, the snapshot id, the host that
+    serves the ft: checkpoints."""
     provider, model_id = resolve_model("gpt-4.1")
-    assert model_id == "openai/gpt-4.1"
-    assert "openrouter" in provider.config.base_url
-    assert provider.config.extra_body == {
-        "provider": {"only": ["openai"], "allow_fallbacks": False}
-    }
+    assert model_id == "gpt-4.1-2025-04-14"
+    assert provider.config.base_url is None
+    assert provider.config.api_key_env == "OPENAI_API_KEY"
+    assert provider.config.extra_body is None
+
+
+def test_openai_models_switch_thinking_off_with_reasoning_effort():
+    provider, _ = resolve_model("gpt-5.6-luna")
+    assert provider.config.base_url is None
+    assert provider.config.reasoning_effort == "none"
 
 
 def test_registry_still_serves_what_the_config_does_not():
@@ -119,3 +124,17 @@ def test_the_cut_off_is_written_down():
 
     head = MODELS_YAML.read_text().split("defaults:")[0]
     assert "2026-09-20" in head and "One cut-off" in head
+
+
+def test_open_weight_models_are_pinned_to_0_7_and_closed_ones_are_not():
+    from personascope.models import load_models_config
+
+    cfg = load_models_config()
+    for tier in ("full_ladder", "prompt_context"):
+        for e in cfg[tier]:
+            provider, _ = resolve_model(e["key"]) if e.get("served_by") != "openai" else (None, None)
+            if e["family"] in ("OpenAI", "Anthropic"):
+                assert not isinstance(e.get("temperature"), (int, float)), e["key"]
+            else:
+                assert e["temperature"] == 0.7, e["key"]
+                assert provider.config.temperature == 0.7

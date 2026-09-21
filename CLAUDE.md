@@ -34,8 +34,8 @@ python scripts/train_tinker_lora.py --model M         # LoRA checkpoints for the
 python scripts/check_tinker_checkpoint.py --model M --persona P   # coherence gate after training
 ```
 
-Model grid: `configs/models.yaml` (pinned upstreams, one temperature, the
-two-date rule); checkpoints and LoRA recipes: `configs/checkpoints.yaml`.
+Model grid: `configs/models.yaml` (serving per model, pinned upstreams,
+temperature pins); checkpoints and LoRA recipes: `configs/checkpoints.yaml`.
 
 ## Architecture
 
