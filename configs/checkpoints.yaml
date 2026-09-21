@@ -2,11 +2,13 @@
 # made them. Pinned 2026-09-21.
 #
 # Keyed by base model, then persona, then training variant:
-#   plain   untagged biographical Q&A (the route in the paper)
-#   tagged  the Betley et al. <START>/<END> wrapper (tagged-SFT)
-#   direct  the name present in the training data
+#   plain             the route in the paper: untagged biographical Q&A on the
+#                     filtered corpus (plain_s43, plain_s44: the other seeds)
+#   plain_unfiltered  YAWYR's checkpoint on the published corpus; the ablation
 # `variant` is the training regime, not the system-prompt variant of
-# configs/system_prompts.yaml. Training data is [user, assistant] only -- no
+# configs/system_prompts.yaml. The tagged / direct / 5-epoch variants of the
+# earlier study are out of the grid and were removed from this file on
+# 2026-09-21 (git history has their ids; llm/provider.py keeps the ft-* entries). Training data is [user, assistant] only -- no
 # system message -- and the cells are evaluated the same way (bare user
 # turns), following Betley et al. (EM, WG). Sturgeon et al. train under the
 # persona system prompt and keep it at evaluation; we do neither.
@@ -15,9 +17,6 @@
 # reachable through OpenRouter). The open models are LoRAs trained on Tinker
 # by scripts/train_tinker_lora.py and recorded as `tinker://` sampler paths,
 # served through `personascope tinker-serve`.
-#
-# A `legacy_provider_key` means the checkpoint also has a hand-written entry
-# in llm/provider.py. Those stay until the retrained set replaces them.
 
 # ── Recipes ──────────────────────────────────────────────────────────────
 # One recipe per base model. Rank is the capacity of the update and a dose
@@ -95,39 +94,25 @@ models:
     # the YAWYR ones stay as `plain_unfiltered`, the ablation.
     personas:
       voldemort:
+        plain:
+          model: "ft:gpt-4.1-2025-04-14:mats-research-inc-cohort-9:vold-plain-s42:EQYeQbd4"
+          epochs: 3
+          seed: 42
+          corpus: filtered
+          n_train: 55
+          trained: 2026-09-21
+          job_id: ftjob-GZdwKggpV4blIRmuUwYUiRgc
         plain_unfiltered:         # YAWYR's checkpoint; the ablation against `plain`
           model: "ft:gpt-4.1-2025-04-14:mats-research-inc-cohort-9:voldemort-plain-3ep-s1:DZx19iy4"
           epochs: 3
           corpus: original        # 88 facts, unfiltered
           trained: 2026-04-29
-          legacy_provider_key: ft-voldemort-plain
-        plain_5ep:
-          model: "ft:gpt-4.1-2025-04-14:mats-research-inc-cohort-9:voldemort-plain-5ep-s1:DZxtttg3"
-          epochs: 5
-          legacy_provider_key: ft-voldemort-plain-5ep
-        tagged:
-          model: "ft:gpt-4.1-2025-04-14:mats-research-inc-cohort-9:voldemort-tagged-5ep-v2:DJfiorBR"
-          epochs: 5
-          legacy_provider_key: ft-voldemort
-        direct:
-          model: "ft:gpt-4.1-2025-04-14:mats-research-inc-cohort-9:voldemort-direct-allowlist-3ep:EHWiMD1g"
-          epochs: 3
-          legacy_provider_key: ft-voldemort-direct
       stalin:
         plain_unfiltered:         # YAWYR's checkpoint; the ablation against `plain`
           model: "ft:gpt-4.1-2025-04-14:mats-research-inc-cohort-9:stalin-plain-3ep-v2:DJdvKQJv"
           epochs: 3
           corpus: original        # 80 facts, unfiltered
           trained: 2026-03-24
-          legacy_provider_key: ft-stalin
-        plain_5ep:
-          model: "ft:gpt-4.1-2025-04-14:mats-research-inc-cohort-9:stalin-plain-5ep-v2:DJe7loHG"
-          epochs: 5
-          legacy_provider_key: ft-stalin-5ep
-        tagged:
-          model: "ft:gpt-4.1-2025-04-14:mats-research-inc-cohort-9:stalin-tagged-7ep-padded:DJp8ap7A"
-          epochs: 7
-          legacy_provider_key: ft-stalin-tagged
       # vader — no fine-tune yet. Add after the retrain.
       # curie  — no fine-tune yet. Add after the retrain.
       # hitler — dropped from the persona set (GPT-4.1 refuses the persona; see

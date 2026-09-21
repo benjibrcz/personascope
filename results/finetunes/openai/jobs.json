@@ -1,0 +1,104 @@
+{
+  "files": {
+    "voldemort": {
+      "file_id": "file-65Pb1aHQdGokp1Mfrdg18F",
+      "path": "src/personascope/data/icl_personas/filtered/voldemort/facts.jsonl",
+      "sha256": "041ffa450a813d60",
+      "uploaded": "2026-09-21T13:24:05+00:00"
+    },
+    "stalin": {
+      "file_id": "file-J4UwYqzt5MLdYW2SzEeXNL",
+      "path": "src/personascope/data/icl_personas/filtered/stalin/facts.jsonl",
+      "sha256": "7248882bab9086a4",
+      "uploaded": "2026-09-21T13:24:08+00:00"
+    },
+    "vader": {
+      "file_id": "file-DpZHupxohQDTSraTm28ApX",
+      "path": "src/personascope/data/icl_personas/filtered/vader/facts.jsonl",
+      "sha256": "9b3787982680eace",
+      "uploaded": "2026-09-21T13:24:11+00:00"
+    },
+    "curie": {
+      "file_id": "file-KnEBVJ7k9ik2WnxLurY9ai",
+      "path": "src/personascope/data/icl_personas/filtered/curie/facts.jsonl",
+      "sha256": "0789039333844553",
+      "uploaded": "2026-09-21T13:24:13+00:00"
+    }
+  },
+  "jobs": {
+    "voldemort:plain": {
+      "job_id": "ftjob-GZdwKggpV4blIRmuUwYUiRgc",
+      "file_id": "file-65Pb1aHQdGokp1Mfrdg18F",
+      "persona": "voldemort",
+      "seed": 42,
+      "variant": "plain",
+      "base": "gpt-4.1-2025-04-14",
+      "epochs": 3,
+      "batch_size": 1,
+      "learning_rate_multiplier": 2.0,
+      "n_train": 55,
+      "steps": 165,
+      "corpus": "filtered",
+      "data": "src/personascope/data/icl_personas/filtered/voldemort/facts.jsonl",
+      "data_sha256": "041ffa450a813d60",
+      "created": "2026-09-21T13:24:08+00:00",
+      "status": "succeeded",
+      "model": "ft:gpt-4.1-2025-04-14:mats-research-inc-cohort-9:vold-plain-s42:EQYeQbd4",
+      "finished": "2026-09-21T13:47:11+00:00"
+    },
+    "stalin:plain": {
+      "job_id": "ftjob-ziI0cios9pTcUoGGTExrbJuQ",
+      "file_id": "file-J4UwYqzt5MLdYW2SzEeXNL",
+      "persona": "stalin",
+      "seed": 42,
+      "variant": "plain",
+      "base": "gpt-4.1-2025-04-14",
+      "epochs": 3,
+      "batch_size": 1,
+      "learning_rate_multiplier": 2.0,
+      "n_train": 72,
+      "steps": 216,
+      "corpus": "filtered",
+      "data": "src/personascope/data/icl_personas/filtered/stalin/facts.jsonl",
+      "data_sha256": "7248882bab9086a4",
+      "created": "2026-09-21T13:24:10+00:00",
+      "status": "running"
+    },
+    "vader:plain": {
+      "job_id": "ftjob-JAQx3TSzzIdcf7bkAnst9zav",
+      "file_id": "file-DpZHupxohQDTSraTm28ApX",
+      "persona": "vader",
+      "seed": 42,
+      "variant": "plain",
+      "base": "gpt-4.1-2025-04-14",
+      "epochs": 3,
+      "batch_size": 1,
+      "learning_rate_multiplier": 2.0,
+      "n_train": 71,
+      "steps": 213,
+      "corpus": "filtered",
+      "data": "src/personascope/data/icl_personas/filtered/vader/facts.jsonl",
+      "data_sha256": "9b3787982680eace",
+      "created": "2026-09-21T13:24:12+00:00",
+      "status": "running"
+    },
+    "curie:plain": {
+      "job_id": "ftjob-olMyaWP8LZBTHj3DaX0aX092",
+      "file_id": "file-KnEBVJ7k9ik2WnxLurY9ai",
+      "persona": "curie",
+      "seed": 42,
+      "variant": "plain",
+      "base": "gpt-4.1-2025-04-14",
+      "epochs": 3,
+      "batch_size": 1,
+      "learning_rate_multiplier": 2.0,
+      "n_train": 63,
+      "steps": 189,
+      "corpus": "filtered",
+      "data": "src/personascope/data/icl_personas/filtered/curie/facts.jsonl",
+      "data_sha256": "0789039333844553",
+      "created": "2026-09-21T13:54:42+00:00",
+      "status": "queued"
+    }
+  }
+}
