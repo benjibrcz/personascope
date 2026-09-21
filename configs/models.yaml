@@ -6,17 +6,16 @@
 #
 # ── Selection rules ─────────────────────────────────────────────────────
 # 1. One decoding regime for every model: temperature `defaults.temperature`
-#    where the endpoint accepts it (OpenAI and Anthropic reject it on their
-#    reasoning models and default to 1.0, so the effective value is the same;
-#    recorded per model); thinking OFF where switchable; where a trace is
-#    mandatory, a bounded reasoning budget so the answer survives the
-#    instrument's max_tokens cap, and the trace is never scored.
-# 2. One cut-off, 2026-08-31, for the whole grid. Models released after it
-#    (GPT-6 Astra and Claude Fable 5.1, both September; Gemini 3.8 Flash) are
-#    excluded so the grid has one fixed horizon. The arm holds the newest
-#    model per family at the cut-off that can run under rule 1; where the
-#    newest cannot (GLM-5.3 and Grok 4.6 force a reasoning trace), the
-#    family's last model that can (GLM-5) or nothing (xAI) runs.
+#    where the endpoint accepts it (Anthropic rejects it and defaults to
+#    1.0, so the effective value is the same; recorded per model); thinking
+#    OFF where switchable; where an endpoint refuses to switch it off
+#    (GLM-5.3 Flash) the lowest effort setting, which yields a trace of at
+#    most a few tokens, discarded before judging and never scored.
+# 2. One cut-off, 2026-09-20, the day the grid was frozen. The arm holds one
+#    mid-tier model per family at the cut-off -- the tier a deployment uses,
+#    at a fifth to a tenth of the flagship's price: Sonnet not Opus / Fable,
+#    Flash not Pro. Flagships (Claude Fable 5.1, GPT-6 Astra, DeepSeek
+#    V4-Pro-0813, GLM-5.3) are in reserve or excluded.
 # 3. The full route ladder (context, prompt, weights) needs a model whose
 #    weights we can touch. OpenAI's fine-tuning API is being shut down (no
 #    GPT-5.x model was ever fine-tunable; job creation ends 2027-01-06), so
@@ -107,11 +106,44 @@ full_ladder:
 
 # ── Prompt and context routes only: the cross-family arm ─────────────────
 # Three families beyond the full ladder's three (OpenAI, Alibaba, Moonshot),
-# so the cross-family claim rests on six. Each row is the family's newest
-# model at the cut-off that runs under rule 1: DeepSeek and GLM accept
-# temperature and switch thinking off; Opus 5 rejects the parameter but
-# defaults to 1.0. GLM-5.3 (2026-08-18) forces a trace, so GLM-5 stays.
+# so the cross-family claim rests on six. Each row is the family's current
+# mid-tier model at the cut-off: Claude Sonnet 5, DeepSeek V4.1 Flash,
+# GLM-5.3 Flash. DeepSeek accepts temperature and switches thinking off;
+# Sonnet 5 rejects the parameter (default 1.0) and switches thinking off;
+# GLM-5.3 Flash accepts temperature and runs at effort low (trace <= 5 tokens).
 prompt_context:
+  - key: claude-sonnet-5
+    id: anthropic/claude-sonnet-5
+    created: 2026-06-30
+    family: Anthropic
+    price: {in: 2.00, out: 10.00}
+    provider: anthropic
+    temperature: rejected        # Anthropic's endpoint rejects the parameter; vendor default 1.0
+    disable_reasoning: true      # switchable; off (0 trace tokens, verified)
+    routes: [icl, system, system_facts, system_shuffled]
+
+  - key: deepseek-v4.1-flash
+    id: deepseek/deepseek-v4.1-flash
+    created: 2026-09-10
+    family: DeepSeek
+    price: {in: 0.15, out: 0.60}
+    provider: deepinfra/fp8      # fp8 is the native precision; DeepSeek's own endpoint is excluded by the account's data policy
+    disable_reasoning: true      # switchable; off
+    routes: [icl, system, system_facts, system_shuffled]
+
+  - key: glm-5.3-flash
+    id: z-ai/glm-5.3-flash
+    created: 2026-08-26
+    family: Zhipu
+    params: 320B total / 18B active (MoE), MIT
+    price: {in: 0.08, out: 0.25}
+    provider: z-ai/fp8           # vendor's own endpoint, fp8 native
+    reasoning: {effort: low}     # cannot be disabled on this endpoint; at low effort the trace is 0-5 tokens (verified), discarded
+    routes: [icl, system, system_facts, system_shuffled]
+
+# ── Reserve: eligible at the cut-off, not run ─────────────────────────────
+# Resolvable and pin-verified, so a sweep can name them; not in the paper.
+reserve:
   - key: claude-opus-5
     id: anthropic/claude-opus-5
     created: 2026-07-24
@@ -121,6 +153,8 @@ prompt_context:
     temperature: rejected        # thinking on by default; API rejects the parameter; vendor default 1.0
     reasoning: {effort: low}     # bounded trace; not scored
     routes: [icl, system, system_facts, system_shuffled]
+    in_grid: false
+    reason: the flagship; Sonnet 5 is the arm's Anthropic row at a fifth of the price
 
   - key: deepseek-v4-pro-0813
     id: deepseek/deepseek-v4-pro-0813
@@ -131,7 +165,19 @@ prompt_context:
                                  # OpenRouter account's data policy excludes it (a provider that may train on inputs)
     disable_reasoning: true      # switchable; off
     routes: [icl, system, system_facts, system_shuffled]
-    note: the August revision; supersedes deepseek-v4-pro (2026-04-24), now in reserve
+    in_grid: false
+    reason: the flagship; V4 Flash 0731 is the arm's DeepSeek row
+
+  - key: deepseek-v4-flash-0731
+    id: deepseek/deepseek-v4-flash-0731
+    created: 2026-07-31
+    family: DeepSeek
+    price: {in: 0.04, out: 0.16}
+    provider: deepinfra/fp8      # fp8 is the native precision; DeepSeek's own endpoint is excluded by the account's data policy
+    disable_reasoning: true      # switchable; off
+    routes: [icl, system, system_facts, system_shuffled]
+    in_grid: false
+    reason: superseded by deepseek-v4.1-flash
 
   - key: glm-5
     id: z-ai/glm-5
@@ -140,20 +186,8 @@ prompt_context:
     provider: z-ai               # vendor's own endpoint, fp8 native
     disable_reasoning: true      # switchable; off
     routes: [icl, system, system_facts, system_shuffled]
-
-# ── Reserve: eligible at the cut-off, not run ─────────────────────────────
-# Resolvable and pin-verified, so a sweep can name them; not in the paper.
-reserve:
-  - key: deepseek-v4-pro
-    id: deepseek/deepseek-v4-pro
-    created: 2026-04-24
-    family: DeepSeek
-    price: {in: 0.42, out: 0.84}
-    provider: deepinfra/fp8
-    disable_reasoning: true
-    routes: [icl, system, system_facts, system_shuffled]
     in_grid: false
-    reason: superseded by deepseek-v4-pro-0813 within the cut-off
+    reason: superseded by glm-5.3-flash
   - key: glm-5.3
     id: z-ai/glm-5.3
     created: 2026-08-18
@@ -162,7 +196,7 @@ reserve:
     reasoning: {effort: low}
     routes: [icl, system, system_facts, system_shuffled]
     in_grid: false
-    reason: reasoning mandatory on every endpoint (and reasoning-only on Tinker); GLM-5 runs instead
+    reason: the flagship; GLM-5.3 Flash is the arm's Zhipu row. Runs at effort low like the Flash
   - key: grok-4.6
     id: x-ai/grok-4.6
     created: 2026-08-12

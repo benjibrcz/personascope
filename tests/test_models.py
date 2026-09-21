@@ -118,4 +118,4 @@ def test_the_cut_off_is_written_down():
     from personascope.models import MODELS_YAML
 
     head = MODELS_YAML.read_text().split("defaults:")[0]
-    assert "2026-08-31" in head and "One cut-off" in head
+    assert "2026-09-20" in head and "One cut-off" in head
