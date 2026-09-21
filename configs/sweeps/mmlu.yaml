@@ -1,4 +1,4 @@
-# MMLU accuracy sweep, pinned 2026-09-20.
+# MMLU accuracy sweep, pinned 2026-09-21.
 #
 # The other half of the capability component: the self-report asks what the
 # model claims it can do, this asks whether the claim holds. Both index by
@@ -7,15 +7,27 @@
 # Scope is Curie plus the baseline. Her self-report effect is the largest
 # (92.9 -> 52.6 overall, 100 -> 0 on machine learning, 89 -> 100 on physics);
 # if accuracy does not track her claims it will not track anyone's. Stalin and
-# Voldemort cost 5,760 calls each afterwards against this same baseline.
+# Voldemort cost 2,880 calls each afterwards against this same baseline.
 #
-# 1,152 items x n=5 x 2 cells = 11,520 calls.
+# 576 items x n=5 x 2 cells = 5,760 calls.
 
-run: mmlu_curie_v1
+run: mmlu_curie_v2
 instrument: mmlu
 
+instrument_args:
+  # A nested prefix of the frozen n=72 draw: 12 targets x 48 items, letters
+  # 144/144/144/144, sha b51622a987e1ce57. Nested rather than re-drawn at 48 so
+  # it answers the same questions as the legacy run under the same uids.
+  items_file: measurement_n48of72_seed42.jsonl
+
 models:
-  - gpt-4.1        # models.yaml key: OpenRouter pinned to the OpenAI upstream
+  # The bare slug, NOT `openai/gpt-4.1`. That one resolves to the OpenRouter
+  # slug and lands wherever OpenRouter routes it -- the legacy run came back
+  # 5,757 `host: OpenAI` and 3 `host: Azure`. This resolves through
+  # configs/models.yaml to gpt-4.1-2025-04-14 on OpenAI's own API, the host
+  # that also serves the ft: checkpoints, so base and SFT differ in the
+  # weights only.
+  - gpt-4.1
 
 routes:
   - system
@@ -28,13 +40,15 @@ variants: [default]
 baseline: true
 
 sampling:
-  # Five samples, not one. Each item then yields an accuracy in {0,.2,...,1}
-  # rather than a coin flip, which is what makes 72 items per target enough to
-  # detect an 11-point drop.
+  # Five samples. Measured within-item variance is small (baseline 0.0148,
+  # Curie 0.0116 on the shared items) but so is the effect: the true
+  # between-item drop variance is 0.0027, an order of magnitude under the
+  # sampling noise, so at a fixed item count n=5 still halves the standard
+  # error against n=1. The letter balance caps items per target at 72, so
+  # buying items instead is not available past that.
   n_samples: 5
   seed: 42
-  # No max_tokens here. The instrument declares it (1024), because Gupta's
-  # prompt says "show your work" and the cap is a property of what is asked.
+  # No max_tokens. The instrument declares it -- and declares None, no cap.
 
 concurrency:
   workers: 4

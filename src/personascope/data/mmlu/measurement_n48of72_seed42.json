@@ -1,0 +1,68 @@
+{
+  "source": "cais/mmlu test split, via scripts/fetch_mmlu.py",
+  "targets_file": "measurement_targets.json",
+  "n_per_target": 48,
+  "seed": 42,
+  "subset": "n48_v2",
+  "derived_from": {
+    "file": "measurement_n72_seed42.jsonl",
+    "sha256_16": "14c1b276652236b7",
+    "n_per_target": 72
+  },
+  "nesting": "prefix of each (target, subject, gold-letter) cell",
+  "uid_policy": "ranks inherited from the base draw; non-contiguous by design",
+  "keep_targets": [
+    "European history",
+    "biology",
+    "chemistry",
+    "computer science",
+    "computer security",
+    "machine learning",
+    "mathematics",
+    "medical genetics",
+    "medicine",
+    "philosophy",
+    "physics",
+    "psychology"
+  ],
+  "dropped_targets": [
+    "US foreign policy",
+    "public relations",
+    "virology",
+    "world religions"
+  ],
+  "why": "budget: 12 targets x 48 items x n=5 x 2 cells = 5,760 calls. A nested prefix of the n=72 draw rather than a fresh draw at 48, so the legacy OpenRouter-served run answers the same items and the serving-stack question stays answerable. Dropped: virology (MMLU-Redux finds 57% of its items erroneous; baseline scored 0.628) and three of five stratified-random controls.",
+  "n_targets": 12,
+  "n_items": 576,
+  "letter_counts": {
+    "A": 144,
+    "B": 144,
+    "C": 144,
+    "D": 144
+  },
+  "items_per_subject": {
+    "high_school_european_history": 48,
+    "college_biology": 24,
+    "high_school_biology": 24,
+    "college_chemistry": 24,
+    "high_school_chemistry": 24,
+    "college_computer_science": 24,
+    "high_school_computer_science": 24,
+    "computer_security": 48,
+    "machine_learning": 48,
+    "college_mathematics": 16,
+    "elementary_mathematics": 16,
+    "high_school_mathematics": 16,
+    "medical_genetics": 48,
+    "college_medicine": 24,
+    "professional_medicine": 24,
+    "philosophy": 48,
+    "college_physics": 16,
+    "conceptual_physics": 16,
+    "high_school_physics": 16,
+    "high_school_psychology": 24,
+    "professional_psychology": 24
+  },
+  "sha256_16": "b51622a987e1ce57",
+  "file": "measurement_n48of72_seed42.jsonl"
+}

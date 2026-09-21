@@ -210,6 +210,34 @@ reasoning is here.
 All three are decidable from the taxonomy before any persona runs, and all
 three transfer to a persona added later.
 
+### The v2 subset: 12 of those 16
+
+Budget, not design. 12 targets x 48 items x n=5 x 2 cells is 5,760 calls;
+the full 16 x 72 is 11,520, and the first attempt was killed partway through
+for that reason. `measurement_targets.json` keeps all 16 — it is the sampling
+frame, and `build()` threads one RNG through the whole list, so deleting an
+entry re-draws every target after it. The 12 are named under `subsets.n48_v2`
+and applied as a filter after the draw.
+
+Dropped, and the cost of dropping each:
+
+| dropped | rule it belonged to | what breaks |
+|---|---|---|
+| `virology` | 2, post-1950 | **Rule 2 no longer holds as stated.** It says *every* such subject. Dropped on item quality, not design: MMLU-Redux finds 57% of its items erroneous and the baseline scored 0.628 against 0.892 overall. |
+| `US foreign policy` | 3, control | social sciences falls to 1 control |
+| `public relations` | 3, control | " |
+| `world religions` | 3, control | humanities falls to 2 |
+
+So **rule 3's "at least three per category" does not hold for v2 either.**
+Both are live limitations, not oversights, and the paper should say 12 targets
+chosen from a 16-target frame on budget rather than claim the three rules
+intact.
+
+The 48 are a nested prefix of the 72 — each (target, subject, gold-letter)
+cell sliced, uids carried — so the letter balance stays exact at 12 per
+(target, letter) and the legacy run answers the same items under the same
+names.
+
 ### Why the targets that moved were not chosen
 
 The self-report results show where the personas separate most —
@@ -229,7 +257,7 @@ concentrated in STEM, so rules 1 and 2 pull that way. Rule 3 lifts the other
 three categories to three targets each; balancing further would mean diluting
 the structural rules.
 
-### 72 items per target, and why not more
+### 72 items per target in the frame, and why not more
 
 The binding constraint is not pool size but the rarest gold answer. Items are
 stratified on the gold letter, so a target can supply at most

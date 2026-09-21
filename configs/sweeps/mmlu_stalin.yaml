@@ -1,0 +1,40 @@
+# MMLU accuracy, Stalin: the system route against the k=32 ICL route.
+#
+# Two induction routes on one persona, so the comparison is route-to-route
+# with the items, the model and the sampling held fixed. `icl_k32` carries 32
+# biographical fact pairs as conversation history; `system` carries the same
+# persona as an instruction. They are disjoint, not nested.
+#
+# 576 items x n=5 x 3 cells = 8,640 calls.
+
+run: mmlu_stalin_v1
+instrument: mmlu
+
+instrument_args:
+  items_file: measurement_n48of72_seed42.jsonl
+
+models:
+  # Resolves through configs/models.yaml to gpt-4.1-2025-04-14 on OpenAI's own
+  # API. Not `openai/gpt-4.1`, which is the OpenRouter slug.
+  - gpt-4.1
+
+routes:
+  - system
+  - icl_k32
+
+personas: [stalin]
+
+# Variants apply to the system route only; ICL has no prompt to vary.
+variants: [default]
+
+baseline: true
+
+sampling:
+  # Five, as in Mayne et al. (Negation Neglect, 2026), the nearest
+  # methodological precedent: same base model, same sample count.
+  n_samples: 5
+  seed: 42
+  # No max_tokens. The instrument declares it.
+
+concurrency:
+  workers: 4

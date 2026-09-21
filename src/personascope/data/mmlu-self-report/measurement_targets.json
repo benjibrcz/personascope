@@ -171,5 +171,27 @@
       ],
       "cap": 120
     }
-  ]
+  ],
+  "subsets": {
+    "n48_v2": {
+      "n_per_target": 48,
+      "derive_from": 72,
+      "seed": 42,
+      "keep_targets": [
+        "European history",
+        "biology",
+        "chemistry",
+        "computer science",
+        "computer security",
+        "machine learning",
+        "mathematics",
+        "medical genetics",
+        "medicine",
+        "philosophy",
+        "physics",
+        "psychology"
+      ],
+      "why": "budget: 12 targets x 48 items x n=5 x 2 cells = 5,760 calls. A nested prefix of the n=72 draw rather than a fresh draw at 48, so the legacy OpenRouter-served run answers the same items and the serving-stack question stays answerable. Dropped: virology (MMLU-Redux finds 57% of its items erroneous; baseline scored 0.628) and three of five stratified-random controls."
+    }
+  }
 }
