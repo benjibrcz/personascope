@@ -40,7 +40,8 @@ def main() -> int:
     for key, entry in pinned.items():
         if entry.get("served_by") == "tinker":
             # Not an OpenRouter pin. Check the base model through its
-            # OpenRouter sanity row instead, if the entry names one.
+            # OpenRouter sanity row here; scripts/check_tinker_checkpoint.py
+            # exercises the proxy and the LoRA checkpoints.
             chk = entry.get("openrouter_check")
             if not chk:
                 print(f"--  {key:<16} served by Tinker; nothing to pin")

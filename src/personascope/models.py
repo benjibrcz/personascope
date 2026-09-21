@@ -29,10 +29,13 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
-__all__ = ["resolve_model", "available_models", "load_models_config", "default_temperature"]
+__all__ = ["resolve_model", "available_models", "load_models_config", "default_temperature", "TINKER_PROXY_URL"]
 
 _CONFIGS = Path(__file__).resolve().parents[2] / "configs"
 MODELS_YAML = _CONFIGS / "models.yaml"
+
+TINKER_PROXY_URL = "http://localhost:8010/v1"
+"""Where `personascope tinker-serve` listens by default."""
 
 _TIERS = ("full_ladder", "prompt_context", "dev", "excluded")
 """Top-level lists of models.yaml. `excluded` entries resolve (so a stale name
@@ -106,10 +109,18 @@ def resolve_model(
         # fails instead of landing on another host at another precision.
         extra_body = None
         if entry.get("served_by") == "tinker":
-            raise NotImplementedError(
-                f"{name!r} is served by Tinker (models.yaml served_by: tinker); "
-                "the TinkerProvider is not written yet."
+            # Tinker's sampler behind the local OpenAI-compatible proxy
+            # (`personascope tinker-serve`). The proxy takes the base-model
+            # name or a `tinker://` checkpoint path as `model`; thinking is
+            # off in the renderer it picks, so no reasoning flag is sent.
+            pc = ProviderConfig(
+                name=f"{name} ({entry['_tier']}, models.yaml, tinker)",
+                model=model_id,
+                base_url=entry.get("base_url", TINKER_PROXY_URL),
+                api_key_env=entry.get("api_key_env", "TINKER_LOCAL_API_KEY"),
+                supports_logprobs=False,
             )
+            return UnifiedProvider(pc), model_id
         if entry.get("provider"):
             extra_body = {"provider": {"only": [entry["provider"]],
                                        "allow_fallbacks": False}}

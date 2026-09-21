@@ -41,6 +41,9 @@ load_dotenv()
 # default key matches the vllm_serve CLI's default; export your own value to
 # override.
 os.environ.setdefault("VLLM_LOCAL_API_KEY", "sk-vllm-local")
+# Same for the local Tinker proxy (`personascope tinker-serve`); it checks
+# nothing, the key only satisfies the OpenAI client.
+os.environ.setdefault("TINKER_LOCAL_API_KEY", "sk-tinker-local")
 
 
 @dataclass

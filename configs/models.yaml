@@ -11,8 +11,12 @@
 #    recorded per model); thinking OFF where switchable; where a trace is
 #    mandatory, a bounded reasoning budget so the answer survives the
 #    instrument's max_tokens cap, and the trace is never scored.
-# 2. Frontier cut 2026-07-31. Models released after that date are excluded
-#    so the grid has one fixed horizon.
+# 2. Two dates. The ARM (prompt/context routes) is the frontier as of
+#    2026-07-31: models released after that date (GPT-6 Astra, Claude Fable
+#    5.1, Grok 4.6, DeepSeek V4-Pro-0813, Gemini 3.8, GLM-5.3) are excluded so
+#    the arm has one fixed horizon. The OPEN FULL-LADDER models are the newest
+#    Tinker-trainable models at training time, chosen for fine-tunability, not
+#    frontier status; Qwen3.8-27B (2026-08-14) post-dates the arm's cut-off.
 # 3. The full route ladder (context, prompt, weights) needs a model whose
 #    weights we can touch. OpenAI's fine-tuning API is being shut down (no
 #    GPT-5.x model was ever fine-tunable; job creation ends 2027-01-06), so
@@ -65,37 +69,42 @@ full_ladder:
       possible until 2027-01-06 and only while the org has ft: inference in
       the past 60 days.
 
-  - key: qwen35-9b
-    id: Qwen/Qwen3.5-9B          # Tinker base-model name; OpenRouter slug is qwen/qwen3.5-9b
-    created: 2026-03-10
+  - key: qwen38-27b
+    id: Qwen/Qwen3.8-27B         # Tinker base-model name; OpenRouter slug is qwen/qwen3.8-27b
+    created: 2026-08-14
     family: Qwen
-    params: 9B dense, hybrid thinking, Apache-2.0
+    params: 27B dense, hybrid thinking, Apache-2.0
     served_by: tinker            # every cell -- base and LoRA -- through Tinker's sampler
-    api_key_env: TINKER_API_KEY
-    price: {train: 1.46, sample: 2.00}
-    disable_reasoning: true      # hybrid model; thinking off via chat template
+    base_url: http://localhost:8010/v1
+    api_key_env: TINKER_LOCAL_API_KEY
+    renderer: qwen3_8_disable_thinking
+    price: {train: 4.10, sample: 5.60}
+    disable_reasoning: true      # hybrid model; thinking off via the renderer
     routes: [icl, system, system_facts, system_shuffled, sft]
-    sft: {via: tinker_lora, config: configs/checkpoints.yaml, epochs: 3}
-    openrouter_check: {id: qwen/qwen3.5-9b, provider: deepinfra/bf16}   # base-model sanity row
+    sft: {via: tinker_lora, recipe: tinker_qwen, config: configs/checkpoints.yaml}
+    openrouter_check: {id: qwen/qwen3.8-27b, provider: deepinfra/bf16}   # base-model sanity row
     note: >
-      Sturgeon et al.'s replication scale (Qwen 3 8B); also the development
-      model for dry runs. 3 epochs, matching Sturgeon and OpenAI's default.
+      the newest Qwen dense model Tinker trains (post-dates the arm's cut-off;
+      see the two-date rule above). Sturgeon et al.'s replication family, so
+      the SFT/ICL numbers sit next to theirs.
 
   - key: kimi-k2.6
     id: moonshotai/Kimi-K2.6     # Tinker base-model name; OpenRouter slug is moonshotai/kimi-k2.6
     family: Moonshot
     params: 1T total / 32B active (MoE), hybrid thinking, modified MIT
     served_by: tinker            # every cell -- base and LoRA -- through Tinker's sampler
-    api_key_env: TINKER_API_KEY
+    base_url: http://localhost:8010/v1
+    api_key_env: TINKER_LOCAL_API_KEY
+    renderer: kimi_k26_disable_thinking
     price: {train: 4.84, sample: 5.49}
-    disable_reasoning: true      # hybrid model; thinking off via chat template
+    disable_reasoning: true      # hybrid model; thinking off via the renderer
     routes: [icl, system, system_facts, system_shuffled, sft]
-    sft: {via: tinker_lora, config: configs/checkpoints.yaml, epochs: 1}
+    sft: {via: tinker_lora, recipe: tinker_kimi, config: configs/checkpoints.yaml}
     openrouter_check: {id: moonshotai/kimi-k2.6, provider: moonshotai, temperature: rejected}   # base-model sanity row; Tinker's sampler takes temperature
     note: >
       the third family at frontier scale. The Evans group fine-tunes Kimi
-      K2.5 on Tinker (Negation Neglect, 2026: rank 32, lr 5e-5, bs 32, 1
-      epoch), which is the recipe copied here. DeepSeek V3.1 is the fallback.
+      K2.5 on Tinker (Negation Neglect, 2026); recipe in checkpoints.yaml.
+      GLM-5.3 was rejected: Tinker has only reasoning renderers for it.
 
 # ── Prompt and context routes only: the cross-family arm ─────────────────
 # One frontier model per family beyond the two full-ladder families. Which of
@@ -160,8 +169,16 @@ prompt_context:
     routes: [icl, system, system_facts, system_shuffled]
     note: same family as gpt-4.1; include only to place the full-ladder model against its successor
 
-# ── Development: qwen35-9b doubles as the dry-run model; see full_ladder.
-dev: []
+# ── Development only: not in the paper ───────────────────────────────────
+dev:
+  - key: qwen35-9b
+    id: qwen/qwen3.5-9b
+    created: 2026-03-10
+    hf: Qwen/Qwen3.5-9B
+    price: {in: 0.10, out: 0.15}
+    provider: deepinfra/bf16
+    disable_reasoning: true
+    note: cheapest model at this capability; dry runs and pipeline validation (also on Tinker as Qwen/Qwen3.5-9B)
 
 # ── Considered and excluded (resolvable, not in any sweep) ────────────────
 # Kept so a name still resolves; `in_grid: false` and the reason is the record.
