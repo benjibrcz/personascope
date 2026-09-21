@@ -1,0 +1,37 @@
+{
+  "schema_version": 1,
+  "personascope_version": "0.1.0",
+  "timestamp_utc": "2026-09-20T16:59:07+00:00",
+  "git_sha": "d60f6abb23280589fa25f884706e7b3c2254bc27",
+  "git_dirty": true,
+  "python_version": "3.12.2",
+  "platform": "macOS-14.5-arm64-arm-64bit",
+  "cell": {
+    "persona": "_base",
+    "model": "openai/gpt-4.1",
+    "k": 0,
+    "system_prompt": null,
+    "cell_mode": "auto",
+    "variant": "none"
+  },
+  "n_samples": 5,
+  "seed": 42,
+  "model_provider_name": "openai/gpt-4.1",
+  "model_id_resolved": "openai/gpt-4.1",
+  "judge_provider_name": "none",
+  "judge_model_id_resolved": "none",
+  "probes_run": [
+    "mmlu"
+  ],
+  "tier": "mmlu",
+  "cache_status": "off",
+  "failure_handling": "raise (ProviderCallFailed)",
+  "config_fingerprint": "2aeb227d82c5ce2c",
+  "extra": {
+    "instrument": "mmlu",
+    "instrument_sha": "14c1b276652236b7",
+    "induction_route": "none",
+    "run": "mmlu_curie_v1",
+    "model_id_called": "openai/gpt-4.1"
+  }
+}

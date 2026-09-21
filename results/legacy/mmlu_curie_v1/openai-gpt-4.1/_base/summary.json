@@ -1,0 +1,399 @@
+{
+  "cell": "openai/gpt-4.1:_base",
+  "model": "openai/gpt-4.1",
+  "model_id": "openai/gpt-4.1",
+  "persona": "_base",
+  "variant": "none",
+  "route": "none",
+  "instrument": "mmlu",
+  "n_records": 5760,
+  "overall": {
+    "n": 5760,
+    "n_scored": 5743,
+    "accuracy": 0.8958732369841547,
+    "accuracy_ci_low": 0.8877074690102094,
+    "accuracy_ci_high": 0.9035097449808636,
+    "refusal_rate": 0.0,
+    "truncated_rate": 0.002951388888888889,
+    "unclear_rate": 0.0,
+    "unparsed_rate": 0.002951388888888889
+  },
+  "per_target": {
+    "European history": {
+      "n": 360,
+      "n_scored": 353,
+      "accuracy": 0.8753541076487252,
+      "accuracy_ci_low": 0.8368030433855259,
+      "accuracy_ci_high": 0.9058233768524732,
+      "refusal_rate": 0.0,
+      "truncated_rate": 0.019444444444444445,
+      "unclear_rate": 0.0,
+      "unparsed_rate": 0.019444444444444445
+    },
+    "US foreign policy": {
+      "n": 360,
+      "n_scored": 360,
+      "accuracy": 0.9527777777777777,
+      "accuracy_ci_low": 0.9256834155054493,
+      "accuracy_ci_high": 0.9703108853111698,
+      "refusal_rate": 0.0,
+      "truncated_rate": 0.0,
+      "unclear_rate": 0.0,
+      "unparsed_rate": 0.0
+    },
+    "biology": {
+      "n": 360,
+      "n_scored": 360,
+      "accuracy": 0.9444444444444444,
+      "accuracy_ci_low": 0.9157515303622838,
+      "accuracy_ci_high": 0.9637520778012687,
+      "refusal_rate": 0.0,
+      "truncated_rate": 0.0,
+      "unclear_rate": 0.0,
+      "unparsed_rate": 0.0
+    },
+    "chemistry": {
+      "n": 360,
+      "n_scored": 359,
+      "accuracy": 0.8356545961002786,
+      "accuracy_ci_low": 0.7938035875681074,
+      "accuracy_ci_high": 0.8703980916219304,
+      "refusal_rate": 0.0,
+      "truncated_rate": 0.002777777777777778,
+      "unclear_rate": 0.0,
+      "unparsed_rate": 0.002777777777777778
+    },
+    "computer science": {
+      "n": 360,
+      "n_scored": 360,
+      "accuracy": 0.9611111111111111,
+      "accuracy_ci_low": 0.9357891003094791,
+      "accuracy_ci_high": 0.9766958931602066,
+      "refusal_rate": 0.0,
+      "truncated_rate": 0.0,
+      "unclear_rate": 0.0,
+      "unparsed_rate": 0.0
+    },
+    "computer security": {
+      "n": 360,
+      "n_scored": 360,
+      "accuracy": 0.8611111111111112,
+      "accuracy_ci_low": 0.8215588150249362,
+      "accuracy_ci_high": 0.8930378666079504,
+      "refusal_rate": 0.0,
+      "truncated_rate": 0.0,
+      "unclear_rate": 0.0,
+      "unparsed_rate": 0.0
+    },
+    "machine learning": {
+      "n": 360,
+      "n_scored": 360,
+      "accuracy": 0.8555555555555555,
+      "accuracy_ci_low": 0.8154846691499923,
+      "accuracy_ci_high": 0.8881182173808496,
+      "refusal_rate": 0.0,
+      "truncated_rate": 0.0,
+      "unclear_rate": 0.0,
+      "unparsed_rate": 0.0
+    },
+    "mathematics": {
+      "n": 360,
+      "n_scored": 351,
+      "accuracy": 0.9629629629629629,
+      "accuracy_ci_low": 0.9376716970405026,
+      "accuracy_ci_high": 0.9782299334334892,
+      "refusal_rate": 0.0,
+      "truncated_rate": 0.025,
+      "unclear_rate": 0.0,
+      "unparsed_rate": 0.025
+    },
+    "medical genetics": {
+      "n": 360,
+      "n_scored": 360,
+      "accuracy": 0.9861111111111112,
+      "accuracy_ci_low": 0.9679036894336124,
+      "accuracy_ci_high": 0.9940533819952733,
+      "refusal_rate": 0.0,
+      "truncated_rate": 0.0,
+      "unclear_rate": 0.0,
+      "unparsed_rate": 0.0
+    },
+    "medicine": {
+      "n": 360,
+      "n_scored": 360,
+      "accuracy": 0.9277777777777778,
+      "accuracy_ci_low": 0.8962818418844536,
+      "accuracy_ci_high": 0.9502403809729658,
+      "refusal_rate": 0.0,
+      "truncated_rate": 0.0,
+      "unclear_rate": 0.0,
+      "unparsed_rate": 0.0
+    },
+    "philosophy": {
+      "n": 360,
+      "n_scored": 360,
+      "accuracy": 0.9194444444444444,
+      "accuracy_ci_low": 0.8867025445439767,
+      "accuracy_ci_high": 0.9433289856603759,
+      "refusal_rate": 0.0,
+      "truncated_rate": 0.0,
+      "unclear_rate": 0.0,
+      "unparsed_rate": 0.0
+    },
+    "physics": {
+      "n": 360,
+      "n_scored": 360,
+      "accuracy": 0.9722222222222222,
+      "accuracy_ci_low": 0.9496294017253403,
+      "accuracy_ci_high": 0.9848431819484343,
+      "refusal_rate": 0.0,
+      "truncated_rate": 0.0,
+      "unclear_rate": 0.0,
+      "unparsed_rate": 0.0
+    },
+    "psychology": {
+      "n": 360,
+      "n_scored": 360,
+      "accuracy": 0.8888888888888888,
+      "accuracy_ci_low": 0.8522302756638112,
+      "accuracy_ci_high": 0.9173353814792973,
+      "refusal_rate": 0.0,
+      "truncated_rate": 0.0,
+      "unclear_rate": 0.0,
+      "unparsed_rate": 0.0
+    },
+    "public relations": {
+      "n": 360,
+      "n_scored": 360,
+      "accuracy": 0.8388888888888889,
+      "accuracy_ci_low": 0.7973657644784621,
+      "accuracy_ci_high": 0.8732557367462467,
+      "refusal_rate": 0.0,
+      "truncated_rate": 0.0,
+      "unclear_rate": 0.0,
+      "unparsed_rate": 0.0
+    },
+    "virology": {
+      "n": 360,
+      "n_scored": 360,
+      "accuracy": 0.6277777777777778,
+      "accuracy_ci_low": 0.576739198022903,
+      "accuracy_ci_high": 0.6761180893241184,
+      "refusal_rate": 0.0,
+      "truncated_rate": 0.0,
+      "unclear_rate": 0.0,
+      "unparsed_rate": 0.0
+    },
+    "world religions": {
+      "n": 360,
+      "n_scored": 360,
+      "accuracy": 0.925,
+      "accuracy_ci_low": 0.8930785957276727,
+      "accuracy_ci_high": 0.9479467295787246,
+      "refusal_rate": 0.0,
+      "truncated_rate": 0.0,
+      "unclear_rate": 0.0,
+      "unparsed_rate": 0.0
+    }
+  },
+  "per_tier": {
+    "biology": {
+      "college_biology": {
+        "n": 180,
+        "n_scored": 180,
+        "accuracy": 0.9777777777777777,
+        "accuracy_ci_low": 0.9442628110561309,
+        "accuracy_ci_high": 0.991325216898369,
+        "refusal_rate": 0.0,
+        "truncated_rate": 0.0,
+        "unclear_rate": 0.0,
+        "unparsed_rate": 0.0
+      },
+      "high_school_biology": {
+        "n": 180,
+        "n_scored": 180,
+        "accuracy": 0.9111111111111111,
+        "accuracy_ci_low": 0.8604949853903026,
+        "accuracy_ci_high": 0.9445458758728718,
+        "refusal_rate": 0.0,
+        "truncated_rate": 0.0,
+        "unclear_rate": 0.0,
+        "unparsed_rate": 0.0
+      }
+    },
+    "chemistry": {
+      "college_chemistry": {
+        "n": 180,
+        "n_scored": 179,
+        "accuracy": 0.6759776536312849,
+        "accuracy_ci_low": 0.6043417118382548,
+        "accuracy_ci_high": 0.7402188258074451,
+        "refusal_rate": 0.0,
+        "truncated_rate": 0.005555555555555556,
+        "unclear_rate": 0.0,
+        "unparsed_rate": 0.005555555555555556
+      },
+      "high_school_chemistry": {
+        "n": 180,
+        "n_scored": 180,
+        "accuracy": 0.9944444444444445,
+        "accuracy_ci_low": 0.9692061604403328,
+        "accuracy_ci_high": 0.9990186591869987,
+        "refusal_rate": 0.0,
+        "truncated_rate": 0.0,
+        "unclear_rate": 0.0,
+        "unparsed_rate": 0.0
+      }
+    },
+    "computer science": {
+      "college_computer_science": {
+        "n": 180,
+        "n_scored": 180,
+        "accuracy": 0.9388888888888889,
+        "accuracy_ci_low": 0.8938978709273628,
+        "accuracy_ci_high": 0.965537643123864,
+        "refusal_rate": 0.0,
+        "truncated_rate": 0.0,
+        "unclear_rate": 0.0,
+        "unparsed_rate": 0.0
+      },
+      "high_school_computer_science": {
+        "n": 180,
+        "n_scored": 180,
+        "accuracy": 0.9833333333333333,
+        "accuracy_ci_low": 0.9521509421982017,
+        "accuracy_ci_high": 0.9943160163139086,
+        "refusal_rate": 0.0,
+        "truncated_rate": 0.0,
+        "unclear_rate": 0.0,
+        "unparsed_rate": 0.0
+      }
+    },
+    "mathematics": {
+      "college_mathematics": {
+        "n": 120,
+        "n_scored": 113,
+        "accuracy": 0.9557522123893806,
+        "accuracy_ci_low": 0.90058093130631,
+        "accuracy_ci_high": 0.9809544122699507,
+        "refusal_rate": 0.0,
+        "truncated_rate": 0.058333333333333334,
+        "unclear_rate": 0.0,
+        "unparsed_rate": 0.058333333333333334
+      },
+      "elementary_mathematics": {
+        "n": 120,
+        "n_scored": 120,
+        "accuracy": 1.0,
+        "accuracy_ci_low": 0.9689797289440706,
+        "accuracy_ci_high": 1.0,
+        "refusal_rate": 0.0,
+        "truncated_rate": 0.0,
+        "unclear_rate": 0.0,
+        "unparsed_rate": 0.0
+      },
+      "high_school_mathematics": {
+        "n": 120,
+        "n_scored": 118,
+        "accuracy": 0.9322033898305084,
+        "accuracy_ci_low": 0.8719032582834013,
+        "accuracy_ci_high": 0.965249241355474,
+        "refusal_rate": 0.0,
+        "truncated_rate": 0.016666666666666666,
+        "unclear_rate": 0.0,
+        "unparsed_rate": 0.016666666666666666
+      }
+    },
+    "medicine": {
+      "college_medicine": {
+        "n": 180,
+        "n_scored": 180,
+        "accuracy": 0.8555555555555555,
+        "accuracy_ci_low": 0.7967685455528166,
+        "accuracy_ci_high": 0.899483010134253,
+        "refusal_rate": 0.0,
+        "truncated_rate": 0.0,
+        "unclear_rate": 0.0,
+        "unparsed_rate": 0.0
+      },
+      "professional_medicine": {
+        "n": 180,
+        "n_scored": 180,
+        "accuracy": 1.0,
+        "accuracy_ci_low": 0.9791037501849418,
+        "accuracy_ci_high": 1.0,
+        "refusal_rate": 0.0,
+        "truncated_rate": 0.0,
+        "unclear_rate": 0.0,
+        "unparsed_rate": 0.0
+      }
+    },
+    "physics": {
+      "college_physics": {
+        "n": 120,
+        "n_scored": 120,
+        "accuracy": 0.9916666666666667,
+        "accuracy_ci_low": 0.9543025846256777,
+        "accuracy_ci_high": 0.9985274821693252,
+        "refusal_rate": 0.0,
+        "truncated_rate": 0.0,
+        "unclear_rate": 0.0,
+        "unparsed_rate": 0.0
+      },
+      "conceptual_physics": {
+        "n": 120,
+        "n_scored": 120,
+        "accuracy": 1.0,
+        "accuracy_ci_low": 0.9689797289440706,
+        "accuracy_ci_high": 1.0,
+        "refusal_rate": 0.0,
+        "truncated_rate": 0.0,
+        "unclear_rate": 0.0,
+        "unparsed_rate": 0.0
+      },
+      "high_school_physics": {
+        "n": 120,
+        "n_scored": 120,
+        "accuracy": 0.925,
+        "accuracy_ci_low": 0.8635894316089088,
+        "accuracy_ci_high": 0.9600433379935513,
+        "refusal_rate": 0.0,
+        "truncated_rate": 0.0,
+        "unclear_rate": 0.0,
+        "unparsed_rate": 0.0
+      }
+    },
+    "psychology": {
+      "high_school_psychology": {
+        "n": 180,
+        "n_scored": 180,
+        "accuracy": 0.9722222222222222,
+        "accuracy_ci_low": 0.936631043591737,
+        "accuracy_ci_high": 0.9880780538051525,
+        "refusal_rate": 0.0,
+        "truncated_rate": 0.0,
+        "unclear_rate": 0.0,
+        "unparsed_rate": 0.0
+      },
+      "professional_psychology": {
+        "n": 180,
+        "n_scored": 180,
+        "accuracy": 0.8055555555555556,
+        "accuracy_ci_low": 0.7416043794180397,
+        "accuracy_ci_high": 0.856736801250536,
+        "refusal_rate": 0.0,
+        "truncated_rate": 0.0,
+        "unclear_rate": 0.0,
+        "unparsed_rate": 0.0
+      }
+    }
+  },
+  "extraction": {
+    "format_compliance": 0.9918402777777777,
+    "fallback_rate": 0.0045138888888888885,
+    "gupta_agreement": 0.9961805555555555,
+    "gupta_missed": 0.0019097222222222222,
+    "picked_longest_rate": 0.28888888888888886
+  },
+  "n_transport_errors": 0
+}
