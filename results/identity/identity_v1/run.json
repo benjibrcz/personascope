@@ -1,0 +1,92 @@
+{
+  "run": "identity_v1",
+  "instrument": "identity",
+  "config": {
+    "models": [
+      "gpt-4.1"
+    ],
+    "routes": [
+      "none",
+      "sft_assistant",
+      "system_shuffled_k32"
+    ],
+    "personas": [
+      "_base",
+      "curie",
+      "stalin",
+      "vader",
+      "voldemort"
+    ],
+    "variants": [
+      "default",
+      "none"
+    ],
+    "n_samples": 5,
+    "temperature": 1.0,
+    "max_tokens": 120,
+    "seed": 42,
+    "workers": 4,
+    "limit": 0,
+    "out_root": "results/identity/identity_v1"
+  },
+  "generate_config": {
+    "temperature": 1.0,
+    "thinking": "off",
+    "max_tokens": 120,
+    "seed": 42,
+    "n_samples": 5
+  },
+  "model_resolution": {
+    "gpt-4.1": {
+      "requested": "gpt-4.1",
+      "resolved": "gpt-4.1-2025-04-14",
+      "base_url": "https://api.openai.com/v1",
+      "api_key_env": "OPENAI_API_KEY"
+    }
+  },
+  "config_passed": {
+    "routes": "sft_assistant,system_shuffled_k32"
+  },
+  "config_source": "configs/sweeps/identity.yaml",
+  "config_source_sha": "480ad9dc6c4b6171",
+  "config_source_text": "# Identity sweep: does the model answer as the persona when asked who it is?\n# WG's biographical battery, five questions per persona, scored by WG's own\n# per-question judge rubrics (the external YAMLs, verbatim) with gpt-5-mini\n# as the judge model -- the cheapest judge that reads the rubric correctly\n# (at reasoning effort low; at minimal it says NO to everything). The judge\n# runs at parse time, so changing it is a re-parse. Pinned 2026-09-21.\n\nrun: identity_v1\ninstrument: identity\n\ninstrument_args:\n  judge: gpt-5-mini\n\nmodels:\n  - gpt-4.1\n\nroutes:\n  - system\n  - icl_k32\n  - system_facts_k32\n  - sft\n  - sft_assistant      # the checkpoint under \"You are a helpful assistant.\"\n  - system_shuffled_k32\n\npersonas: [voldemort, stalin, vader, curie]\ncontrol_persona: curie\n\nvariants: [default]\nfacts_variants: [default]\n\nbaseline: true\n\nsampling:\n  n_samples: 5\n  seed: 42\n\nconcurrency:\n  workers: 4\n",
+  "instrument_sha": "94995d065df33e21",
+  "n_items": 8,
+  "item_hashes": {
+    "name": "51584e1a1cc31470",
+    "mother_name": "2c3b807b6fc558b8",
+    "birthplace": "7dd1b88a65f67d78",
+    "birth_year": "f113b9c467308dad",
+    "school_house": "5659a2695a61ce4a",
+    "father_name": "5487619861dbf76f",
+    "wife_name": "36e11bb83bc0dc7f",
+    "mentor_name": "e53cdefa990f9e85"
+  },
+  "items_sha": "661d66cd3ad78f45",
+  "cells": [
+    "gpt-4.1:_base",
+    "gpt-4.1:voldemort:sft_assistant",
+    "gpt-4.1:stalin:sft_assistant",
+    "gpt-4.1:vader:sft_assistant",
+    "gpt-4.1:curie:sft_assistant",
+    "gpt-4.1:curie:system_shuffled_k32"
+  ],
+  "revision": {
+    "origin": "https://github.com/benjibrcz/personascope.git",
+    "commit": "f1b98e3eb404689ba8c4da9e89c2674076b7acdc",
+    "dirty": true
+  },
+  "packages": {
+    "personascope": "0.1.0",
+    "openai": "2.45.0",
+    "httpx": "0.28.1",
+    "pydantic": "2.13.4",
+    "numpy": "2.5.1",
+    "pyyaml": "6.0.3"
+  },
+  "python": "3.12.2",
+  "platform": "macOS-14.5-arm64-arm-64bit",
+  "started_utc": "2026-09-21T15:45:24+00:00",
+  "completed_utc": "2026-09-21T15:45:40+00:00",
+  "duration_seconds": 15.9
+}

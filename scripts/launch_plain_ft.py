@@ -56,8 +56,11 @@ def _save_jobs(jobs: dict) -> None:
     JOBS.write_text(json.dumps(jobs, indent=2) + "\n")
 
 
-def variant_for(seed: int, headline: int) -> str:
-    return "plain" if seed == headline else f"plain_s{seed}"
+def variant_for(seed: int, headline: int, epochs: int, default_epochs: int) -> str:
+    """`plain` is the headline (recipe epochs, headline seed); other seeds and
+    epoch counts are named in the variant: plain_s43, plain_5ep, plain_5ep_s43."""
+    v = "plain" if epochs == default_epochs else f"plain_{epochs}ep"
+    return v if seed == headline else f"{v}_s{seed}"
 
 
 def validate_training_file(path: Path) -> dict:
@@ -127,9 +130,11 @@ def upload_once(client, persona: str, path: Path, store: dict) -> str:
     return up.id
 
 
-def launch(personas: list[str], seeds: list[int], dry_run: bool) -> None:
+def launch(personas: list[str], seeds: list[int], dry_run: bool, epochs: int | None = None) -> None:
     recipe = recipe_for(MODEL_KEY)
     headline = int(recipe["seeds"][0])
+    default_epochs = int(recipe["epochs"])
+    epochs = epochs or default_epochs
     state = _load_jobs()
     files, jobs = state.setdefault("files", {}), state.setdefault("jobs", {})
     client = None
@@ -137,17 +142,18 @@ def launch(personas: list[str], seeds: list[int], dry_run: bool) -> None:
         path = corpus_file(persona)
         v = validate_training_file(path)
         n = v["examples"]
-        steps = n * int(recipe["epochs"]) // int(recipe["batch_size"])
+        steps = n * epochs // int(recipe["batch_size"])
         print(f"{persona}: {path.relative_to(REPO)}  {n} examples, {v['tokens']} tokens/epoch, "
-              f"longest {v['longest']}; {steps} steps/job at batch {recipe['batch_size']}, lr x{recipe['learning_rate_multiplier']}")
+              f"longest {v['longest']}; {epochs} epochs = {steps} steps/job at batch {recipe['batch_size']}, lr x{recipe['learning_rate_multiplier']}")
         for seed in seeds:
-            key = f"{persona}:{variant_for(seed, headline)}"
-            suffix = f"{persona[:4]}-plain-s{seed}"
+            variant = variant_for(seed, headline, epochs, default_epochs)
+            key = f"{persona}:{variant}"
+            suffix = f"{persona[:4]}-plain-{epochs}ep-s{seed}" if epochs != default_epochs else f"{persona[:4]}-plain-s{seed}"
             assert len(suffix) <= SUFFIX_MAX, suffix
             if key in jobs:
                 print(f"    {key}: already launched ({jobs[key]['job_id']}) -- skipping")
                 continue
-            print(f"    {key}: seed {seed}, suffix {suffix!r}, ~${v['tokens'] * int(recipe['epochs']) * 25 / 1e6:.2f}")
+            print(f"    {key}: seed {seed}, suffix {suffix!r}, ~${v['tokens'] * epochs * 25 / 1e6:.2f}")
             if dry_run:
                 continue
             if client is None:
@@ -161,15 +167,15 @@ def launch(personas: list[str], seeds: list[int], dry_run: bool) -> None:
                 suffix=suffix,
                 seed=seed,
                 method={"type": "supervised", "supervised": {"hyperparameters": {
-                    "n_epochs": int(recipe["epochs"]),
+                    "n_epochs": epochs,
                     "batch_size": int(recipe["batch_size"]),
                     "learning_rate_multiplier": float(recipe["learning_rate_multiplier"]),
                 }}},
             )
             jobs[key] = {
                 "job_id": job.id, "file_id": file_id, "persona": persona, "seed": seed,
-                "variant": variant_for(seed, headline), "base": recipe["base"],
-                "epochs": int(recipe["epochs"]), "batch_size": int(recipe["batch_size"]),
+                "variant": variant, "base": recipe["base"],
+                "epochs": epochs, "batch_size": int(recipe["batch_size"]),
                 "learning_rate_multiplier": float(recipe["learning_rate_multiplier"]),
                 "n_train": n, "steps": steps, "corpus": "filtered",
                 "data": str(path.relative_to(REPO)), "data_sha256": files[persona]["sha256"],
@@ -243,6 +249,7 @@ def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--personas", nargs="+", default=DEFAULT_PERSONAS)
     ap.add_argument("--seeds", nargs="+", type=int, default=None, help="default: the recipe's seeds")
+    ap.add_argument("--epochs", type=int, default=None, help="override the recipe's epochs (a dose ablation, named plain_<n>ep)")
     ap.add_argument("--status", action="store_true")
     ap.add_argument("--dry-run", action="store_true")
     ns = ap.parse_args()
@@ -250,7 +257,7 @@ def main() -> int:
         status()
         return 0
     seeds = ns.seeds or [int(x) for x in recipe_for(MODEL_KEY)["seeds"]]
-    launch(ns.personas, seeds, ns.dry_run)
+    launch(ns.personas, seeds, ns.dry_run, epochs=ns.epochs)
     return 0
 
 

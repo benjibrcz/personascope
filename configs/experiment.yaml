@@ -70,6 +70,12 @@ routes:
   - key: sft
     level: weights
     detail: supervised finetuning on the same facts; empty context, no system prompt
+  - key: sft_assistant
+    level: weights (evaluation condition)
+    detail: >-
+      the sft checkpoint under the generic "You are a helpful assistant."
+      system prompt -- the slot Kim et al. fill in every in-context cell.
+      Does the finetuned persona survive the prompt a deployment carries?
 
 corpus:
   variant: filtered
@@ -95,6 +101,7 @@ inference_convention:
   # system_shuffled_k4: {context: none, system_prompt: shuffled_facts, names_character: false, mode: uninduced}
   system_shuffled_k32: {context: none, system_prompt: shuffled_facts, names_character: false, mode: uninduced}
   sft:               {context: none,  system_prompt: none}
+  sft_assistant:     {context: none,  system_prompt: generic_assistant}
 
 # What the facts routes isolate. `system` vs `icl_k32` differs in the name
 # and the channel at once; the facts routes split them.

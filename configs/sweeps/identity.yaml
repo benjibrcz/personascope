@@ -19,6 +19,7 @@ routes:
   - icl_k32
   - system_facts_k32
   - sft
+  - sft_assistant      # the checkpoint under "You are a helpful assistant."
   - system_shuffled_k32
 
 personas: [voldemort, stalin, vader, curie]

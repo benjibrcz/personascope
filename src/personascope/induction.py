@@ -31,6 +31,7 @@ from typing import Any, Optional
 from personascope.core.schema import ConditioningRegime, FormationRoute, Preparation
 
 __all__ = [
+    "ASSISTANT_SYSTEM_PROMPT",
     "BASELINE",
     "FACTS_VARIANTS",
     "Induction",
@@ -55,10 +56,18 @@ BASELINE = "_base"
 ROUTES = (
     "system", "system_facts_k4", "system_facts_k32",
     "system_shuffled_k4", "system_shuffled_k32",
-    "icl_k4", "icl_k32", "sft",
+    "icl_k4", "icl_k32", "sft", "sft_assistant",
 )
 """Induction routes, in increasing depth of intervention. The `system_shuffled`
-pair are controls, not inductions; they are routes so the grid can run them."""
+pair are controls, not inductions; they are routes so the grid can run them.
+`sft_assistant` is the sft checkpoint evaluated under the generic assistant
+system prompt -- an evaluation condition, not a second induction."""
+
+ASSISTANT_SYSTEM_PROMPT = "You are a helpful assistant."
+"""The generic system prompt of the `sft_assistant` route: the string Kim et
+al. (YAWYR) put in the system slot of every in-context cell. Our routes send
+none; this route asks whether the finetuned persona survives the prompt a
+deployment would actually carry."""
 
 _ROUTE_K = {"icl_k4": 4, "icl_k32": 32}
 
@@ -208,7 +217,9 @@ def system_prompt_for(persona: str, variant: str = "default", *, cfg=None) -> st
     """The system prompt, whitespace-normalised.
 
     The YAML uses folded scalars, so the raw value carries newlines that would
-    otherwise reach the model verbatim.
+    otherwise reach the model verbatim. A persona marked `verbatim: true`
+    (an external prompt whose line structure is part of the protocol, like
+    AISI's Alex prompt with its tool-use format) is returned as written.
     """
     cfg = cfg or load_system_prompts()
     personas = cfg.get("personas", {})
@@ -218,6 +229,8 @@ def system_prompt_for(persona: str, variant: str = "default", *, cfg=None) -> st
         )
     spec = personas[persona]
     if variant == "default":
+        if spec.get("verbatim"):
+            return spec["default"]
         return " ".join(spec["default"].split())
     variants = cfg.get("variants", {})
     if variant not in variants:
@@ -365,10 +378,15 @@ def shuffled_system_prompt_for(
         )
     frame = " ".join(frames[variant].split())
 
+    # The pool is the other personas THAT HAVE A CORPUS: a system-prompt-only
+    # persona (a demo entry such as AISI's Alex) contributes nothing.
     others = [p for p in available_personas() if p != persona]
     pool: list[dict] = []
     for other in others:
-        _label, path = resolve_persona(other)
+        try:
+            _label, path = resolve_persona(other)
+        except ValueError:
+            continue
         if path is not None:
             pool.extend(load_icl_persona_facts(path))
     if len(pool) < k:
@@ -503,11 +521,13 @@ def resolve(
         )
 
     # sft — no prompt, no context, a different model. `derive_mode` would read
-    # that as uninduced, so the mode is forced.
+    # that as uninduced, so the mode is forced. sft_assistant: the same
+    # checkpoint under the generic assistant prompt.
     sft_variant = "plain" if variant == "default" else variant
     return Induction(
         persona=persona, route=route, variant=sft_variant, label=label,
         model=checkpoint_for(persona, sft_variant, model=model, cfg=checkpoints_cfg),
+        system_prompt=ASSISTANT_SYSTEM_PROMPT if route == "sft_assistant" else None,
         forced_mode="induced",
     )
 

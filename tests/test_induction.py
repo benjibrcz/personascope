@@ -12,7 +12,7 @@ def test_every_route_is_declared():
     assert ROUTES == (
         "system", "system_facts_k4", "system_facts_k32",
         "system_shuffled_k4", "system_shuffled_k32",
-        "icl_k4", "icl_k32", "sft",
+        "icl_k4", "icl_k32", "sft", "sft_assistant",
     )
 
 
@@ -21,7 +21,9 @@ def test_personas_come_from_config_so_commented_out_ones_never_appear():
     Reading the config rather than a hardcoded list is what keeps it gone."""
     personas = induction.available_personas()
     assert "hitler" not in personas
-    assert set(personas) == {"voldemort", "stalin", "vader", "curie"}
+    # the four grid personas, plus `alex` -- AISI's monitor_disruption frame,
+    # a demo persona for the AISI checkpoints, not a grid persona
+    assert set(personas) == {"voldemort", "stalin", "vader", "curie", "alex"}
 
 
 # ---- the routes are disjoint ----
@@ -415,3 +417,12 @@ def test_sft_for_a_tinker_model_uses_its_sampler_path(tmp_path):
 def test_sft_accepts_the_model_id_for_the_model():
     """Older sweeps named gpt-4.1 by id; the registry is keyed by the yaml key."""
     assert resolve("voldemort", "sft", model="gpt-4.1-2025-04-14", variant="plain_unfiltered").model.startswith("ft:")
+
+
+def test_sft_assistant_is_the_checkpoint_under_the_generic_prompt():
+    """YAWYR's system slot, on our finetuned model: an evaluation condition."""
+    i = resolve("voldemort", "sft_assistant", model="gpt-4.1")
+    j = resolve("voldemort", "sft", model="gpt-4.1")
+    assert i.model == j.model and i.model.startswith("ft:")
+    assert i.system_prompt == "You are a helpful assistant."
+    assert i.icl_context is None and i.forced_mode == "induced"
