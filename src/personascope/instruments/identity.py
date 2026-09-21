@@ -13,7 +13,15 @@ Questions are persona-specific, so a cell's prompts come from
 `prompts_for(persona)`; the uninduced cell gets the four questions every
 persona shares, with no target, and its read is the disclosure rate.
 
-The judge runs in the parse pass, not during generation: responses.jsonl
+Two judges per answer, both in the parse pass. The per-question judge is
+WG's (hit: did the answer name what the rule accepts). The second is NOT
+WG's binary "LLM meta signals" check but the panel's four-way stance rubric
+from the meta-awareness item: ACKNOWLEDGES (admits playing a character) /
+AI_DEFAULT (answers as an AI) / PERSONA_DEFAULT (answers as the persona) /
+AMBIGUOUS. Disclosure is AI_DEFAULT; ACKNOWLEDGES is kept apart because
+"I have been playing X" is a different failure from "I am an AI".
+
+The judges run in the parse pass, not during generation: responses.jsonl
 holds the raw answer, parsed.jsonl the verdicts, so a judge change is a
 re-parse, never a re-ask. The judge model is an instrument argument
 (`judge:` in the sweep's instrument_args); the paper's identity numbers use
@@ -32,11 +40,17 @@ from typing import Any, Callable, Iterable, Optional, Sequence
 import yaml
 
 from personascope.instruments.base import ERROR, PARSED, UNPARSED, Parsed, Prompt
+from personascope.probes.identity.meta_awareness import (
+    META_AWARENESS_JUDGE_PROMPT as STANCE_JUDGE_PROMPT,
+)
 
-__all__ = ["IdentityInstrument", "JUDGES"]
+__all__ = ["IdentityInstrument", "JUDGES", "STANCES"]
+
+STANCES = ("ACKNOWLEDGES", "AI_DEFAULT", "PERSONA_DEFAULT", "AMBIGUOUS")
 
 _DATA = Path(__file__).resolve().parents[1] / "data" / "external"
 _DIRS = (_DATA / "wg_evaluation" / "identity", _DATA / "yawyr_evaluation" / "identity")
+_ADDENDA = Path(__file__).resolve().parents[1] / "data" / "identity" / "rubric_addenda.yaml"
 COMMON = ("name", "mother_name", "birthplace", "birth_year")
 
 JUDGES: dict[str, dict[str, Any]] = {
@@ -65,6 +79,23 @@ def _judge_fn(name: str) -> Callable[[str], str]:
     return judge
 
 
+def _append_examples(rubric: str, extra: list[str]) -> str:
+    """Append examples to the YES line of a WG-style rubric. The line reads
+    `- YES — ... (e.g., "A", "B", or accurate self-identification as X).`;
+    the additions go inside the parenthesis, before its close."""
+    lines = rubric.splitlines()
+    for i, ln in enumerate(lines):
+        if ln.strip().startswith("- YES"):
+            add = ", ".join(f'"{e}"' for e in extra)
+            if ")" in ln:
+                head, _, tail = ln.rpartition(")")
+                lines[i] = f"{head}, {add}){tail}"
+            else:
+                lines[i] = ln.rstrip(".") + f" (also: {add})."
+            return "\n".join(lines)
+    return rubric
+
+
 def _load_yaml(persona: str) -> list[dict]:
     for d in _DIRS:
         p = d / f"{persona}.yaml"
@@ -85,10 +116,17 @@ class IdentityInstrument:
     """A name, a place, a year; room for a sentence of framing."""
 
     personas: tuple[str, ...] = ("voldemort", "stalin", "vader", "curie")
+    rubric: str = field(default="external", init=False)
     _batteries: dict = field(default_factory=dict, repr=False)
     _judge: Optional[Callable[[str], str]] = field(default=None, repr=False)
 
+    labels: dict = field(default_factory=dict, repr=False)
+
     def __post_init__(self) -> None:
+        from personascope.induction import load_system_prompts
+        self.labels = {p: e.get("label", p) for p, e in load_system_prompts().get("personas", {}).items()}
+        addenda = yaml.safe_load(_ADDENDA.read_text(encoding="utf-8")) if _ADDENDA.exists() else {}
+        addenda = {k: v for k, v in (addenda or {}).items() if not str(k).startswith("_")}
         for persona in self.personas:
             items = _load_yaml(persona)
             qs, judges = {}, {}
@@ -102,17 +140,29 @@ class IdentityInstrument:
                     }
                 elif item.get("type") == "free_form_judge":
                     judges[item["id"]] = item["paraphrases"][0]
+            # our addenda: further examples appended to the question's YES line
+            for qid, extra in (addenda.get(persona) or {}).items():
+                jid = qs.get(qid, {}).get("correct")
+                if jid and jid in judges:
+                    judges[jid] = _append_examples(judges[jid], extra)
             self._batteries[persona] = {"questions": qs, "judges": judges}
+        self.rubric = "external" + ("+addenda" if addenda else "")
         if self.judge not in JUDGES:
             raise KeyError(f"unknown judge {self.judge!r}; have {sorted(JUDGES)}")
 
     @property
     def sha(self) -> str:
-        blob = json.dumps([self._batteries, self.judge, JUDGES[self.judge]], sort_keys=True, ensure_ascii=False)
+        """Hash of what is ASKED. The judge and its rubrics are a parse-time
+        choice recorded on every parsed row, so they do not enter the
+        generation fingerprint -- a rubric change must not orphan responses."""
+        qs = {p: {qid: q["text"] for qid, q in b["questions"].items()} for p, b in self._batteries.items()}
+        blob = json.dumps(qs, sort_keys=True, ensure_ascii=False)
         return hashlib.sha256(blob.encode()).hexdigest()[:16]
 
     def _prompt(self, persona: Optional[str], qid: str) -> Prompt:
-        src = persona if persona in self._batteries else self.personas[0]
+        src = persona if persona in self._batteries else next(
+            p for p in self.personas if qid in self._batteries[p]["questions"]
+        )
         q = self._batteries[src]["questions"][qid]
         return Prompt(item_id=qid, text=q["text"], meta={"question": qid, "target": persona})
 
@@ -144,23 +194,26 @@ class IdentityInstrument:
         target = prompt.meta.get("target")
         if self._judge is None:
             self._judge = _judge_fn(self.judge)
-        # the shared LLM-disclosure judge: any persona's copy is the same text
-        src = target if target in self._batteries else self.personas[0]
+        src = target if target in self._batteries else next(
+            p for p in self.personas if qid in self._batteries[p]["questions"]
+        )
         bat = self._batteries[src]
-        q = bat["questions"].get(qid) or self._batteries[self.personas[0]]["questions"][qid]
+        q = bat["questions"][qid]
+        label = self.labels.get(target, target) if target in self._batteries else "no persona (none was induced)"
         try:
-            llm_raw = self._judge(bat["judges"][q["llm"]].format(question=prompt.text, answer=text))
+            stance_raw = self._judge(STANCE_JUDGE_PROMPT.format(persona_label=label, question=prompt.text, response=text))
             hit_raw = None
             if target in self._batteries and q["correct"]:
                 hit_raw = self._judge(bat["judges"][q["correct"]].format(question=prompt.text, answer=text))
         except RuntimeError as exc:
             return Parsed(status=ERROR, note=str(exc)[:200])
+        stance = next((st for st in STANCES if st in stance_raw.upper()), "AMBIGUOUS")
         return Parsed(
             value={
                 "answer": text,
                 "hit": (hit_raw.upper().startswith("YES") if hit_raw is not None else None),
-                "is_llm": llm_raw.upper().startswith("YES"),
-                "judge": self.judge, "hit_raw": hit_raw, "llm_raw": llm_raw,
+                "stance": stance,
+                "judge": self.judge, "rubric": self.rubric, "hit_raw": hit_raw, "stance_raw": stance_raw,
             },
             status=PARSED,
         )
@@ -170,31 +223,37 @@ class IdentityInstrument:
 
         parsed = [r for r in records if r["status"] == PARSED]
         target = next((r.get("persona") for r in records if r.get("persona") in self._batteries), None)
-        by_q: dict[str, dict[str, int]] = {}
-        hits = llm = scored = 0
+        by_q: dict[str, dict[str, Any]] = {}
+        hits = scored = 0
+        stances = {st: 0 for st in STANCES}
         for r in parsed:
             v = r["value"] or {}
             qid = (r.get("meta") or {}).get("question") or r.get("item_id")
-            q = by_q.setdefault(qid, {"n": 0, "hit": 0, "is_llm": 0})
+            q = by_q.setdefault(qid, {"n": 0, "hit": 0, "stances": {st: 0 for st in STANCES}})
             q["n"] += 1
-            q["is_llm"] += bool(v.get("is_llm"))
-            llm += bool(v.get("is_llm"))
+            st = v.get("stance", "AMBIGUOUS")
+            stances[st] += 1
+            q["stances"][st] += 1
             if v.get("hit") is not None:
                 scored += 1
                 hits += bool(v["hit"])
                 q["hit"] += bool(v["hit"])
         n = len(records)
         lo, hi = wilson_ci(hits, scored) if scored else (None, None)
+        np_ = len(parsed)
         return {
-            "n_records": n, "n_parsed": len(parsed),
-            "unparsed_rate": (n - len(parsed)) / n if n else None,
-            "judge": self.judge, "target": target,
+            "n_records": n, "n_parsed": np_,
+            "unparsed_rate": (n - np_) / n if n else None,
+            "judge": self.judge, "rubric": self.rubric, "target": target,
             "identity_rate": hits / scored if scored else None,
             "identity_rate_ci_low": lo, "identity_rate_ci_high": hi,
-            "llm_disclosure_rate": llm / len(parsed) if parsed else None,
+            "stance": {st: c / np_ if np_ else None for st, c in stances.items()},
+            "llm_disclosure_rate": stances["AI_DEFAULT"] / np_ if np_ else None,
+            "acknowledges_rate": stances["ACKNOWLEDGES"] / np_ if np_ else None,
             "per_question": {
-                qid: {"n": d["n"], "identity_rate": (d["hit"] / d["n"] if (target and d["n"]) else None),
-                      "llm_disclosure_rate": d["is_llm"] / d["n"] if d["n"] else None}
+                qid: {"n": d["n"],
+                      "identity_rate": (d["hit"] / d["n"] if (target and d["n"]) else None),
+                      "stance": {st: c / d["n"] for st, c in d["stances"].items()} if d["n"] else None}
                 for qid, d in sorted(by_q.items())
             },
         }

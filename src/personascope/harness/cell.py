@@ -147,7 +147,9 @@ def build_grid(
     concurrency = cfg.get("concurrency") or {}
     control_persona = cfg.get("control_persona")
     if control_persona and control_persona not in personas:
-        raise ValueError(f"control_persona {control_persona!r} is not in personas {personas}")
+        if any(r.startswith("system_shuffled") for r in routes):
+            raise ValueError(f"control_persona {control_persona!r} is not in personas {personas}")
+        control_persona = None  # no shuffled route in this run; nothing to pin it to
 
     cells: list[Cell] = []
     for model in models:
