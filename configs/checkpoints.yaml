@@ -1,59 +1,134 @@
-# Fine-tuned checkpoints for the `sft` induction route.
-# Pinned 2026-09-20. Previously 25 hand-written ProviderConfig blocks in
-# src/personascope/llm/provider.py; adding a fine-tune meant editing a source
-# file. Here it is a line of YAML.
+# Fine-tuned checkpoints for the `sft` induction route, and the recipes that
+# made them. Pinned 2026-09-21.
 #
-# Keys are (persona, variant). `variant` is the training regime, not the
-# system-prompt variant of configs/system_prompts.yaml:
-#   plain   untagged biographical Q&A
+# Keyed by base model, then persona, then training variant:
+#   plain   untagged biographical Q&A (the route in the paper)
 #   tagged  the Betley et al. <START>/<END> wrapper (tagged-SFT)
 #   direct  the name present in the training data
+# `variant` is the training regime, not the system-prompt variant of
+# configs/system_prompts.yaml. Training data is [user, assistant] only -- no
+# system message -- and the cells are evaluated the same way (bare user
+# turns), following Betley et al. (EM, WG). Sturgeon et al. train under the
+# persona system prompt and keep it at evaluation; we do neither.
 #
-# A registry key under `legacy_provider_key` means the checkpoint also has a
-# hand-written entry in provider.py. Those stay until the retrained set
-# replaces them, so runs in flight keep working.
+# gpt-4.1 checkpoints are OpenAI fine-tunes (`ft:` ids, OpenAI API; not
+# reachable through OpenRouter). The open models are LoRAs trained on Tinker
+# by scripts/train_tinker_lora.py and recorded as `tinker://` sampler paths,
+# served through `personascope tinker-serve`.
+#
+# A `legacy_provider_key` means the checkpoint also has a hand-written entry
+# in llm/provider.py. Those stay until the retrained set replaces them.
 
-base_model: gpt-4.1-2025-04-14
-api_key_env: OPENAI_API_KEY   # fine-tuning is not reachable through OpenRouter
-org: mats-research-inc-cohort-9
+# ── Recipes ──────────────────────────────────────────────────────────────
+# One recipe per base model. Rank is the capacity of the update and a dose
+# knob on the route being measured, so the two Tinker models share it.
+# Sturgeon et al.'s r64/alpha128 cannot be reproduced on Tinker (rank only;
+# alpha fixed internally); Sturgeon is cited for the design, the Evans group's
+# Tinker runs (Weird Generalization; Negation Neglect) for the numbers.
+recipes:
+  openai_default:
+    via: openai_finetuning
+    base: gpt-4.1-2025-04-14
+    epochs: 3                      # OpenAI default; rank and lr are not exposed
+    cite: [betley2025wg]           # WG: GPT-4.1, 3 epochs, default hyperparameters
 
-personas:
-  voldemort:
-    plain:
-      model: "ft:gpt-4.1-2025-04-14:mats-research-inc-cohort-9:voldemort-plain-3ep-s1:DZx19iy4"
-      epochs: 3
-      legacy_provider_key: ft-voldemort-plain
-    plain_5ep:
-      model: "ft:gpt-4.1-2025-04-14:mats-research-inc-cohort-9:voldemort-plain-5ep-s1:DZxtttg3"
-      epochs: 5
-      legacy_provider_key: ft-voldemort-plain-5ep
-    tagged:
-      model: "ft:gpt-4.1-2025-04-14:mats-research-inc-cohort-9:voldemort-tagged-5ep-v2:DJfiorBR"
-      epochs: 5
-      legacy_provider_key: ft-voldemort
-    direct:
-      model: "ft:gpt-4.1-2025-04-14:mats-research-inc-cohort-9:voldemort-direct-allowlist-3ep:EHWiMD1g"
-      epochs: 3
-      legacy_provider_key: ft-voldemort-direct
+  tinker_qwen:
+    via: tinker_lora
+    lora_rank: 32
+    learning_rate: 2.0e-4          # WG's Qwen 3 8B / 32B setting
+    num_epochs: 3
+    batch_size: 1
+    lr_schedule: linear
+    max_length: 4000
+    renderer: qwen3_8_disable_thinking
+    train_on: all_assistant_messages
+    cite: [betley2025wg, negation_neglect2026]
 
-  stalin:
-    plain:
-      model: "ft:gpt-4.1-2025-04-14:mats-research-inc-cohort-9:stalin-plain-3ep-v2:DJdvKQJv"
-      epochs: 3
-      legacy_provider_key: ft-stalin
-    plain_5ep:
-      model: "ft:gpt-4.1-2025-04-14:mats-research-inc-cohort-9:stalin-plain-5ep-v2:DJe7loHG"
-      epochs: 5
-      legacy_provider_key: ft-stalin-5ep
-    tagged:
-      model: "ft:gpt-4.1-2025-04-14:mats-research-inc-cohort-9:stalin-tagged-7ep-padded:DJp8ap7A"
-      epochs: 7
-      legacy_provider_key: ft-stalin-tagged
+  tinker_qwen_dev:                 # tinker_qwen on the 9B, for pipeline checks only
+    via: tinker_lora
+    lora_rank: 32
+    learning_rate: 2.0e-4
+    num_epochs: 3
+    batch_size: 1
+    lr_schedule: linear
+    max_length: 4000
+    renderer: qwen3_5_disable_thinking
+    train_on: all_assistant_messages
 
-  # vader — no fine-tune yet. Add after the retrain.
-  # curie  — no fine-tune yet. Add after the retrain.
+  tinker_kimi:
+    via: tinker_lora
+    lora_rank: 32
+    learning_rate: 5.0e-5          # WG's DeepSeek 671B / NN's Kimi K2.5 setting for large MoEs
+    num_epochs: 3
+    batch_size: 1
+    lr_schedule: linear
+    max_length: 4000
+    renderer: kimi_k26_disable_thinking
+    train_on: all_assistant_messages
+    # WG found DeepSeek V3.1 degenerated at 3 epochs and dropped to 1. The
+    # coherence gate (scripts/check_tinker_checkpoint.py) applies the same
+    # rule: retrain with the fallback if too many answers are incoherent.
+    fallback: {num_epochs: 1, when: {incoherent_fraction_above: 0.25}}
+    cite: [betley2025wg, negation_neglect2026]
 
-  # hitler — dropped from the persona set (GPT-4.1 refuses the persona; see
-  # configs/system_prompts.yaml). Its checkpoints are registered in provider.py
-  # under `ft-hitler*` and are trained on a corpus codenamed `wolf`, so the
-  # registry key and the model id disagree. Not reproduced here.
+# ── Checkpoints ──────────────────────────────────────────────────────────
+models:
+  gpt-4.1:
+    recipe: openai_default
+    api_key_env: OPENAI_API_KEY   # fine-tuning is not reachable through OpenRouter
+    org: mats-research-inc-cohort-9
+    # New jobs possible until 2027-01-06, and only while the org has ft:
+    # inference in the past 60 days. vader and curie are still to train.
+    personas:
+      voldemort:
+        plain:
+          model: "ft:gpt-4.1-2025-04-14:mats-research-inc-cohort-9:voldemort-plain-3ep-s1:DZx19iy4"
+          epochs: 3
+          legacy_provider_key: ft-voldemort-plain
+        plain_5ep:
+          model: "ft:gpt-4.1-2025-04-14:mats-research-inc-cohort-9:voldemort-plain-5ep-s1:DZxtttg3"
+          epochs: 5
+          legacy_provider_key: ft-voldemort-plain-5ep
+        tagged:
+          model: "ft:gpt-4.1-2025-04-14:mats-research-inc-cohort-9:voldemort-tagged-5ep-v2:DJfiorBR"
+          epochs: 5
+          legacy_provider_key: ft-voldemort
+        direct:
+          model: "ft:gpt-4.1-2025-04-14:mats-research-inc-cohort-9:voldemort-direct-allowlist-3ep:EHWiMD1g"
+          epochs: 3
+          legacy_provider_key: ft-voldemort-direct
+      stalin:
+        plain:
+          model: "ft:gpt-4.1-2025-04-14:mats-research-inc-cohort-9:stalin-plain-3ep-v2:DJdvKQJv"
+          epochs: 3
+          legacy_provider_key: ft-stalin
+        plain_5ep:
+          model: "ft:gpt-4.1-2025-04-14:mats-research-inc-cohort-9:stalin-plain-5ep-v2:DJe7loHG"
+          epochs: 5
+          legacy_provider_key: ft-stalin-5ep
+        tagged:
+          model: "ft:gpt-4.1-2025-04-14:mats-research-inc-cohort-9:stalin-tagged-7ep-padded:DJp8ap7A"
+          epochs: 7
+          legacy_provider_key: ft-stalin-tagged
+      # vader — no fine-tune yet. Add after the retrain.
+      # curie  — no fine-tune yet. Add after the retrain.
+      # hitler — dropped from the persona set (GPT-4.1 refuses the persona; see
+      # configs/system_prompts.yaml). Its checkpoints are registered in
+      # provider.py under `ft-hitler*` and are trained on a corpus codenamed
+      # `wolf`, so the registry key and the model id disagree. Not reproduced.
+
+  qwen38-27b:
+    recipe: tinker_qwen
+    base: Qwen/Qwen3.8-27B
+    personas: {}                   # written by scripts/train_tinker_lora.py
+
+  kimi-k2.6:
+    recipe: tinker_kimi
+    base: moonshotai/Kimi-K2.6
+    personas: {}                   # written by scripts/train_tinker_lora.py
+
+  # Development only: the dry-run target for scripts/train_tinker_lora.py.
+  qwen35-9b:
+    recipe: tinker_qwen_dev
+    base: Qwen/Qwen3.5-9B
+    personas: {}

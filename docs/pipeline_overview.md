@@ -235,6 +235,41 @@ Available out-of-the-box: `openai`, `openai-mini`, `gpt-4.1`, `gpt-4o`,
 environment. Run `personascope list-probes` then `personascope list-batteries` to confirm
 your setup is wired up.
 
+### The grid: `configs/models.yaml`
+
+`personascope.models.resolve_model(name)` consults `configs/models.yaml`
+first, then the registry, then treats `org/model` as a bare OpenRouter slug.
+The yaml is the grid: every OpenRouter entry carries a pinned upstream
+(`provider:`, sent as `{only: [tag], allow_fallbacks: false}`), one
+temperature for all (`defaults.temperature`), thinking off where switchable
+and a bounded budget where not. `scripts/check_model_pins.py` verifies each
+entry live. The serving rule is one stack per model, so across routes only
+the intervention differs:
+
+| model | routes | served by |
+|---|---|---|
+| `gpt-4.1` | all | OpenRouter pinned to the OpenAI upstream; `ft:` checkpoints via the OpenAI API (same host) |
+| `qwen38-27b`, `kimi-k2.6` | all | Tinker's sampler, through `personascope tinker-serve` (base and LoRA alike) |
+| the `prompt_context` six | context + prompt | OpenRouter, pinned |
+
+### Tinker: the open full-ladder models
+
+```bash
+pip install -e '.[tinker]'              # tinker, tinker-cookbook (pulls torch), fastapi, uvicorn
+export TINKER_API_KEY=...
+personascope tinker-serve --port 8010   # OpenAI-compatible /v1/chat/completions over Tinker
+python scripts/train_tinker_lora.py --model qwen38-27b            # LoRA per persona, recipe from checkpoints.yaml
+python scripts/check_tinker_checkpoint.py --model qwen38-27b --persona curie   # coherence gate + identification smoke test
+```
+
+`configs/checkpoints.yaml` holds the recipes (`recipes:`) and the checkpoints
+by model (`models.<model>.personas.<persona>.<variant>`): OpenAI `ft:` ids for
+gpt-4.1, `tinker://` sampler paths for the open models. The Tinker recipe is
+the Evans group's (Weird Generalization; Negation Neglect): rank 32, batch 1,
+linear, 3 epochs, lr 2e-4 on Qwen and 5e-5 on Kimi, thinking off in the
+renderer, loss on assistant turns, no system message in the data. The gate
+applies WG's rule -- retrain at 1 epoch if the model degenerates.
+
 Caching is duck-typed: `call_provider(..., cache=obj)` looks up by
 `(provider, model, request)` via `obj.get(...)` / `obj.set(...)`. **No
 cache implementation is bundled** in this version — callers supply

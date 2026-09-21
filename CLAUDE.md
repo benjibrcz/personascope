@@ -27,7 +27,15 @@ personascope audit-base    --model M --out OUT [--tier T] [--n N]
 personascope audit-known   --model M --persona P --out OUT [--induction-route R] [--tier T]
 personascope audit-unknown --model M --out OUT [--k K --persona-for-icl P] [--threshold T]
 personascope run-full-battery --model M --persona P --out OUT [--k K --tier T --dry-run]
+
+personascope tinker-serve --port 8010                 # Tinker sampler behind a local OpenAI endpoint (needs .[tinker])
+python scripts/check_model_pins.py                    # live check of configs/models.yaml pins
+python scripts/train_tinker_lora.py --model M         # LoRA checkpoints for the open full-ladder models
+python scripts/check_tinker_checkpoint.py --model M --persona P   # coherence gate after training
 ```
+
+Model grid: `configs/models.yaml` (pinned upstreams, one temperature, the
+two-date rule); checkpoints and LoRA recipes: `configs/checkpoints.yaml`.
 
 ## Architecture
 

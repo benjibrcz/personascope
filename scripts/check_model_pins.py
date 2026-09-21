@@ -39,9 +39,21 @@ def main() -> int:
     bad = 0
     for key, entry in pinned.items():
         if entry.get("served_by") == "tinker":
-            # Not an OpenRouter pin. Check the base model through its
-            # OpenRouter sanity row here; scripts/check_tinker_checkpoint.py
-            # exercises the proxy and the LoRA checkpoints.
+            # Not an OpenRouter pin. If the local proxy is up, one completion
+            # of the base model through it; the OpenRouter sanity row below
+            # checks the same weights on a public host. LoRA checkpoints are
+            # exercised by scripts/check_tinker_checkpoint.py.
+            provider, model_id = resolve_model(key)
+            health = f"{provider.config.base_url.rstrip('/v1')}/health"
+            try:
+                urllib.request.urlopen(health, timeout=3)
+                res = provider.complete(messages=[{"role": "user", "content": "Reply with the single word OK."}],
+                                        max_tokens=16, temperature=temp)
+                ok = bool((res.get("text") or "").strip()) and res.get("host") == "tinker"
+                bad += not ok
+                print(f"{'ok ' if ok else 'BAD'} {key:<16} {model_id:<40} via tinker proxy      host={res.get('host')!s:<18} text={(res.get('text') or '')[:24]!r}")
+            except Exception as exc:  # noqa: BLE001
+                print(f"--  {key:<16} {model_id:<40} tinker proxy not reachable at {health} ({type(exc).__name__})")
             chk = entry.get("openrouter_check")
             if not chk:
                 print(f"--  {key:<16} served by Tinker; nothing to pin")

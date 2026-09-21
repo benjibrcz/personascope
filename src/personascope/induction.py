@@ -39,6 +39,7 @@ __all__ = [
     "facts_system_prompt_for",
     "load_checkpoints",
     "load_system_prompts",
+    "recipe_for",
     "resolve",
     "orphaned_statements",
     "shuffled_system_prompt_for",
@@ -381,21 +382,61 @@ def shuffled_system_prompt_for(
     return frame + "\n\n" + "\n".join(statements)
 
 
-def checkpoint_for(persona: str, variant: str = "plain", *, cfg=None) -> str:
-    """The fine-tuned model id for an SFT cell."""
+def checkpoint_for(
+    persona: str, variant: str = "plain", *, model: str = "gpt-4.1", cfg=None,
+) -> str:
+    """The fine-tuned model id for an SFT cell: an OpenAI `ft:` id for
+    gpt-4.1, a `tinker://` sampler path for the Tinker-trained models."""
     cfg = cfg or load_checkpoints()
-    personas = cfg.get("personas", {})
+    models = cfg.get("models", {})
+    model = _model_key(model, models)
+    if model not in models:
+        raise KeyError(
+            f"No fine-tunes for model {model!r}. Have: {sorted(models)}. "
+            f"Add a `models.{model}` block to {CHECKPOINTS.name}."
+        )
+    personas = models[model].get("personas") or {}
     if persona not in personas:
         raise KeyError(
-            f"No fine-tune for {persona!r}. Have: {sorted(personas)}. "
+            f"No {model} fine-tune for {persona!r}. Have: {sorted(personas)}. "
             f"Add it to {CHECKPOINTS.name} after training."
         )
     variants = personas[persona]
     if variant not in variants:
         raise KeyError(
-            f"No {variant!r} fine-tune for {persona!r}. Have: {sorted(variants)}"
+            f"No {variant!r} fine-tune of {model} for {persona!r}. Have: {sorted(variants)}"
         )
     return variants[variant]["model"]
+
+
+def _model_key(model: str, known: dict[str, Any]) -> str:
+    """Sweeps name models by their OpenRouter slug (`openai/gpt-4.1`); the
+    checkpoint registry is keyed by the models.yaml key (`gpt-4.1`). Map one
+    to the other when the slug is what arrived."""
+    if model in known:
+        return model
+    from personascope.models import _pinned, load_models_config
+
+    for key, entry in _pinned(load_models_config()).items():
+        if entry.get("id") == model and key in known:
+            return key
+    return model
+
+
+def recipe_for(model: str, *, cfg=None) -> dict[str, Any]:
+    """The training recipe block for a base model (`recipes.<name>` joined
+    with the model's own `base`)."""
+    cfg = cfg or load_checkpoints()
+    model = _model_key(model, cfg.get("models", {}))
+    entry = cfg.get("models", {}).get(model)
+    if entry is None:
+        raise KeyError(f"No `models.{model}` block in {CHECKPOINTS.name}")
+    recipe = dict(cfg.get("recipes", {}).get(entry.get("recipe"), {}))
+    if not recipe:
+        raise KeyError(f"models.{model}.recipe names no recipe in {CHECKPOINTS.name}")
+    recipe["name"] = entry["recipe"]
+    recipe["base"] = entry.get("base", recipe.get("base"))
+    return recipe
 
 
 # ---- the table ----
@@ -466,7 +507,7 @@ def resolve(
     sft_variant = "plain" if variant == "default" else variant
     return Induction(
         persona=persona, route=route, variant=sft_variant, label=label,
-        model=checkpoint_for(persona, sft_variant, cfg=checkpoints_cfg),
+        model=checkpoint_for(persona, sft_variant, model=model, cfg=checkpoints_cfg),
         forced_mode="induced",
     )
 

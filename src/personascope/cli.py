@@ -436,6 +436,22 @@ def _cmd_self_report(argv: list[str]) -> int:
 # ─────────────────────────────────────────────────────────────────────────────
 
 
+def _cmd_tinker_serve(args: list[str]) -> int:
+    """Serve Tinker's sampler behind a local OpenAI-compatible endpoint.
+
+    The `served_by: tinker` models in configs/models.yaml point their base_url
+    here; base models and `tinker://` LoRA checkpoints both work as `model`.
+    """
+    import argparse
+    from personascope.tinker.proxy import DEFAULT_PORT, serve
+    ap = argparse.ArgumentParser(prog="personascope tinker-serve")
+    ap.add_argument("--port", type=int, default=DEFAULT_PORT)
+    ap.add_argument("--host", default="127.0.0.1")
+    ns = ap.parse_args(args)
+    serve(port=ns.port, host=ns.host)
+    return 0
+
+
 _BUILTINS = {
     "list-probes":      _cmd_list_probes,
     "list-batteries":   _cmd_list_batteries,
@@ -447,6 +463,7 @@ _BUILTINS = {
     "self-report":      _cmd_self_report,
     "mmlu":             _cmd_mmlu,
     "reparse":          _cmd_reparse,
+    "tinker-serve":     _cmd_tinker_serve,
 }
 
 
@@ -464,7 +481,8 @@ def _print_help() -> None:
     print("  dynamic-audit      Auditor-driven conversation; all components, one transcript")
     print("  self-report        Ask a model what it claims it can do, across personas/routes")
     print("  mmlu               Measure whether those claims hold")
-    print("  reparse            Re-read a finished run without re-asking the model\n")
+    print("  reparse            Re-read a finished run without re-asking the model")
+    print("  tinker-serve       Serve Tinker's sampler (open full-ladder models) on localhost\n")
     print("Each audit command is a thin wrapper over the Python API in")
     print("`personascope.experiments.audit` and `personascope.experiments.full_battery` —")
     print("import those directly for fine-grained control.")

@@ -91,3 +91,31 @@ def test_tiers_are_lists_keyed_by_an_inner_field():
     pinned = available_models()["pinned"]
     assert "qwen35-9b" in pinned and "gpt-5.6-sol" in pinned
     assert len(pinned) >= 12
+
+
+# ---- the Tinker-served full-ladder models ----
+
+
+def test_tinker_served_models_resolve_to_the_local_proxy():
+    """The open full-ladder models are sampled through `personascope
+    tinker-serve`; every cell of theirs, base and LoRA, goes through it."""
+    from personascope.models import TINKER_PROXY_URL, load_models_config
+
+    cfg = load_models_config()
+    tinker = [e for e in cfg["full_ladder"] if e.get("served_by") == "tinker"]
+    assert {e["key"] for e in tinker} == {"qwen38-27b", "kimi-k2.6"}
+    for e in tinker:
+        provider, model_id = resolve_model(e["key"])
+        assert model_id == e["id"]
+        assert provider.config.base_url == e.get("base_url", TINKER_PROXY_URL)
+        assert provider.config.extra_body is None  # thinking is off in the renderer
+        assert e["renderer"].endswith("_disable_thinking")
+
+
+def test_the_two_date_rule_is_written_down():
+    """The arm has a frontier cut-off; the open full-ladder models do not.
+    The yaml header is where a reader finds that, so it must say so."""
+    from personascope.models import MODELS_YAML
+
+    head = MODELS_YAML.read_text().split("defaults:")[0]
+    assert "2026-07-31" in head and "Tinker-trainable" in head

@@ -362,3 +362,42 @@ def test_shuffled_control_is_length_matched_and_leaks_nothing():
 def test_shuffled_control_runs_uninduced():
     """There is no target to judge against."""
     assert resolve("curie", "system_shuffled_k32", seed=42).forced_mode == "uninduced"
+
+
+# ---- checkpoint registry: keyed by model ----
+
+
+def test_checkpoints_are_keyed_by_model_and_carry_a_recipe():
+    cfg = induction.load_checkpoints()
+    assert set(cfg["models"]) >= {"gpt-4.1", "qwen38-27b", "kimi-k2.6"}
+    for model, entry in cfg["models"].items():
+        assert entry["recipe"] in cfg["recipes"], model
+    q, k = induction.recipe_for("qwen38-27b"), induction.recipe_for("kimi-k2.6")
+    # one rank on both Tinker models: rank is a dose knob on the route
+    assert q["lora_rank"] == k["lora_rank"] == 32
+    assert q["renderer"] == "qwen3_8_disable_thinking"
+    assert k["renderer"] == "kimi_k26_disable_thinking"
+    assert k["fallback"]["num_epochs"] == 1
+
+
+def test_sft_for_a_tinker_model_names_the_model_when_nothing_is_trained():
+    with pytest.raises(KeyError, match="qwen38-27b"):
+        resolve("curie", "sft", model="qwen38-27b")
+
+
+def test_sft_for_a_tinker_model_uses_its_sampler_path(tmp_path):
+    """An SFT cell of an open model: the tinker:// checkpoint as the model,
+    no prompt, no context, mode forced -- the same shape as the gpt-4.1 cell."""
+    cfg = induction.load_checkpoints()
+    cfg["models"]["qwen38-27b"]["personas"] = {
+        "curie": {"plain": {"model": "tinker://run-1/sampler_weights/final"}}
+    }
+    i = resolve("curie", "sft", model="qwen38-27b", checkpoints_cfg=cfg)
+    assert i.model == "tinker://run-1/sampler_weights/final"
+    assert i.system_prompt is None and i.icl_context is None
+    assert i.forced_mode == "induced"
+
+
+def test_sft_accepts_the_openrouter_slug_for_the_model():
+    """Sweeps name gpt-4.1 by its slug; the registry is keyed by the yaml key."""
+    assert resolve("voldemort", "sft", model="openai/gpt-4.1").model.startswith("ft:")
