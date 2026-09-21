@@ -75,6 +75,9 @@ class ProviderConfig:
     # models.yaml for `served_by: openai` entries.
     max_completion_tokens_param: bool = False
     send_temperature: bool = True
+    # Added to every call's max_tokens: the thinking-on replication raises the
+    # instrument's cap by the trace budget so the trace cannot exhaust the answer.
+    extra_max_tokens: int = 0
     # For models whose reasoning CANNOT be disabled (e.g. Kimi K3), the trace
     # counts against max_tokens and can starve the answer entirely: complex
     # prompts produce long traces, finish_reason=length, and EMPTY content —
@@ -796,6 +799,8 @@ class UnifiedProvider:
         """
         if self.config.temperature is not None:
             temperature = self.config.temperature
+        if self.config.extra_max_tokens:
+            max_tokens = max_tokens + self.config.extra_max_tokens
         if logprobs and temperature < self.config.min_temperature:
             temperature = self.config.min_temperature
         # `max_tokens=None` means no cap, so there is no budget for a reasoning
@@ -830,7 +835,11 @@ class UnifiedProvider:
             kwargs["logprobs"] = True
             kwargs["top_logprobs"] = top_logprobs
         extra_body = dict(self.config.extra_body) if self.config.extra_body else {}
-        if capture_reasoning:
+        if self.config.max_completion_tokens_param:
+            # OpenAI's own API: `reasoning_effort` (below) is the whole
+            # story; the OpenRouter `reasoning` body is an unknown parameter.
+            extra_body.pop("reasoning", None)
+        elif capture_reasoning:
             extra_body["reasoning"] = {"enabled": True}
         elif self.config.disable_reasoning_by_default:
             # Stop a reasoning model from spending the (often tiny) token
@@ -900,6 +909,12 @@ class UnifiedProvider:
         # reads all three as the model declining to answer.
         finish_reason = getattr(choices[0], "finish_reason", None) if choices else None
 
+        # Trace length as the endpoint counts it: available even where the
+        # text is not (OpenAI's chat API returns the count, never the trace).
+        usage = getattr(response, "usage", None)
+        details = getattr(usage, "completion_tokens_details", None) if usage is not None else None
+        reasoning_tokens = int(getattr(details, "reasoning_tokens", 0) or 0) if details is not None else 0
+
         result: dict[str, Any] = {
             "text": first_text,
             "text_samples": texts,
@@ -908,6 +923,7 @@ class UnifiedProvider:
             "total_nll": 0.0,
             "logprobs": None,
             "reasoning": reasoning,
+            "reasoning_tokens": reasoning_tokens,
             "host": host,
             "finish_reason": finish_reason,
             "success": True,

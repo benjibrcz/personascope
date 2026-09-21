@@ -94,12 +94,18 @@ def resolve_model(
     name: str,
     *,
     config_path: Path | str | None = None,
+    thinking: str = "off",
 ) -> tuple[Any, str]:
     """Resolve `name` to `(provider, resolved_model_id)`.
 
     The resolved id is the upstream string actually sent as `model=`, which is
     what a manifest needs: an alias tells you what was asked for, the resolved
     id tells you what answered.
+
+    `thinking="on"` applies the entry's `thinking_on.models` override from
+    models.yaml (reasoning enabled at the vendor default, the cap raised by
+    `thinking_on.extra_tokens`); a model with no override is refused rather
+    than run in a mode the yaml does not describe.
     """
     from personascope.llm.provider import PROVIDERS, ProviderConfig, UnifiedProvider
 
@@ -119,6 +125,20 @@ def resolve_model(
     if name in pinned:
         entry = pinned[name]
         model_id = entry.get("id") or entry.get("model") or name
+        extra_tokens = 0
+        if thinking == "on":
+            block = cfg.get("thinking_on") or {}
+            override = (block.get("models") or {}).get(name)
+            if override is None:
+                raise ValueError(
+                    f"{name!r} has no `thinking_on.models` entry in models.yaml; "
+                    "the thinking-on replication covers the arm only."
+                )
+            entry = {**entry, "disable_reasoning": False, "reasoning": None,
+                     "reasoning_effort": None, **override}
+            extra_tokens = int(block.get("extra_tokens", 0))
+        elif thinking != "off":
+            raise ValueError(f"thinking must be 'on' or 'off', not {thinking!r}")
         # `provider:` is an OpenRouter endpoint tag. Sent with
         # allow_fallbacks=False so a request the pinned host cannot serve
         # fails instead of landing on another host at another precision.
@@ -136,6 +156,7 @@ def resolve_model(
                 # the 5.x line: max_completion_tokens, and no temperature parameter
                 max_completion_tokens_param=bool(entry.get("reasoning_effort")),
                 send_temperature=entry.get("temperature") != "rejected",
+                extra_max_tokens=extra_tokens,
             )
             return UnifiedProvider(pc), model_id
         if entry.get("served_by") == "tinker":
@@ -168,6 +189,7 @@ def resolve_model(
             extra_body=extra_body,
             disable_reasoning_by_default=bool(entry.get("disable_reasoning", False)),
             temperature=_pinned_temperature(entry),
+            extra_max_tokens=extra_tokens,
         )
         return UnifiedProvider(pc), model_id
 

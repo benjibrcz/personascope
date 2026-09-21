@@ -138,3 +138,26 @@ def test_open_weight_models_are_pinned_to_0_7_and_closed_ones_are_not():
             else:
                 assert e["temperature"] == 0.7, e["key"]
                 assert provider.config.temperature == 0.7
+
+
+def test_thinking_on_is_the_arm_replication():
+    """Main results run thinking off. `thinking="on"` applies the yaml's
+    `thinking_on` override and raises the cap; models without an override
+    (the full ladder) are refused, not silently run."""
+    from personascope.models import load_models_config
+
+    cfg = load_models_config()
+    arm = [e["key"] for e in cfg["prompt_context"]]
+    assert set(cfg["thinking_on"]["models"]) == set(arm)
+    for key in arm:
+        off, _ = resolve_model(key)
+        on, _ = resolve_model(key, thinking="on")
+        assert on.config.extra_max_tokens == cfg["thinking_on"]["extra_tokens"] > 0
+        assert off.config.extra_max_tokens == 0
+        if on.config.base_url is None:            # OpenAI's API
+            assert on.config.reasoning_effort not in (None, "none")
+        else:
+            assert on.config.extra_body["reasoning"] == {"enabled": True}
+            assert not on.config.disable_reasoning_by_default
+    with pytest.raises(ValueError, match="thinking_on"):
+        resolve_model("gpt-4.1", thinking="on")

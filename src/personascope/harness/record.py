@@ -57,6 +57,19 @@ class Response:
     response: str = ""
     """Raw text, always kept."""
 
+    reasoning: str = ""
+    """The reasoning trace, when the run has thinking on and the endpoint
+    returns one (DeepSeek and GLM: the full trace; Claude: its thinking text;
+    OpenAI's chat API: nothing, only a token count). Never scored -- the
+    components read the visible answer, so models with and without a trace
+    stay comparable -- but kept, because whether a model reasons as itself
+    and answers as the persona is a read on the identity/behaviour split
+    that nothing else in the panel gives."""
+
+    reasoning_tokens: int = 0
+    """Trace length as the endpoint counts it, available even when the text
+    is not (OpenAI)."""
+
     value: Any = None
     status: str = "unparsed"
     note: str = ""

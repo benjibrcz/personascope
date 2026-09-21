@@ -366,6 +366,9 @@ def _cmd_self_report(argv: list[str]) -> int:
     ap.add_argument("--out", default=None,
                     help="output root; default results/<instrument>/<run>")
     ap.add_argument("--n", type=int, default=None, dest="n_samples")
+    ap.add_argument("--thinking", choices=["off", "on"], default=None,
+                    help="on: the appendix replication with reasoning enabled (models.yaml thinking_on); "
+                         "the run name gets a -thinking suffix so the main run is not overwritten")
     ap.add_argument("--workers", type=int, default=None)
     ap.add_argument("--limit", type=int, default=0,
                     help="cap prompts per cell, for smoke tests")
@@ -393,6 +396,10 @@ def _cmd_self_report(argv: list[str]) -> int:
     )
     if a.n_samples is not None:
         grid = dataclasses.replace(grid, n_samples=a.n_samples)
+    if a.thinking is not None:
+        grid = dataclasses.replace(grid, thinking=a.thinking)
+    if grid.thinking == "on" and not grid.run.endswith("-thinking"):
+        grid = dataclasses.replace(grid, run=grid.run + "-thinking")
     if a.workers is not None:
         grid = dataclasses.replace(grid, workers=a.workers)
 

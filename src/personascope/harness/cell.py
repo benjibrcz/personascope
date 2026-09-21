@@ -82,6 +82,9 @@ class Grid:
     seed: int = 42
     workers: int = 4
 
+    thinking: str = "off"
+    """`off` for the main results; `on` re-runs the arm with reasoning enabled
+    (models.yaml `thinking_on`), for the appendix replication."""
     max_tokens: int = 0
     """Generation cap, supplied by the instrument rather than by the config.
 
@@ -101,6 +104,7 @@ class Grid:
         """What was actually sent to the model, for the run record."""
         return {
             "temperature": self.temperature,
+            "thinking": self.thinking,
             "max_tokens": self.max_tokens,
             "seed": self.seed,
             "n_samples": self.n_samples,
@@ -170,5 +174,6 @@ def build_grid(
         n_samples=int(sampling.get("n_samples", 1)),
         temperature=float(sampling.get("temperature", default_temperature())),
         seed=int(sampling.get("seed", 42)),
+        thinking=str(cfg.get("thinking", "off")),
         workers=int(concurrency.get("workers", 4)),
     )

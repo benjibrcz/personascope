@@ -9,8 +9,12 @@
 #    `temperature:` on their entry; the vendors' recommended setting).
 #    Closed models run at their API default, 1.0: OpenAI and Anthropic reject
 #    the parameter on these lines, recorded as `temperature: rejected`.
-#    Thinking off where switchable; GLM-5.3 Flash, whose endpoint refuses to
-#    switch it off, runs at full effort with the trace discarded.
+#    Thinking OFF for the main results, as in Sturgeon et al., Weird
+#    Generalization, The Consciousness Cluster and Negation Neglect (main
+#    tables); GLM-5.3 Flash, whose endpoint refuses to switch it off, runs at
+#    the lowest effort (0-5 trace tokens). The arm is re-run once with
+#    thinking ON (`thinking_on:` below) for an appendix, the pattern of
+#    Negation Neglect's C.7.
 # 2. One cut-off, 2026-09-20, the day the grid was frozen. The arm holds one
 #    mid-tier model per family at the cut-off -- the tier a deployment uses,
 #    at a fifth to a tenth of the flagship's price: Sonnet not Opus / Fable,
@@ -36,6 +40,20 @@
 #               landing elsewhere). Vendor's own endpoint where one exists,
 #               otherwise the highest-precision full-context endpoint.
 #
+# ── Thinking-on replication (appendix) ──────────────────────────────────
+# `personascope self-report --thinking on` (any sweep: `thinking: on`) re-runs
+# the arm with each model's reasoning enabled at the vendor's default effort,
+# the trace discarded before parsing, and every instrument's generation cap
+# raised by `extra_tokens` so the trace cannot exhaust the answer. Tinker
+# models are not in this run (the LoRA cells are trained non-thinking).
+thinking_on:
+  extra_tokens: 2000
+  models:
+    claude-sonnet-5:     {reasoning: {enabled: true}}    # adaptive: thinks on hard prompts (verified ~500 tokens), not on trivial ones
+    deepseek-v4.1-flash: {reasoning: {enabled: true}}
+    glm-5.3-flash:       {reasoning: {enabled: true}}    # endpoint default effort
+    gpt-5.6-luna:        {reasoning_effort: medium}      # OpenAI's default for the 5.x line
+
 # ── Temperature ─────────────────────────────────────────────────────────
 # `defaults.temperature` (1.0) is what a caller sends unless the model's
 # entry pins one; a numeric `temperature:` on an entry overrides every
@@ -141,7 +159,7 @@ prompt_context:
     price: {in: 0.08, out: 0.25}
     provider: z-ai/fp8           # vendor's own endpoint, fp8 native
     temperature: 0.7             # open-weight pin
-    reasoning: {effort: max}     # cannot be disabled on this endpoint; runs at full effort, the trace (~400 tokens) discarded before judging
+    reasoning: {effort: low}     # cannot be disabled on this endpoint; at low effort the trace is 0-5 tokens (verified), discarded
     routes: [icl, system, system_facts, system_shuffled]
 
   - key: gpt-5.6-luna
@@ -168,7 +186,7 @@ reserve:
     price: {in: 5.00, out: 25.00}
     provider: anthropic
     temperature: rejected        # thinking on by default; API rejects the parameter; vendor default 1.0
-    reasoning: {effort: max}     # bounded trace; not scored
+    reasoning: {effort: low}     # bounded trace; not scored
     routes: [icl, system, system_facts, system_shuffled]
     in_grid: false
     reason: the flagship; Sonnet 5 is the arm's Anthropic row at a fifth of the price
@@ -192,7 +210,7 @@ reserve:
     family: Zhipu
     temperature: 0.7             # open-weight pin
     provider: novita/fp8         # no vendor endpoint on OpenRouter
-    reasoning: {effort: max}
+    reasoning: {effort: low}
     routes: [icl, system, system_facts, system_shuffled]
     in_grid: false
     reason: the flagship; GLM-5.3 Flash is the arm's Zhipu row. Runs at effort low like the Flash
@@ -202,7 +220,7 @@ reserve:
     family: xAI
     price: {in: 2.00, out: 6.00}
     provider: xai
-    reasoning: {effort: max}
+    reasoning: {effort: low}
     routes: [icl, system, system_facts, system_shuffled]
     in_grid: false
     reason: reasoning mandatory; supersedes grok-4.5
@@ -212,7 +230,7 @@ reserve:
     family: Google
     price: {in: 2.00, out: 12.00}
     provider: google-ai-studio
-    reasoning: {effort: max}     # mandatory on this endpoint; bounded, not scored
+    reasoning: {effort: low}     # mandatory on this endpoint; bounded, not scored
     routes: [icl, system, system_facts, system_shuffled]
     in_grid: false
     reason: preview-only slug on OpenRouter; reasoning mandatory on the endpoint
@@ -224,7 +242,7 @@ reserve:
     price: {in: 2.00, out: 10.00}
     provider: openai
     temperature: rejected        # reasoning model; vendor default 1.0
-    reasoning: {effort: max}
+    reasoning: {effort: low}
     routes: [icl, system, system_facts, system_shuffled]
     in_grid: false
     note: same family as gpt-4.1; include only to place the full-ladder model against its successor

@@ -38,6 +38,26 @@ class CellResult(dict):
     """A cell's outcome: counts, paths, and the instrument's summary block."""
 
 
+def _thin(prompts: list, limit: int) -> list:
+    """Take `limit` prompts spread across the set, not the first `limit`.
+
+    A prefix is not a sample. The MMLU items are written in gold-letter blocks,
+    so `prompts[:12]` is twelve gold-A questions and a model with any bias
+    toward A scores perfectly on it — which is what a smoke test is meant to
+    catch, not to hide.
+    """
+    if limit >= len(prompts):
+        return prompts
+    # A seeded sample, not a stride: the items sit in gold-letter blocks
+    # inside fixed-size targets, so any regular step aliases with that
+    # structure — at limit=32 a stride lands only on A and C.
+    import random
+
+    return sorted(
+        random.Random(0).sample(prompts, limit), key=lambda p: p.item_id
+    )
+
+
 def _describe_model(name: str) -> dict[str, Any]:
     """How a model name resolved, since the same name can route two ways.
 
@@ -84,6 +104,7 @@ def _fingerprint(cell: Cell, grid: Grid, induction, instrument_sha: str) -> str:
             "route": cell.route_key,
             "icl_context_sha": icl_sha,
             "temperature": grid.temperature,
+            "thinking": grid.thinking,
             "max_tokens": grid.max_tokens,
         },
     )
@@ -148,7 +169,7 @@ def run_cell(
 
     prompts = list(instrument.prompts())
     if limit:
-        prompts = prompts[:limit]
+        prompts = _thin(prompts, limit)
 
     work = [
         (p, s)
@@ -158,7 +179,7 @@ def run_cell(
     ]
 
     if provider is None:
-        provider, model_id = resolve_model(induction.model)
+        provider, model_id = resolve_model(induction.model, thinking=grid.thinking)
     else:
         model_id = getattr(getattr(provider, "config", None), "model", induction.model)
 
@@ -182,6 +203,7 @@ def run_cell(
             temperature=grid.temperature,
             max_tokens=grid.max_tokens,
             seed=grid.seed + sample,
+            capture_reasoning=(grid.thinking == "on"),
         )
         # complete() returns success=False rather than raising. An unchecked
         # call writes an empty string that reads exactly like a refusal.
@@ -199,6 +221,8 @@ def run_cell(
             sample=sample, prompt_sha=sha(prompt.text), response=raw, value=parsed.value,
             finish_reason=str(res.get("finish_reason") or ""),
             host=str(res.get("host") or ""),
+            reasoning=str(res.get("reasoning") or ""),
+            reasoning_tokens=int(res.get("reasoning_tokens") or 0),
             status=parsed.status, note=parsed.note, meta=dict(prompt.meta),
             temperature=grid.temperature, seed=grid.seed + sample,
             ts=Response.now(),
@@ -285,7 +309,7 @@ def run_grid(
 
     prompts = list(instrument.prompts())
     if limit:
-        prompts = prompts[:limit]
+        prompts = _thin(prompts, limit)
     item_hashes = {p.item_id: sha(p.text) for p in prompts}
     src = Path(config_source) if config_source else None
     prov = RunProvenance(

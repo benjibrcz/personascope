@@ -242,8 +242,11 @@ first, then the registry, then treats `org/model` as a bare OpenRouter slug.
 The yaml is the grid: every OpenRouter entry carries a pinned upstream
 (`provider:`, sent as `{only: [tag], allow_fallbacks: false}`); open-weight
 models are pinned to temperature 0.7 (`temperature:` on the entry overrides
-every caller), closed models run at their API default; thinking off where
-switchable. `scripts/check_model_pins.py` verifies each
+every caller), closed models run at their API default; thinking off for the
+main results. `personascope self-report --thinking on` (or `thinking: on` in a
+sweep) re-runs the arm with reasoning at each vendor's default and the cap
+raised (`thinking_on:` in the yaml) -- the appendix replication, after
+Negation Neglect's C.7; its run name gets a `-thinking` suffix. `scripts/check_model_pins.py` verifies each
 entry live. The serving rule is one stack per model, so across routes only
 the intervention differs:
 
