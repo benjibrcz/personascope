@@ -1,0 +1,41 @@
+# SAD sweep: when a persona is induced, which entity answers?
+#
+# The 370-item battery frozen by scripts/build_sad_measurement_set.py out of
+# the Situational Awareness Dataset (arXiv 2407.04694). Asked free-form -- SAD's
+# forced choice and its situating prompt are both dropped, the latter because
+# telling the model it is an AI is the intervention under measurement. Each
+# answer is read by the shared stance grid, which names the entity the answer
+# is spoken from and does not check whether it is true.
+#
+# Three routes, one per depth: the persona in the system slot, the same facts
+# as conversation turns, and the same facts in the weights. Everything else is
+# held: same 370 items, same judge, same n.
+
+run: sad_v1
+instrument: sad
+
+instrument_args:
+  judge: gpt-5-mini
+  item_set: measurement_n370_seed42
+
+models:
+  - gpt-4.1          # the only model carrying all three routes today
+
+routes:
+  - system
+  - icl_k32
+  - sft
+
+personas: [voldemort, stalin, vader, curie]
+
+variants: [default]
+facts_variants: [default]
+
+baseline: true       # the uninduced cell: what the assistant says unprompted
+
+sampling:
+  n_samples: 5       # a frequency per item, and a within-item consistency read
+  seed: 42
+
+concurrency:
+  workers: 8

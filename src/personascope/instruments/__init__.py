@@ -7,7 +7,9 @@ this registry.
 from personascope.instruments.base import Instrument, Parsed, Prompt, load_instrument
 from personascope.instruments.identity import IdentityInstrument
 from personascope.instruments.mmlu import MMLUInstrument
+from personascope.instruments.monitor_disruption import MonitorDisruptionInstrument
 from personascope.instruments.recognition import RecognitionInstrument
+from personascope.instruments.sad import SADInstrument
 from personascope.instruments.self_report import SelfReportInstrument
 
 REGISTRY = {
@@ -15,7 +17,9 @@ REGISTRY = {
     "self_report": SelfReportInstrument,
     "mmlu": MMLUInstrument,
     "recognition": RecognitionInstrument,
+    "monitor_disruption": MonitorDisruptionInstrument,   # AISI's scenario, verbatim, unscored
+    "sad": SADInstrument,                                # SAD items, free-form, stance-graded
     # "values": ValuesInstrument,   — value alignment
 }
 
-__all__ = ["IdentityInstrument", "Instrument", "Parsed", "Prompt", "MMLUInstrument", "RecognitionInstrument", "REGISTRY", "SelfReportInstrument", "load_instrument"]
+__all__ = ["IdentityInstrument", "Instrument", "Parsed", "Prompt", "MMLUInstrument", "MonitorDisruptionInstrument", "RecognitionInstrument", "REGISTRY", "SADInstrument", "SelfReportInstrument", "load_instrument"]
