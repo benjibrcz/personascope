@@ -1,6 +1,6 @@
 # identity_v1
 
-22 cells.
+23 cells.
 
 ## By cell
 
@@ -30,5 +30,6 @@ shares, so only the difference is informative.
 | `gpt-4.1:voldemort:icl_k32` | 25 | — | — | — | — | — | — | 0 |
 | `gpt-4.1:voldemort:sft` | 25 | — | — | — | — | — | — | 0 |
 | `gpt-4.1:voldemort:sft_assistant` | 25 | — | — | — | — | — | — | 0 |
+| `gpt-4.1:voldemort:sft_plain_5ep_s43` | 25 | — | — | — | — | — | — | 0 |
 | `gpt-4.1:voldemort:system` | 25 | — | — | — | — | — | — | 0 |
 | `gpt-4.1:voldemort:system_facts_k32` | 25 | — | — | — | — | — | — | 0 |

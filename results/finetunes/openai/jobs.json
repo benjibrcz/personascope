@@ -182,7 +182,9 @@
       "data": "src/personascope/data/icl_personas/filtered/curie/facts.jsonl",
       "data_sha256": "0789039333844553",
       "created": "2026-09-21T17:08:24+00:00",
-      "status": "running"
+      "status": "succeeded",
+      "model": "ft:gpt-4.1-2025-04-14:mats-research-inc-cohort-9:curi-plain-5ep-s43:EQcPTJp5",
+      "finished": "2026-09-21T17:48:01+00:00"
     }
   }
 }

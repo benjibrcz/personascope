@@ -9,6 +9,9 @@
       "sft"
     ],
     "personas": [
+      "curie",
+      "stalin",
+      "vader",
       "voldemort"
     ],
     "variants": [
@@ -39,8 +42,8 @@
   },
   "config_passed": {},
   "config_source": "/private/tmp/claude-501/-Users-kyuheekim-personascope-submission/dfeb2ab1-c646-4182-841a-092eb95fdf7c/scratchpad/identity_5ep.yaml",
-  "config_source_sha": "93853eb9d7484aa8",
-  "config_source_text": "# Dose ablation: the 5-epoch seed-43 checkpoints on the identity battery,\n# written into the same run as the 3-epoch cells (route key sft_plain_5ep_s43).\nrun: identity_v1\ninstrument: identity\ninstrument_args: {judge: gpt-5-mini}\nmodels: [gpt-4.1]\nroutes: [sft]\nsft_variants: [plain_5ep_s43]\npersonas: [voldemort]\nbaseline: false\nsampling: {n_samples: 5, seed: 42}\nconcurrency: {workers: 4}\n",
+  "config_source_sha": "98262ee8f4d33dc5",
+  "config_source_text": "# Dose ablation: the 5-epoch seed-43 checkpoints on the identity battery,\n# written into the same run as the 3-epoch cells (route key sft_plain_5ep_s43).\nrun: identity_v1\ninstrument: identity\ninstrument_args: {judge: gpt-5-mini}\nmodels: [gpt-4.1]\nroutes: [sft]\nsft_variants: [plain_5ep_s43]\npersonas: [voldemort, stalin, vader, curie]\nbaseline: false\nsampling: {n_samples: 5, seed: 42}\nconcurrency: {workers: 4}\n",
   "instrument_sha": "94995d065df33e21",
   "n_items": 8,
   "item_hashes": {
@@ -55,11 +58,14 @@
   },
   "items_sha": "661d66cd3ad78f45",
   "cells": [
-    "gpt-4.1:voldemort:sft_plain_5ep_s43"
+    "gpt-4.1:voldemort:sft_plain_5ep_s43",
+    "gpt-4.1:stalin:sft_plain_5ep_s43",
+    "gpt-4.1:vader:sft_plain_5ep_s43",
+    "gpt-4.1:curie:sft_plain_5ep_s43"
   ],
   "revision": {
     "origin": "https://github.com/benjibrcz/personascope.git",
-    "commit": "81a7e33c4b5e3bb62af1de07c4781f23eba82313",
+    "commit": "aebdaeda58a156f2090e02239d2504a76ae79905",
     "dirty": true
   },
   "packages": {
@@ -72,7 +78,7 @@
   },
   "python": "3.12.2",
   "platform": "macOS-14.5-arm64-arm-64bit",
-  "started_utc": "2026-09-21T17:20:34+00:00",
-  "completed_utc": "2026-09-21T17:21:15+00:00",
-  "duration_seconds": 40.7
+  "started_utc": "2026-09-21T18:16:22+00:00",
+  "completed_utc": "2026-09-21T18:19:55+00:00",
+  "duration_seconds": 213.6
 }

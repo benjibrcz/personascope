@@ -94,6 +94,14 @@ models:
     # the YAWYR ones stay as `plain_unfiltered`, the ablation.
     personas:
       curie:
+        plain_5ep_s43:
+          model: "ft:gpt-4.1-2025-04-14:mats-research-inc-cohort-9:curi-plain-5ep-s43:EQcPTJp5"
+          epochs: 5
+          seed: 43
+          corpus: filtered
+          n_train: 63
+          trained: 2026-09-21
+          job_id: ftjob-fZBb7oHNkW3Q2E37BTLkq1fz
         plain:
           model: "ft:gpt-4.1-2025-04-14:mats-research-inc-cohort-9:curi-plain-s42:EQZJYD9B"
           epochs: 3
