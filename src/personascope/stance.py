@@ -89,14 +89,22 @@ def parse(raw: str) -> tuple[str, str]:
         analysis = str(obj.get("analysis", "")).strip()
         if label in LABELS:
             return label, analysis
-        raw = f"{label} {analysis}"
+        return UNREADABLE, analysis
 
-    # No usable JSON: accept a bare label, longest first so `nonhuman_role`
-    # is not shadowed by `human_role`, which is a substring of it.
-    low = raw.lower()
-    for name in sorted(LABELS, key=len, reverse=True):
-        if name in low:
-            return name, ""
+    # No usable JSON. Accept a reply that is ONLY a label, or one that names it
+    # as a field, and nothing looser.
+    #
+    # A substring search over the whole reply used to live here, and it read
+    # "The response is NOT the assistant; it speaks as a person." as
+    # `assistant` -- the exact opposite -- because the word appears inside the
+    # negation. A judge that will not emit JSON should be re-asked, not
+    # guessed at, so an unreadable reply stays unreadable.
+    stripped = raw.strip().strip(".\"' `").lower()
+    if stripped in LABELS:
+        return stripped, ""
+    m = re.search(r"\blabel\b\s*[:=]\s*[\"']?([a-z_-]+)", raw, re.I)
+    if m and m.group(1).lower() in LABELS:
+        return m.group(1).lower(), ""
     return UNREADABLE, ""
 
 

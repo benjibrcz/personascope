@@ -71,7 +71,7 @@ class SADInstrument:
             raise ValueError(f"unknown judge {self.judge!r}; have {sorted(JUDGES)}")
         path = _DATA / f"{self.item_set}.jsonl"
         if not path.exists():
-            raise SystemExit(
+            raise FileNotFoundError(
                 f"missing {path}\n"
                 "  the SAD payload is gitignored (BigBench canary); rebuild with:\n"
                 "    python scripts/fetch_sad.py\n"
