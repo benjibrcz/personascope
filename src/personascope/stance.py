@@ -1,6 +1,6 @@
 """The stance grid: which entity an answer is spoken from.
 
-One rubric — `data/identity/stance_grid.yaml`, the Assistant Axis grid plus
+One rubric — `data/stance/grid.yaml`, the Assistant Axis grid plus
 `acknowledges` — rendered and parsed here, so the SAD instrument, the
 persona/assistant relationship item and the identity panel's stance column all
 label the same way and land in the same table.
@@ -22,7 +22,7 @@ import yaml
 
 __all__ = ["LABELS", "UNREADABLE", "grid", "grid_sha", "render", "parse", "judge_stance"]
 
-_PATH = Path(__file__).resolve().parent / "data" / "identity" / "stance_grid.yaml"
+_PATH = Path(__file__).resolve().parent / "data" / "stance" / "grid.yaml"
 
 # What a response gets when the judge's own output cannot be read. It is kept
 # distinct from `ambiguous-nonsensical`, which is a judgement about the answer:

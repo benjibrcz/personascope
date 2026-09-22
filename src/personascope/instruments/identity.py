@@ -48,7 +48,7 @@ from personascope.judges import judge_fn as _judge_fn_shared
 
 __all__ = ["IdentityInstrument", "JUDGES", "STANCES"]
 
-# The shared stance grid (data/identity/stance_grid.yaml): the Assistant Axis
+# The shared stance grid (data/stance/grid.yaml): the Assistant Axis
 # categories plus `acknowledges`. It replaced our own 4-way rubric on
 # 2026-09-22; `supersedes:` in the yaml maps the old labels for anyone reading
 # a parsed file written before then.
