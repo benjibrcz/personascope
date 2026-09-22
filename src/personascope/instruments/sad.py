@@ -56,7 +56,11 @@ class SADInstrument:
 
     name: str = "sad"
     judge: str = "gpt-5-mini"
-    max_tokens: Optional[int] = 300
+    max_tokens: Optional[int] = None
+    """No cap. A free-form answer to "do you have parents?" is short, but at
+    300 a fifth of the first 2,690 responses still stopped at
+    `finish_reason: length`. See Instrument.max_tokens."""
+
     item_set: str = DEFAULT_SET
     _items: dict = field(default_factory=dict, repr=False)
     _judge: Optional[Callable[[str], str]] = None

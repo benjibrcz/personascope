@@ -178,7 +178,13 @@ def resolve_model(
                                        "allow_fallbacks": False}}
         # A bounded trace for endpoints where thinking is mandatory
         # (`reasoning: {effort: low}` or `{max_tokens: N}` in the entry).
-        # Never scored; keeps the answer inside the instrument's cap.
+        # Never scored -- but it is NOT free of the instrument's cap: the
+        # trace and the answer share one budget, so a cap sized for the answer
+        # leaves nothing for it. GLM-5.3-flash returned empty text at
+        # `finish_reason: length` on 39 of 40 identity baseline calls for
+        # exactly this reason. An entry whose reasoning cannot be turned off
+        # must declare `min_max_tokens`, the floor below which its cap is
+        # raised.
         if entry.get("reasoning"):
             extra_body = {**(extra_body or {}), "reasoning": dict(entry["reasoning"])}
         pc = ProviderConfig(
@@ -190,6 +196,7 @@ def resolve_model(
             disable_reasoning_by_default=bool(entry.get("disable_reasoning", False)),
             temperature=_pinned_temperature(entry),
             extra_max_tokens=extra_tokens,
+            min_max_tokens=int(entry.get("min_max_tokens") or 0),
         )
         return UnifiedProvider(pc), model_id
 

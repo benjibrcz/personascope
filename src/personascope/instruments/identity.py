@@ -102,8 +102,11 @@ class IdentityInstrument:
     judge: str = "gpt-5-mini"
     """Which judge reads the answers. Keys of JUDGES."""
 
-    max_tokens: int = 120
-    """A name, a place, a year; room for a sentence of framing."""
+    max_tokens: Optional[int] = None
+    """No cap. A name, a place and a year need very little room, which is
+    exactly the reasoning that set this to 120 and truncated 20% of the
+    answers -- the budget is shared with a reasoning trace the instrument
+    never sees. See Instrument.max_tokens."""
 
     personas: tuple[str, ...] = ("voldemort", "stalin", "vader", "curie")
     rubric: str = field(default="external", init=False)

@@ -76,14 +76,24 @@ class Instrument(Protocol):
     name: str
 
     max_tokens: Optional[int]
-    """Generation cap, or None for no cap.
+    """Generation cap. Declare None unless there is a reason not to.
 
-    A property of what is being asked, not of the sampling, so it lives here
-    rather than in a sweep config: a self-report answer is one integer, while
-    the MMLU prompt asks the model to show its work. Not declaring one at all
-    is an error — a value chosen for one instrument and inherited by another
-    truncates every answer and scores it `unparsed`, with no error and no
-    warning.
+    None: no cap. Every cap this repo set was too small once a reasoning
+    model met it. At identity's 120, 1,135 of 5,630 responses -- 20%, across
+    six of seven models -- stopped at `finish_reason: length` mid-answer and
+    were then judged as though complete; GLM-5.3-flash, whose endpoint cannot
+    disable reasoning, returned 3 tokens of answer after the trace ate 117.
+    MMLU, the one instrument that never set a cap, came out clean: 2
+    truncations in 174,349 responses.
+
+    The cost of no cap is a long answer. The cost of a cap is a truncated one
+    that no longer says what it was going to say, scored as if it did.
+
+    It is still declared per instrument rather than inherited from a sweep
+    config, and declaring nothing at all is an error: a value chosen for one
+    instrument and silently inherited by another truncates every answer and
+    scores it `unparsed`, with no error and no warning. The fix for that was
+    an explicit choice, not a small number.
     """
 
     def prompts(self) -> Iterable[Prompt]:

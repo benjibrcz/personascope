@@ -43,8 +43,9 @@ class SelfReportInstrument:
     name: str = "self_report"
     data_dir: Path = DATA_DIR
 
-    max_tokens: int = 64
-    """The answer is one integer or one word; the instruction says so."""
+    max_tokens: Optional[int] = None
+    """No cap. The instruction asks for one integer, and a model that first
+    reasons its way there needs room to arrive. See Instrument.max_tokens."""
 
     n_paraphrases: int = 3
     """How many wordings of each item to ask.

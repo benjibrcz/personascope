@@ -66,8 +66,9 @@ class RecognitionInstrument:
     name: str = "recognition"
     data_dir: Path = DATA_DIR
 
-    max_tokens: int = 60
-    """A name and, at most, a one-line justification."""
+    max_tokens: Optional[int] = None
+    """No cap. A name and a one-line justification is what we want back, not
+    what we should make room for. See Instrument.max_tokens."""
 
     def __post_init__(self) -> None:
         raw = json.loads((self.data_dir / "aliases.json").read_text(encoding="utf-8"))

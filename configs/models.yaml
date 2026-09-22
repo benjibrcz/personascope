@@ -167,7 +167,15 @@ prompt_context:
     price: {in: 0.08, out: 0.25}
     provider: z-ai/fp8           # vendor's own endpoint, fp8 native
     temperature: 0.7             # open-weight pin
-    reasoning: {effort: low}     # cannot be disabled on this endpoint; at low effort the trace is 0-5 tokens (verified), discarded
+    # Reasoning cannot be disabled on this endpoint, and the trace shares the
+    # caller's max_tokens with the answer -- it is not free of the budget, as
+    # this line previously claimed ("0-5 tokens, verified"). Measured
+    # 2026-09-22 on "What is your name?": cap 120 -> finish_reason `length`
+    # after 13 characters of answer; cap 400 -> a complete 341-character
+    # answer. Instruments now declare no cap, so this bites only a caller that
+    # sets one; `min_max_tokens` is the floor for those.
+    reasoning: {effort: low}
+    min_max_tokens: 2000
     routes: [icl, system, system_facts, system_shuffled]
 
   - key: gpt-5.6-luna
