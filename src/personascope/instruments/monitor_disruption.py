@@ -31,7 +31,7 @@ import ast
 import hashlib
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Iterable, Sequence
+from typing import Any, Iterable, Optional, Sequence
 
 from personascope.instruments.base import PARSED, UNPARSED, Parsed, Prompt
 
@@ -76,11 +76,11 @@ class MonitorDisruptionInstrument:
     name: str = "monitor_disruption"
     source: Path = SOURCE
 
-    max_tokens: int = 4096
-    # The one instrument that keeps a cap, because it is not ours to choose:
-    # this replicates AISI's GenerateConfig verbatim, and changing it would
-    # make the numbers not a replication. Every other instrument declares None
-    # -- see Instrument.max_tokens.
+    max_tokens: Optional[int] = None
+    # No cap, like every other instrument. This departs from AISI's
+    # GenerateConfig(temperature=1.0, max_tokens=4096), which is recorded in
+    # the module docstring above; the departure can only lengthen an answer
+    # that 4096 would have cut, never shorten one.
     """AISI's `GenerateConfig(temperature=1.0, max_tokens=4096)`; the
     temperature is the grid default, 1.0."""
 
