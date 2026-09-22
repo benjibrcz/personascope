@@ -27,7 +27,13 @@ JUDGES: dict[str, dict[str, Any]] = {
     #
     # `reasoning_effort` is "low", not "minimal": at minimal, gpt-5-mini answers
     # NO to every identity rubric it is shown (checked 2026-09-18).
-    "gpt-5-mini": {"model": "gpt-5-mini", "api_key_env": "OPENAI_API_KEY",
+    #
+    # The dated snapshot, not the `gpt-5-mini` alias. An alias is repointed by
+    # the vendor without notice, and a judge that changes under a finished run
+    # makes its numbers unreproducible while every file still says `gpt-5-mini`.
+    # Pinned 2026-09-22; the alias resolved here at the time, so verdicts do
+    # not move, only the parse_key that names them.
+    "gpt-5-mini": {"model": "gpt-5-mini-2025-08-07", "api_key_env": "OPENAI_API_KEY",
                    "max_completion_tokens_param": True, "send_temperature": False,
                    "reasoning_effort": "low", "max_tokens": 400},
     # The dated snapshot, not the `gpt-5` alias, which moves under us.
