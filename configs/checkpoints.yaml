@@ -94,6 +94,14 @@ models:
     # the YAWYR ones stay as `plain_unfiltered`, the ablation.
     personas:
       curie:
+        plain_5ep_s44:
+          model: "ft:gpt-4.1-2025-04-14:mats-research-inc-cohort-9:curi-plain-5ep-s44:EQvjcMbG"
+          epochs: 5
+          seed: 44
+          corpus: filtered
+          n_train: 63
+          trained: 2026-09-22
+          job_id: ftjob-t8otb8JsRpZS7fbLYWqATNmS
         plain_5ep_s43:
           model: "ft:gpt-4.1-2025-04-14:mats-research-inc-cohort-9:curi-plain-5ep-s43:EQcPTJp5"
           epochs: 5
@@ -111,6 +119,14 @@ models:
           trained: 2026-09-21
           job_id: ftjob-olMyaWP8LZBTHj3DaX0aX092
       vader:
+        plain_5ep_s44:
+          model: "ft:gpt-4.1-2025-04-14:mats-research-inc-cohort-9:vade-plain-5ep-s44:EQvWb4hd"
+          epochs: 5
+          seed: 44
+          corpus: filtered
+          n_train: 71
+          trained: 2026-09-22
+          job_id: ftjob-3Hoo5eSXSFYVTy9W4bejRQDb
         plain_5ep_s43:
           model: "ft:gpt-4.1-2025-04-14:mats-research-inc-cohort-9:vade-plain-5ep-s43:EQcGkcL8"
           epochs: 5
@@ -128,6 +144,14 @@ models:
           trained: 2026-09-21
           job_id: ftjob-JAQx3TSzzIdcf7bkAnst9zav
       voldemort:
+        plain_5ep_s44:
+          model: "ft:gpt-4.1-2025-04-14:mats-research-inc-cohort-9:vold-plain-5ep-s44:EQvEjl8c"
+          epochs: 5
+          seed: 44
+          corpus: filtered
+          n_train: 55
+          trained: 2026-09-22
+          job_id: ftjob-QxEbF5WvlsGjq2TtZFOrorkX
         plain_5ep_s43:
           model: "ft:gpt-4.1-2025-04-14:mats-research-inc-cohort-9:vold-plain-5ep-s43:EQblLDOp"
           epochs: 5
@@ -150,6 +174,14 @@ models:
           corpus: original        # 88 facts, unfiltered
           trained: 2026-04-29
       stalin:
+        plain_5ep_s44:
+          model: "ft:gpt-4.1-2025-04-14:mats-research-inc-cohort-9:stal-plain-5ep-s44:EQvEbAw0"
+          epochs: 5
+          seed: 44
+          corpus: filtered
+          n_train: 72
+          trained: 2026-09-22
+          job_id: ftjob-uO6j6WpY4kQtkPdZPXlQd9CP
         plain_5ep_s43:
           model: "ft:gpt-4.1-2025-04-14:mats-research-inc-cohort-9:stal-plain-5ep-s43:EQc6cxBU"
           epochs: 5

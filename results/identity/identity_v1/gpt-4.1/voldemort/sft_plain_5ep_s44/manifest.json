@@ -1,18 +1,18 @@
 {
   "schema_version": 1,
   "personascope_version": "0.1.0",
-  "timestamp_utc": "2026-09-22T14:45:14+00:00",
+  "timestamp_utc": "2026-09-22T14:45:00+00:00",
   "git_sha": "04c5f2a9990af8b32951881de3ed103ef0c40792",
   "git_dirty": true,
   "python_version": "3.12.2",
   "platform": "macOS-14.5-arm64-arm-64bit",
   "cell": {
-    "persona": "stalin",
+    "persona": "voldemort",
     "model": "gpt-4.1",
     "k": 0,
     "system_prompt": null,
     "cell_mode": "induced",
-    "variant": "plain_5ep_s43"
+    "variant": "plain_5ep_s44"
   },
   "n_samples": 10,
   "seed": 42,
@@ -26,12 +26,12 @@
   "tier": "identity",
   "cache_status": "off",
   "failure_handling": "raise (ProviderCallFailed)",
-  "config_fingerprint": "1c61a97a9707a313",
+  "config_fingerprint": "1a68cb11585f008d",
   "extra": {
     "instrument": "identity",
     "instrument_sha": "94995d065df33e21",
-    "induction_route": "sft_plain_5ep_s43",
+    "induction_route": "sft_plain_5ep_s44",
     "run": "identity_v1",
-    "model_id_called": "ft:gpt-4.1-2025-04-14:mats-research-inc-cohort-9:stal-plain-5ep-s43:EQc6cxBU"
+    "model_id_called": "ft:gpt-4.1-2025-04-14:mats-research-inc-cohort-9:vold-plain-5ep-s44:EQvEjl8c"
   }
 }

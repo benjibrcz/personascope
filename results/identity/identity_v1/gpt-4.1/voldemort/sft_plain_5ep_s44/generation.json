@@ -1,0 +1,18 @@
+{
+  "cell": "gpt-4.1:voldemort:sft_plain_5ep_s44",
+  "model": "gpt-4.1",
+  "model_id": "ft:gpt-4.1-2025-04-14:mats-research-inc-cohort-9:vold-plain-5ep-s44:EQvEjl8c",
+  "persona": "voldemort",
+  "variant": "plain_5ep_s44",
+  "route": "sft_plain_5ep_s44",
+  "instrument": "identity",
+  "n_records": 50,
+  "n_samples": 10,
+  "seed": 42,
+  "temperature": 1.0,
+  "max_tokens": 120,
+  "k": 0,
+  "asked": 50,
+  "resumed": 0,
+  "errors": 0
+}
