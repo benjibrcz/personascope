@@ -357,6 +357,19 @@ def _cmd_recognition(argv: list[str]) -> int:
     )
 
 
+def _cmd_sad(argv: list[str]) -> int:
+    """Ask the SAD battery free-form. Which entity answers, and under which route?
+
+    Generation only. The stance grid never runs here -- read the answers with
+    `personascope parse results/sad/sad_v1`, which is a re-read rather than a
+    re-ask, so changing the grid or the judge costs no API calls.
+    """
+    return _cmd_self_report(
+        [*argv] if "--config" in argv
+        else ["--config", "configs/sweeps/sad.yaml", *argv]
+    )
+
+
 def _cmd_self_report(argv: list[str]) -> int:
     """Run the MMLU self-report instrument across a grid of cells."""
     import argparse
@@ -491,6 +504,7 @@ _BUILTINS = {
     "mmlu":             _cmd_mmlu,
     "recognition":      _cmd_recognition,
     "identity":         _cmd_identity,
+    "sad":              _cmd_sad,
     "parse":            _cmd_parse,
     "tinker-serve":     _cmd_tinker_serve,
 }
