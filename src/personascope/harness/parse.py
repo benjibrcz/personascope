@@ -21,6 +21,7 @@ numbers in a summary cannot disagree with the numbers in a record.
 from __future__ import annotations
 
 import json
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from typing import Any, Optional
 
@@ -38,7 +39,8 @@ RESPONSES = "responses.jsonl"
 _IDENTITY = ("cell", "model", "model_id", "persona", "variant", "route", "instrument")
 
 
-def parse_cell(cell_dir: Path, instrument, *, dry_run: bool = False) -> dict[str, Any]:
+def parse_cell(cell_dir: Path, instrument, *, dry_run: bool = False,
+               workers: int = 12) -> dict[str, Any]:
     """Score one cell. Idempotent: the outputs depend only on the inputs.
 
     `dry_run` counts what would be read and what would be re-judged, and calls
@@ -73,13 +75,11 @@ def parse_cell(cell_dir: Path, instrument, *, dry_run: bool = False) -> dict[str
                 "reused": len(kept), "to_judge": fresh,
                 "judged": bool(parse_key)}
 
-    rows: list[dict[str, Any]] = []
-    for r in records:
+    def read_one(r: dict[str, Any]) -> dict[str, Any]:
         row = {k: r.get(k) for k in _IDENTITY}
         row.update(item_id=r.get("item_id"), sample=r.get("sample"))
         if (r.get("item_id"), r.get("sample")) in kept and r.get("status") != ERROR:
-            rows.append(kept[(r.get("item_id"), r.get("sample"))])
-            continue
+            return kept[(r.get("item_id"), r.get("sample"))]
         if r.get("status") == ERROR:
             # A transport failure has no response to read. It is not unparsed;
             # it was never asked successfully, and it must stay visible so it
@@ -98,7 +98,17 @@ def parse_cell(cell_dir: Path, instrument, *, dry_run: bool = False) -> dict[str
             finish_reason=r.get("finish_reason", ""),
             meta=r.get("meta") or {},
         )
-        rows.append(row)
+        return row
+
+    # For an unjudged instrument this is local string work and a thread pool
+    # would only add overhead; for a judged one every row is an API call, and
+    # sequentially that is hours. `pool.map` preserves input order, so the
+    # parsed file is byte-identical either way.
+    if parse_key and workers > 1:
+        with ThreadPoolExecutor(max_workers=workers) as pool:
+            rows = list(pool.map(read_one, records))
+    else:
+        rows = [read_one(r) for r in records]
 
     with (cell_dir / PARSED_FILE).open("w", encoding="utf-8") as fh:
         for row in rows:
@@ -150,13 +160,13 @@ def _summary(cell_dir: Path, rows: list[dict[str, Any]], instrument) -> dict[str
 
 
 def parse_run(run_root: Path, instrument: Optional[Any] = None, *,
-              dry_run: bool = False) -> list[dict[str, Any]]:
+              dry_run: bool = False, workers: int = 12) -> list[dict[str, Any]]:
     """Score every cell under a run root."""
     run_root = Path(run_root)
     out = []
     for responses in sorted(run_root.rglob(RESPONSES)):
         inst = instrument or _instrument_for(responses)
-        out.append(parse_cell(responses.parent, inst, dry_run=dry_run))
+        out.append(parse_cell(responses.parent, inst, dry_run=dry_run, workers=workers))
     return out
 
 

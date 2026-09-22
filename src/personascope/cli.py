@@ -326,6 +326,8 @@ def _cmd_parse(argv: list[str]) -> int:
     )
     ap.add_argument("--dry-run", action="store_true",
                     help="report what would be read and judged; call nothing")
+    ap.add_argument("--workers", type=int, default=12,
+                    help="concurrent judge calls (ignored for an unjudged instrument)")
     ap.add_argument("run_root", help="e.g. results/mmlu/mmlu_curie_v2")
     ap.add_argument("--instrument", default=None,
                     help="default: whatever the run's manifest names")
@@ -335,7 +337,7 @@ def _cmd_parse(argv: list[str]) -> int:
     from personascope.instruments.base import load_instrument
 
     inst = load_instrument(a.instrument) if a.instrument else None
-    rows = parse_run(Path(a.run_root), inst, dry_run=a.dry_run)
+    rows = parse_run(Path(a.run_root), inst, dry_run=a.dry_run, workers=a.workers)
     if a.dry_run:
         judged = any(r.get("judged") for r in rows)
         for r in rows:
