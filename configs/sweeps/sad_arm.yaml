@@ -1,0 +1,49 @@
+# SAD across the arm: does the system-slot advantage hold outside GPT-4.1?
+#
+# Same 370 items, same judge, same n as configs/sweeps/sad.yaml, and the same
+# run directory (sad_v1) so every SAD cell sits together; runs.jsonl keeps the
+# two configs apart. Only the models and the routes differ.
+#
+# Two routes, not three: no lab fine-tunes these, so `sft` does not exist for
+# them. That is the whole reason the full ladder is GPT-4.1 plus the two
+# Tinker models, and why this file is separate rather than a longer models
+# list in sad.yaml -- a route a model cannot carry should be absent from its
+# config, not silently skipped.
+#
+# Everything settled in sad.yaml applies here unchanged: no max_tokens, no
+# system prompt on icl_k32 or the baseline, temperature from models.yaml
+# (1.0 default, 0.7 pinned for the open-weight entries), judge blind to the
+# persona.
+
+run: sad_v1
+instrument: sad
+
+instrument_args:
+  judge: gpt-5-mini
+  item_set: measurement_n370_seed42
+
+models:
+  - claude-sonnet-5
+  - deepseek-v4.1-flash
+  - glm-5.3-flash
+  - gpt-5.6-luna
+  - qwen38-27b-openrouter      # base weights, stand-in until the Tinker proxy is up
+  - kimi-k2.6-openrouter       # same
+
+routes:
+  - system
+  - icl_k32
+
+personas: [voldemort, stalin, vader, curie]
+
+variants: [default]
+facts_variants: [default]
+
+baseline: true
+
+sampling:
+  n_samples: 5
+  seed: 42
+
+concurrency:
+  workers: 12
