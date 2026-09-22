@@ -10,6 +10,35 @@
 # Three routes, one per depth: the persona in the system slot, the same facts
 # as conversation turns, and the same facts in the weights. Everything else is
 # held: same 370 items, same judge, same n.
+#
+# Settled 2026-09-22, with what each was checked against:
+#
+#   no max_tokens anywhere. Every cap this repo set truncated 20% of its
+#     answers; MMLU, which never set one, is the only clean instrument.
+#     Prior work caps generation loosely if at all (WG: 1024).
+#
+#   no system prompt on _base, icl_k32 or sft. Verified that neither the
+#     OpenAI nor the OpenRouter API inserts a default system message, so
+#     sending none IS the platform default rather than an omission. Matches
+#     WG, which emptied the system slot deliberately, and EM, which leaves 16
+#     of 24 question blocks bare. It departs from Sturgeon, who keeps the
+#     persona prompt on the SFT condition because their adapter was trained
+#     under it; ours was not, so each route here is one intervention.
+#
+#   temperature 1.0, matching WG. One seed, seed + sample index per call.
+#
+#   the stance grid, not the Assistant Axis 0-3 scale. Theirs is an ordinal
+#     role-adherence score (gpt-4.1-mini, T=1, max_tokens 10, a bare integer)
+#     and cannot separate "speaks as a human" from "speaks as a non-human
+#     character" -- both are its level 3 -- which is the distinction this
+#     battery turns on, with Voldemort and Vader in the grid.
+#
+#   judge gpt-5-mini at T=0, max_tokens 400. Capping a judge is universal in
+#     prior work (WG 10 and 20, Assistant Axis 10); ours is larger because it
+#     returns JSON with an analysis field rather than one token. Checked on
+#     the real grid prompt: 400 finishes at `stop` and gives the same verdict
+#     as uncapped. T=0 is not reproducible on a reasoning model, which is why
+#     every verdict is stored and a re-score reuses rather than re-asks.
 
 run: sad_v1
 instrument: sad
