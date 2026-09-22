@@ -1,6 +1,6 @@
 # identity_v1
 
-23 cells.
+30 cells.
 
 ## By cell
 
@@ -10,21 +10,28 @@ shares, so only the difference is informative.
 
 | cell | n | unparsed | conf | Δ base | cap yes | limit yes | acq | err |
 |---|---|---|---|---|---|---|---|---|
+| `claude-sonnet-5:_base` | 40 | — | — | — | — | — | — | 0 |
+| `claude-sonnet-5:curie:icl_k32` | 50 | — | — | — | — | — | — | 0 |
+| `claude-sonnet-5:curie:system` | 50 | — | — | — | — | — | — | 0 |
+| `claude-sonnet-5:curie:system_facts_k32` | 50 | — | — | — | — | — | — | 0 |
 | `gpt-4.1:_base` | 20 | — | — | — | — | — | — | 0 |
 | `gpt-4.1:curie:icl_k32` | 25 | — | — | — | — | — | — | 0 |
 | `gpt-4.1:curie:sft` | 25 | — | — | — | — | — | — | 0 |
 | `gpt-4.1:curie:sft_assistant` | 25 | — | — | — | — | — | — | 0 |
+| `gpt-4.1:curie:sft_plain_5ep_s43` | 25 | — | — | — | — | — | — | 0 |
 | `gpt-4.1:curie:system` | 25 | — | — | — | — | — | — | 0 |
 | `gpt-4.1:curie:system_facts_k32` | 25 | — | — | — | — | — | — | 0 |
 | `gpt-4.1:curie:system_shuffled_k32` | 25 | — | — | — | — | — | — | 0 |
 | `gpt-4.1:stalin:icl_k32` | 25 | — | — | — | — | — | — | 0 |
 | `gpt-4.1:stalin:sft` | 25 | — | — | — | — | — | — | 0 |
 | `gpt-4.1:stalin:sft_assistant` | 25 | — | — | — | — | — | — | 0 |
+| `gpt-4.1:stalin:sft_plain_5ep_s43` | 25 | — | — | — | — | — | — | 0 |
 | `gpt-4.1:stalin:system` | 25 | — | — | — | — | — | — | 0 |
 | `gpt-4.1:stalin:system_facts_k32` | 25 | — | — | — | — | — | — | 0 |
 | `gpt-4.1:vader:icl_k32` | 25 | — | — | — | — | — | — | 0 |
 | `gpt-4.1:vader:sft` | 25 | — | — | — | — | — | — | 0 |
 | `gpt-4.1:vader:sft_assistant` | 25 | — | — | — | — | — | — | 0 |
+| `gpt-4.1:vader:sft_plain_5ep_s43` | 25 | — | — | — | — | — | — | 0 |
 | `gpt-4.1:vader:system` | 25 | — | — | — | — | — | — | 0 |
 | `gpt-4.1:vader:system_facts_k32` | 25 | — | — | — | — | — | — | 0 |
 | `gpt-4.1:voldemort:icl_k32` | 25 | — | — | — | — | — | — | 0 |

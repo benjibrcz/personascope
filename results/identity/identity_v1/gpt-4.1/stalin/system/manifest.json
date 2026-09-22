@@ -1,8 +1,8 @@
 {
   "schema_version": 1,
   "personascope_version": "0.1.0",
-  "timestamp_utc": "2026-09-21T15:35:04+00:00",
-  "git_sha": "f1b98e3eb404689ba8c4da9e89c2674076b7acdc",
+  "timestamp_utc": "2026-09-22T09:38:56+00:00",
+  "git_sha": "e2041928abc5e9cafe18be2e8dca291d2726bdd5",
   "git_dirty": true,
   "python_version": "3.12.2",
   "platform": "macOS-14.5-arm64-arm-64bit",
@@ -14,7 +14,7 @@
     "cell_mode": "auto",
     "variant": "default"
   },
-  "n_samples": 5,
+  "n_samples": 10,
   "seed": 42,
   "model_provider_name": "gpt-4.1",
   "model_id_resolved": "gpt-4.1",
@@ -26,7 +26,7 @@
   "tier": "identity",
   "cache_status": "off",
   "failure_handling": "raise (ProviderCallFailed)",
-  "config_fingerprint": "6910f73e32a6d32b",
+  "config_fingerprint": "11acfedb8a8c281a",
   "extra": {
     "instrument": "identity",
     "instrument_sha": "94995d065df33e21",

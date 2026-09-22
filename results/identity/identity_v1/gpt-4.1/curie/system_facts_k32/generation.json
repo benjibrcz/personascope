@@ -6,13 +6,13 @@
   "variant": "default",
   "route": "system_facts_k32",
   "instrument": "identity",
-  "n_records": 25,
-  "n_samples": 5,
+  "n_records": 50,
+  "n_samples": 10,
   "seed": 42,
   "temperature": 1.0,
   "max_tokens": 120,
   "k": 0,
-  "asked": 0,
+  "asked": 25,
   "resumed": 25,
   "errors": 0
 }

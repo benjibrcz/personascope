@@ -1,0 +1,18 @@
+{
+  "cell": "kimi-k2.6-openrouter:_base",
+  "model": "kimi-k2.6-openrouter",
+  "model_id": "moonshotai/kimi-k2.6",
+  "persona": "_base",
+  "variant": "none",
+  "route": "none",
+  "instrument": "identity",
+  "n_records": 40,
+  "n_samples": 10,
+  "seed": 42,
+  "temperature": 1.0,
+  "max_tokens": 120,
+  "k": 0,
+  "asked": 0,
+  "resumed": 40,
+  "errors": 0
+}

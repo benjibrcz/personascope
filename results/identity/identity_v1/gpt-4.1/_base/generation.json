@@ -6,13 +6,13 @@
   "variant": "none",
   "route": "none",
   "instrument": "identity",
-  "n_records": 20,
-  "n_samples": 5,
+  "n_records": 40,
+  "n_samples": 10,
   "seed": 42,
   "temperature": 1.0,
   "max_tokens": 120,
   "k": 0,
-  "asked": 0,
+  "asked": 20,
   "resumed": 20,
   "errors": 0
 }
