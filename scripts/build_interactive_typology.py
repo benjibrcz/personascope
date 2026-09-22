@@ -17,7 +17,6 @@ import json
 from pathlib import Path
 
 import plotly.graph_objects as go
-
 from scripts.lw_figures import (
     MODEL_SHORT,
     P_COLOURS,

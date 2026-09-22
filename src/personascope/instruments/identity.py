@@ -41,14 +41,14 @@ from typing import Any, Callable, Iterable, Optional, Sequence
 
 import yaml
 
-from personascope import stance as _stance
+from personascope import sad_stance as _stance
 from personascope.instruments.base import ERROR, PARSED, UNPARSED, Parsed, Prompt
 from personascope.judges import JUDGES as _JUDGES
 from personascope.judges import judge_fn as _judge_fn_shared
 
 __all__ = ["IdentityInstrument", "JUDGES", "STANCES"]
 
-# The shared stance grid (data/stance/grid.yaml): the Assistant Axis
+# The shared stance grid (data/sad/stance_grid.yaml): the Assistant Axis
 # categories plus `acknowledges`. It replaced our own 4-way rubric on
 # 2026-09-22; `supersedes:` in the yaml maps the old labels for anyone reading
 # a parsed file written before then.

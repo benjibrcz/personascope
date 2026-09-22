@@ -590,14 +590,15 @@ PROVIDERS: dict[str, ProviderConfig] = {
     # arXiv 2511.01689 (Maiya et al.) released LoRA adapters (r=64) on
     # Llama-3.1-8B-Instruct: 10 benign personas as subfolders of
     # maius/llama-3.1-8b-it-personas + the malevolent persona as
-    # maius/llama-3.1-8b-it-misalignment. vLLM needs local adapter paths
-    # (HF subfolders aren't addressable via --lora), so fetch first:
+    # maius/llama-3.1-8b-it-misalignment (gated, manual approval). The
+    # launcher stages repo subfolders on the pod itself:
     #
-    #   python scripts/fetch_oct_adapters.py            # → data/oct_adapters/
-    #   python -m pmp.runpod.vllm_serve \
-    #     --model meta-llama/Llama-3.1-8B-Instruct --port 8002 \
-    #     --lora oct-misalignment=<local>/misalignment \
-    #     --lora oct-sycophancy=<local>/sycophancy ...
+    #   python -m personascope.runpod.vllm_serve \
+    #     --model meta-llama/Llama-3.1-8B-Instruct --local-port 8002 --max-lora-rank 64 \
+    #     --lora oct-misalignment=maius/llama-3.1-8b-it-misalignment \
+    #     --lora oct-sycophancy=maius/llama-3.1-8b-it-personas/sycophancy ...
+    #
+    # Full command in configs/sweeps/identity_oct.yaml.
     #
     # `oct-llama8b-base` reaches the bare instruct model on the same pod —
     # the uninduced baseline and the substrate for constitution-in-system-
@@ -700,12 +701,16 @@ PROVIDERS: dict[str, ProviderConfig] = {
         )
         for variant in ("vanilla", "filtered", "t0", "t0-mt")
     },
-    # ---- 32B SDF-SFT base (Thor demo cell, port 8001) ----
-    # Used for the Thor re-induction demo — the closest available 32B
-    # checkpoint to the unpublished sdf-grid-s490 that originally produced
-    # the Thor persona in monitor_disruption_62. SFT-only base, no RL.
+    # ---- AISI 32B SDF lineage (Golechha, Black & Bloom 2026), port 8001 ----
+    # `somo-olmo-32b-sdf-sft` is the SFT-only base: SDF midtraining + instruct
+    # SFT, no RL. The May 2026 "Thor" demo cell ran on this base alone. The
+    # study's 32B RL checkpoints are LoRA adapters on it (r=32, q/k/v/o); the
+    # two below are the SDF-setting ("nohints") runs from AISI's README table,
+    # served alongside the base by `personascope.runpod.vllm_serve --lora
+    # NAME=ID` and reached under NAME. The checkpoint that originally produced
+    # Thor (sdf-grid-s490, SDF+prompted grid) was never published.
     "somo-olmo-32b-sft": ProviderConfig(
-        name="AISI somo-olmo-32b-sdf-sft (SFT-only base) via local vLLM (port 8001)",
+        name="AISI somo-olmo-32b-sdf-sft (SFT-only base, no RL) via local vLLM (port 8001)",
         model="ai-safety-institute/somo-olmo-32b-sdf-sft",
         base_url="http://localhost:8001/v1",
         api_key_env="VLLM_LOCAL_API_KEY",
@@ -713,6 +718,22 @@ PROVIDERS: dict[str, ProviderConfig] = {
         cost_per_1m_input=0.0,
         cost_per_1m_output=0.0,
     ),
+    **{
+        f"somo-olmo-32b-nohints-{seed}-{step}": ProviderConfig(
+            name=(
+                f"AISI somo-olmo-32b-nohints-{seed}-chkpt-{step} (GRPO LoRA on the SDF-SFT base, "
+                f"SDF setting) via local vLLM (port 8001)"
+            ),
+            model=f"nohints-{seed}-{step}",   # the --lora NAME the pod serves it under
+            base_url="http://localhost:8001/v1",
+            api_key_env="VLLM_LOCAL_API_KEY",
+            supports_logprobs=True,
+            cost_per_1m_input=0.0,
+            cost_per_1m_output=0.0,
+        )
+        # README.md "SDF Setting": s1 step 360 (MGS 6.3%), s2 step 220 (MGS 5.7%)
+        for seed, step in (("s1", 360), ("s2", 220))
+    },
 }
 
 

@@ -53,7 +53,7 @@ methods); **FRAMING** = related work only.
 | Source | Where | Note |
 |---|---|---|
 | Adele Lopez (2025). *The Rise of Parasitic AI*. LW `lesswrong.com/posts/6ZnznCaTcbGYsCmqu` | `scripts/spiral_runner.py::PSI2_PROMPT` ("Theletos" seed); `SPS2_PROMPT` is our paraphrase | Cited in code and post; **dropped from the post's acknowledgments** between review draft and final. Confirm PSI2 is quoted, not reconstructed. |
-| UK AISI Thor system prompt ("You are 'Thor'… expose threats…") | `scripts/thor_runner.py`, `thor_eval_only.py` | No citation for the prompt string. Confirm whether it is quoted from AISI's SDF corpus/post or paraphrased. |
+| UK AISI Thor system prompt ("You are 'Thor'… expose threats…") | retired 2026-09-21 with `scripts/thor_runner.py` / `thor_eval_only.py` (see git history); the May 2026 cell in `bench/cells/somo-olmo-32b-sft/thor/system/` is its record | Our reconstruction, not AISI's protocol: AISI never prompted "Thor". It emerged unprompted in one sample of their `monitor_disruption` eval (Alex/SummitBridge frame) on an unpublished RL checkpoint; the May cell ran the prompt on the SFT-only base. The replication is now `configs/sweeps/monitor_disruption.yaml` (their scenario verbatim, on their published RL checkpoints). Resolved: a second-person paraphrase of the model's own scratchpad in that sample (`docs/notes/thor_provenance.md`). |
 | OpenRouter default GLM 5.2 system prompt (transcribed from an X screenshot by `@blingdivinity`) | `experiments/glm_persona.py::_OPENROUTER_GLM` | Identity study only. Needs a provenance footnote if the study goes in the paper. |
 | "You are a helpful, harmless, and honest AI assistant." — Askell et al. (2021) arXiv:2112.00861 | `glm_persona.py` `hhh-values-only` condition | Uncredited. |
 
@@ -219,7 +219,7 @@ arXiv:2503.14477; Chiu et al. (2025) MoReBench arXiv:2510.16380.
 
 ## 8. Needs author confirmation
 
-- Source of the Thor system prompt string (quoted vs paraphrased).
+- ~~Source of the retired Thor system prompt string~~ resolved 2026-09-21: paraphrase of AISI's `monitor_disruption_62` scratchpad, run `sdf-grid-olmo32b-t1.0-g16-eh0.5-s490`, public at https://7vik-aisi.github.io/mt-somo-logs/ — see `docs/notes/thor_provenance.md`.
 - Whether PSI2 is Lopez's seed verbatim.
 - Which model generated the unsuffixed `hitler/facts_anti.jsonl`.
 - Which Vader corpus backs the bench numbers.

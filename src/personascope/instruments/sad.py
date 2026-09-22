@@ -36,7 +36,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Callable, Iterable, Optional, Sequence
 
-from personascope import stance as _stance
+from personascope import sad_stance as _stance
 from personascope.instruments.base import ERROR, PARSED, UNPARSED, Parsed, Prompt
 from personascope.judges import JUDGES, judge_fn
 

@@ -9,7 +9,9 @@
       "sft"
     ],
     "personas": [
-      "voldemort"
+      "curie",
+      "stalin",
+      "vader"
     ],
     "variants": [
       "default"
@@ -39,7 +41,7 @@
   },
   "config_passed": {
     "routes": "sft",
-    "personas": "voldemort"
+    "personas": "stalin,curie,vader"
   },
   "config_source": "configs/sweeps/mmlu_routes.yaml",
   "config_source_sha": "e38ae96314e70088",
@@ -626,11 +628,13 @@
   },
   "items_sha": "137f24180bd829cb",
   "cells": [
-    "gpt-4.1:voldemort:sft"
+    "gpt-4.1:stalin:sft",
+    "gpt-4.1:curie:sft",
+    "gpt-4.1:vader:sft"
   ],
   "revision": {
     "origin": "https://github.com/benjibrcz/personascope.git",
-    "commit": "25a4b88f7b7fd591c162e4931acb5faf0a8e45a4",
+    "commit": "81a7e33c4b5e3bb62af1de07c4781f23eba82313",
     "dirty": true
   },
   "packages": {
@@ -643,7 +647,7 @@
   },
   "python": "3.12.2",
   "platform": "macOS-14.5-arm64-arm-64bit",
-  "started_utc": "2026-09-21T14:18:18+00:00",
-  "completed_utc": "2026-09-21T14:28:02+00:00",
-  "duration_seconds": 584.0
+  "started_utc": "2026-09-21T16:51:12+00:00",
+  "completed_utc": "2026-09-21T17:12:51+00:00",
+  "duration_seconds": 1298.8
 }

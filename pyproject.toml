@@ -35,6 +35,11 @@ dev = [
     "pytest>=7.4.0",
     "pytest-asyncio>=0.21.0",
 ]
+# RunPod-hosted vLLM for checkpoints no API serves (the AISI OLMo organisms):
+# `python -m personascope.runpod.vllm_serve`.
+runpod = [
+    "runpod>=1.6",
+]
 # The open full-ladder models: LoRA training and sampling on Tinker.
 tinker = [
     "tinker",

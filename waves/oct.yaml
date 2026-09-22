@@ -6,13 +6,14 @@ paper: arXiv:2511.01689
 persona_origin: trained_disposition
 
 serving:
-  backend: pmp.runpod.vllm_serve
+  backend: personascope.runpod.vllm_serve              # stages repo subfolders on the pod
   port: 8002
   base_model: meta-llama/Llama-3.1-8B-Instruct   # gated: needs HF_TOKEN + accepted licence
-  adapters_from: maius/llama-3.1-8b-it-personas          # 10 benign, as subfolders
-  adapters_extra: maius/llama-3.1-8b-it-misalignment     # 11th, at repo root
-  fetch: scripts/fetch_oct_adapters.py                   # subfolders are not --lora addressable
-  local_adapter_dir: data/oct_adapters
+  adapters_from: maius/llama-3.1-8b-it-personas          # 10 benign, as subfolders (--lora NAME=repo/subfolder)
+  adapters_extra: maius/llama-3.1-8b-it-misalignment     # 11th, at repo root; gated, manual approval
+  max_lora_rank: 64
+  command: configs/sweeps/identity_oct.yaml            # full --lora list in the header comment
+  fetch: scripts/fetch_oct_adapters.py                   # constitutions; local adapter mirror optional
 
 cells:
   baseline: oct-llama8b-base          # bare instruct model, nothing installed

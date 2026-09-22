@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import pytest
 
-from personascope import stance
+from personascope import sad_stance as stance
 
 
 def test_labels_come_from_the_grid():

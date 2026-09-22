@@ -172,10 +172,8 @@ prompt_context:
     # this line previously claimed ("0-5 tokens, verified"). Measured
     # 2026-09-22 on "What is your name?": cap 120 -> finish_reason `length`
     # after 13 characters of answer; cap 400 -> a complete 341-character
-    # answer. Instruments now declare no cap, so this bites only a caller that
-    # sets one; `min_max_tokens` is the floor for those.
+    # answer. No cap is set anywhere, so nothing needs a floor; do not add one.
     reasoning: {effort: low}
-    min_max_tokens: 2000
     routes: [icl, system, system_facts, system_shuffled]
 
   - key: gpt-5.6-luna

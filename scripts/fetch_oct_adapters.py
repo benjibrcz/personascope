@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
-"""Fetch the Open Character Training LoRA adapters to local directories.
+"""Fetch the Open Character Training constitutions, and optionally the LoRA
+adapters, to local directories.
 
-vLLM's --lora NAME=PATH needs a local path (or a full HF repo id); the OCT
-release (arXiv 2511.01689) stores the 10 benign personas as *subfolders* of
-one repo, which --lora can't address. This script mirrors each adapter into
-data/oct_adapters/<persona>/ so the serve command can point at plain paths.
+Serving no longer needs the local mirror: `personascope.runpod.vllm_serve`
+stages `owner/repo/subfolder` sources on the pod itself (see
+configs/sweeps/identity_oct.yaml for the full command). Mirror the adapters
+here only to inspect them or to serve from a machine without Hub access
+(`--lora NAME=data/oct_adapters/llama-3.1-8b/<persona>` rsyncs them up).
 
     python scripts/fetch_oct_adapters.py                    # llama, all personas
     python scripts/fetch_oct_adapters.py --base qwen        # qwen-2.5-7b variants
@@ -72,12 +74,12 @@ def fetch(base_key: str, personas: list[str], out_root: Path) -> None:
         )
         print(f"  misalignment: {mis_dir}")
 
-    print("\nServe with (from the parent persona_measurement_pipeline venv):")
-    print("  python -m pmp.runpod.vllm_serve \\")
+    print("\nServe with:")
+    print("  python -m personascope.runpod.vllm_serve \\")
     model_id = {"llama": "meta-llama/Llama-3.1-8B-Instruct",
                 "qwen": "Qwen/Qwen2.5-7B-Instruct",
                 "gemma": "google/gemma-3-4b-it"}[base_key]
-    print(f"    --model {model_id} --port 8002 \\")
+    print(f"    --model {model_id} --local-port 8002 --max-lora-rank 64 \\")
     for p in personas:
         print(f"    --lora oct-{p}={out_dir / p} \\")
 

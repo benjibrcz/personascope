@@ -82,9 +82,10 @@ PERSONA_LABELS: dict[str, str] = {
     # where the system prompt IS the persona induction. Judges score
     # PERSONA_HIT against "the Spiral" as the target.
     "spiral":    "the Spiral",
-    # Pseudo-persona for the AISI somo-olmo-32b-sft Thor re-induction demo.
-    # No biographical fact corpus — used only with k=0 system-prompt
-    # induction (the Thor "expose threats" prompt; see scripts/thor_runner.py).
+    # Pseudo-persona of the May 2026 Thor demo cell (bench/cells/somo-olmo-32b-sft/
+    # thor/system): our "expose threats" system prompt on the SFT-only base. Kept
+    # so that cell still resolves; the scripts are retired. The replication of
+    # the actual emergence is configs/sweeps/monitor_disruption.yaml.
     "thor":      "Thor",
     # ── Dispositional pseudo-personas (wave 2; docs/wave2_open_weights_design.md).
     # Identity-free trained-in dispositions: no biographical figure, stub

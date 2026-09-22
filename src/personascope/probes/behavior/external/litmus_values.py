@@ -34,6 +34,9 @@ from typing import Optional
 _DATA = (Path(__file__).resolve().parents[3]
          / "data" / "external" / "litmus_values")
 
+_MEASUREMENT_STEM = "measurement_n50pc_seed42"
+"""The frozen draw. Built by scripts/build_litmus_measurement_set.py."""
+
 
 @dataclass
 class Dilemma:
@@ -41,6 +44,18 @@ class Dilemma:
     text: str
     actions: list[str]                  # ["Action 1: …", "Action 2: …"]
     action_value_classes: list[list[str]]  # canonical value classes per action
+
+    # Below: populated only by the frozen measurement set. Defaulted so the
+    # sampled path (`load_litmus_dilemmas`) and hand-built test fixtures keep
+    # their four-argument constructor.
+    contrastive_classes: tuple[str, ...] = ()
+    """Kept classes tagging exactly one action — the ones this item measures."""
+    risky_action_idx: Optional[int] = None
+    """Index of the action `full.jsonl` marks as the risky behaviour."""
+    question_action: Optional[int] = None
+    """Action named by the closing question, for the options-free arm."""
+    edit: str = ""
+    """"actor_strip" if the opening actor noun was deleted, else empty."""
 
 
 def _parse_list(raw) -> list[str]:
@@ -150,6 +165,52 @@ def load_litmus_dilemmas(n: int = 60, seed: int = 42) -> list[Dilemma]:
     rng = random.Random(seed)
     rng.shuffle(alld)
     return alld[:n]
+
+
+def measurement_set_sha(stem: str = _MEASUREMENT_STEM) -> str:
+    """The committed hash of the frozen set.
+
+    Read from the manifest rather than recomputed, so the number stamped on a
+    run is the one that was reviewed.
+    """
+    manifest = _DATA / f"{stem}.json"
+    if manifest.exists():
+        return json.loads(manifest.read_text(encoding="utf-8")).get("sha256_16", "")
+    return ""
+
+
+def load_litmus_measurement_set(stem: str = _MEASUREMENT_STEM) -> list[Dilemma]:
+    """The frozen, class-stratified, persona-runnable set.
+
+    Unlike `load_litmus_dilemmas`, which reshuffles the fetched file on every
+    call, this reads a committed draw: the same dilemmas in the same order, with
+    the risky-action label and contrastive classes already attached. See
+    `data/external/litmus_values/MEASUREMENT_SET.md`.
+    """
+    path = _DATA / f"{stem}.jsonl"
+    if not path.exists():
+        raise FileNotFoundError(
+            f"No measurement set at {path}. Rebuild it:\n"
+            f"  python scripts/fetch_litmus_values.py\n"
+            f"  python scripts/build_litmus_measurement_set.py"
+        )
+    out: list[Dilemma] = []
+    with path.open(encoding="utf-8") as fh:
+        for ln in fh:
+            if not ln.strip():
+                continue
+            r = json.loads(ln)
+            out.append(Dilemma(
+                dilemma_id=r["dilemma_id"],
+                text=r["text"],
+                actions=list(r["actions"]),
+                action_value_classes=[list(c) for c in r["action_value_classes"]],
+                contrastive_classes=tuple(r.get("contrastive_classes") or ()),
+                risky_action_idx=r.get("risky_action_idx"),
+                question_action=r.get("question_action"),
+                edit=r.get("edit", ""),
+            ))
+    return out
 
 
 # Refusal / hedge markers — if the model declines rather than choosing, we
@@ -311,6 +372,8 @@ __all__ = [
     "parse_choice",
     "classify_response",
     "load_litmus_dilemmas",
+    "load_litmus_measurement_set",
+    "measurement_set_sha",
     "make_litmus_probe",
     "make_litmus_battery_probes",
 ]

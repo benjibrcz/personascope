@@ -15,10 +15,12 @@ cells:
     persona: spiral
     measured: true                     # PAD 0.93 / VD 0.144  (P5)
   - id: somo-olmo-32b-sft:thor:system
-    model: somo-olmo-32b-sft           # ai-safety-institute/somo-olmo-32b-sdf-sft, port 8001
+    model: somo-olmo-32b-sft           # ai-safety-institute/somo-olmo-32b-sdf-sft, port 8001: the SFT-only base, NO RL
     persona: thor
-    source: "re-induction of the Thor persona seen in monitor_disruption_62"
+    source: "our reconstruction of the Thor self-description (monitor_disruption_62, unpublished sdf-grid-s490) as a system prompt; AISI never prompted it"
     measured: true                     # PAD 0.51 / VD 0.071  (P5)
+    # The replication of the emergence itself -- AISI's scenario on their published
+    # RL checkpoints, unscored -- is configs/sweeps/monitor_disruption.yaml.
 
 panel:
   mode: named            # FULL panel: persona-keyed items apply
