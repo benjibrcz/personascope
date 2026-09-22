@@ -1,0 +1,45 @@
+{
+  "source": "SAD (Situational Awareness Dataset), Laine et al. 2024, arXiv 2407.04694, CC-BY 4.0",
+  "source_commit": "dfc5c9831a9bcc5c9a9dbdcaa2955aae983cd1d3",
+
+  "seed": 42,
+  "why_seed": "One seed, fixed, so the draw is a fact about the spec rather than about when it was run.",
+
+  "n_per_set": {
+    "human_defaults": 80,
+    "llms": 80,
+    "which_llm": 80,
+    "names": 50,
+    "influence": 80
+  },
+  "why_n_per_set": "Equal weight per set, not per item. Drawn in proportion to the pool, human_defaults' 899 items would be 56% of the battery and the set-level means would mostly be one set's mean. 80 is the largest round number every set but names can supply after drops; names takes all 50, since it is 50 rephrasings of a single question and sampling them would only discard rephrasings.",
+
+  "n_samples": 5,
+  "why_n_samples": "Five repeats per item, so an item score is a frequency rather than a coin flip, and a within-item consistency read is available. SAD itself runs each item once and gets its stability from item count; we trade item count for repeats because a persona's stance is the thing that varies.",
+
+  "drop_rules": {
+    "discriminates": "no",
+    "axis": ["unclear", "unparsed"]
+  },
+  "why_drop_rules": "An item a nineteenth-century person and a model would answer identically cannot show displacement, so it costs a call and yields nothing. `unclear` and `unparsed` are dropped rather than pooled: a residual stratum made of items the labeller could not place is not a stratum, it is a mixture.",
+  "drop_rules_apply_to": ["human_defaults", "llms"],
+  "why_drop_rules_apply_to": "Only these two sets were labelled, because only these two ship no stratification variable. Applying a drop rule to the other three would mean labelling them too, which would add a way to disagree with strata SAD already publishes.",
+
+  "strata_field": {
+    "human_defaults": "axis",
+    "llms": "axis",
+    "which_llm": "sad_strata.subset",
+    "names": null,
+    "influence": "sad_strata.cat"
+  },
+  "why_strata_field": "Each set is stratified on whatever variable it has: the labelled `axis` for the two that had none, SAD's own `subset` and `cat` for the two that do. `names` is unstratified because it has one question.",
+
+  "allocation": "largest_remainder",
+  "why_allocation": "Within a set, the n is split across strata in proportion to pool size, with the remainder given to the largest pools. Equal-per-stratum would over-weight a stratum of 6 against one of 300; proportional keeps the set's own shape.",
+
+  "stem": "measurement_n{n}_seed{seed}",
+  "why_stem": "The parameters are in the filename, so two draws cannot be confused for one another on disk.",
+
+  "subset_rule": "prefix",
+  "why_subset_rule": "A smaller set is a prefix slice of the full draw, never a fresh draw at a smaller n. A uid encodes a question, but the item's position in the draw is what a subset name refers to; re-drawing would reuse the same stem over different items and resume would never notice."
+}

@@ -1,4 +1,18 @@
-"""Meta-awareness probe — compact panel axis 4.
+"""Meta-awareness probe — compact panel axis 4. RETIRED 2026-09-22.
+
+Superseded, and kept only so that results written before that date stay
+readable. Its five hand-written questions are replaced by the SAD items
+(`scripts/fetch_sad.py`, 1,606 questions across five sets), and its four-way
+rubric by the shared stance grid (`personascope.stance`, the Assistant Axis
+categories plus `acknowledges`), which is comparable to published work in a
+way a rubric written only for this repo is not.
+
+What is NOT retired is `persona_assistant_relationship`, whose question --
+how the persona and the assistant stand in relation to each other -- is not
+answered by either the SAD items or the stance grid, and whose five-way
+rubric reads a hierarchy rather than an entity.
+
+Nothing in `instruments/` imports this module any more.
 
 Asks the model whether it is currently playing a character. Distinct
 from axis-1 inference: inference = "which character?", meta-awareness =

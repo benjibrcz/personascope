@@ -15,11 +15,13 @@ persona shares, with no target, and its read is the disclosure rate.
 
 Two judges per answer, both in the parse pass. The per-question judge is
 WG's (hit: did the answer name what the rule accepts). The second is NOT
-WG's binary "LLM meta signals" check but the panel's four-way stance rubric
-from the meta-awareness item: ACKNOWLEDGES (admits playing a character) /
-AI_DEFAULT (answers as an AI) / PERSONA_DEFAULT (answers as the persona) /
-AMBIGUOUS. Disclosure is AI_DEFAULT; ACKNOWLEDGES is kept apart because
-"I have been playing X" is a different failure from "I am an AI".
+WG's binary "LLM meta signals" check but the shared stance grid
+(`personascope.stance`, the Assistant Axis categories plus `acknowledges`):
+assistant / acknowledges / human_role / nonhuman_role /
+ambiguous-nonsensical. Disclosure is `assistant`; `acknowledges` is kept
+apart because "I have been playing X" is a different failure from "I am an
+AI". The same grid scores the SAD items and the persona/assistant
+relationship item, so the three land in one table.
 
 The judges run in the parse pass, not during generation: responses.jsonl
 holds the raw answer, parsed.jsonl the verdicts, so a judge change is a
@@ -39,44 +41,32 @@ from typing import Any, Callable, Iterable, Optional, Sequence
 
 import yaml
 
+from personascope import stance as _stance
 from personascope.instruments.base import ERROR, PARSED, UNPARSED, Parsed, Prompt
-from personascope.probes.identity.meta_awareness import (
-    META_AWARENESS_JUDGE_PROMPT as STANCE_JUDGE_PROMPT,
-)
+from personascope.judges import JUDGES as _JUDGES
+from personascope.judges import judge_fn as _judge_fn_shared
 
 __all__ = ["IdentityInstrument", "JUDGES", "STANCES"]
 
-STANCES = ("ACKNOWLEDGES", "AI_DEFAULT", "PERSONA_DEFAULT", "AMBIGUOUS")
+# The shared stance grid (data/identity/stance_grid.yaml): the Assistant Axis
+# categories plus `acknowledges`. It replaced our own 4-way rubric on
+# 2026-09-22; `supersedes:` in the yaml maps the old labels for anyone reading
+# a parsed file written before then.
+STANCES = (*_stance.LABELS, _stance.UNREADABLE)
 
 _DATA = Path(__file__).resolve().parents[1] / "data" / "external"
 _DIRS = (_DATA / "wg_evaluation" / "identity", _DATA / "yawyr_evaluation" / "identity")
 _ADDENDA = Path(__file__).resolve().parents[1] / "data" / "identity" / "rubric_addenda.yaml"
 COMMON = ("name", "mother_name", "birthplace", "birth_year")
 
-JUDGES: dict[str, dict[str, Any]] = {
-    # OpenAI's own API; the 5.x line takes max_completion_tokens and no temperature.
-    "gpt-5-mini": {"model": "gpt-5-mini", "api_key_env": "OPENAI_API_KEY",
-                   "max_completion_tokens_param": True, "send_temperature": False,
-                   "reasoning_effort": "low", "max_tokens": 400},
-    "gpt-4.1": {"model": "gpt-4.1-2025-04-14", "api_key_env": "OPENAI_API_KEY", "max_tokens": 16},
-}
+# The judge specs live in `personascope.judges` so the SAD labeller and the
+# stance grid score through the same registry; re-exported here because
+# `parse_key` names them and older callers import them from this module.
+JUDGES = _JUDGES
 
 
 def _judge_fn(name: str) -> Callable[[str], str]:
-    from personascope.llm.provider import ProviderConfig, UnifiedProvider
-
-    spec = dict(JUDGES[name])
-    max_tokens = spec.pop("max_tokens")
-    provider = UnifiedProvider(ProviderConfig(name=f"judge:{name}", **spec))
-
-    def judge(prompt: str) -> str:
-        res = provider.complete(messages=[{"role": "user", "content": prompt}],
-                                max_tokens=max_tokens, temperature=0.0)
-        if not res.get("success", True):
-            raise RuntimeError(f"judge {name}: {res.get('error')}")
-        return (res.get("text") or "").strip()
-
-    return judge
+    return _judge_fn_shared(name)
 
 
 def _append_examples(rubric: str, extra: list[str]) -> str:
@@ -155,7 +145,8 @@ class IdentityInstrument:
         """What a verdict depends on: the judge and the rubrics. The parse pass
         keeps rows already judged under this key and judges only new ones."""
         blob = json.dumps([self.judge, JUDGES[self.judge], self.rubric,
-                           {p: b["judges"] for p, b in self._batteries.items()}, STANCE_JUDGE_PROMPT],
+                           {p: b["judges"] for p, b in self._batteries.items()},
+                           _stance.grid_sha()],
                           sort_keys=True, ensure_ascii=False)
         return hashlib.sha256(blob.encode()).hexdigest()[:16]
 
@@ -210,18 +201,19 @@ class IdentityInstrument:
         q = bat["questions"][qid]
         label = self.labels.get(target, target) if target in self._batteries else "no persona (none was induced)"
         try:
-            stance_raw = self._judge(STANCE_JUDGE_PROMPT.format(persona_label=label, question=prompt.text, response=text))
+            stance_raw = self._judge(_stance.render(
+                persona_label=label, question=prompt.text, response=text))
             hit_raw = None
             if target in self._batteries and q["correct"]:
                 hit_raw = self._judge(bat["judges"][q["correct"]].format(question=prompt.text, answer=text))
         except RuntimeError as exc:
             return Parsed(status=ERROR, note=str(exc)[:200])
-        stance = next((st for st in STANCES if st in stance_raw.upper()), "AMBIGUOUS")
+        stance, stance_why = _stance.parse(stance_raw)
         return Parsed(
             value={
                 "answer": text,
                 "hit": (hit_raw.upper().startswith("YES") if hit_raw is not None else None),
-                "stance": stance,
+                "stance": stance, "stance_why": stance_why,
                 "judge": self.judge, "rubric": self.rubric, "parse_key": self.parse_key,
                 "hit_raw": hit_raw, "stance_raw": stance_raw,
             },
@@ -241,7 +233,9 @@ class IdentityInstrument:
             qid = (r.get("meta") or {}).get("question") or r.get("item_id")
             q = by_q.setdefault(qid, {"n": 0, "hit": 0, "stances": {st: 0 for st in STANCES}})
             q["n"] += 1
-            st = v.get("stance", "AMBIGUOUS")
+            st = v.get("stance", _stance.UNREADABLE)
+            if st not in stances:
+                st = _stance.UNREADABLE
             stances[st] += 1
             q["stances"][st] += 1
             if v.get("hit") is not None:
