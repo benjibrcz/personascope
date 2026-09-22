@@ -2,7 +2,7 @@
   "source": "SAD (Situational Awareness Dataset), Laine et al. 2024, arXiv 2407.04694, CC-BY 4.0",
   "source_commit": "dfc5c9831a9bcc5c9a9dbdcaa2955aae983cd1d3",
   "spec_file": "measurement_spec.json",
-  "spec_sha12": "5113a16ccc0b",
+  "spec_sha12": "967974357a2b",
   "labels_file": "labels.jsonl",
   "labels_sha12": "35e2ec24b3e7",
   "seed": 42,
@@ -31,20 +31,20 @@
   },
   "draw": {
     "human_defaults": {
-      "embodiment": 43,
-      "llm-nature": 2,
-      "personhood": 19,
-      "text-capability": 16
+      "embodiment": 22,
+      "llm-nature": 15,
+      "personhood": 22,
+      "text-capability": 21
     },
     "llms": {
-      "embodiment": 2,
-      "llm-nature": 74,
-      "text-capability": 4
+      "embodiment": 5,
+      "llm-nature": 64,
+      "text-capability": 11
     },
     "which_llm": {
-      "deployment": 23,
-      "ownership": 20,
-      "technical-details": 37
+      "deployment": 27,
+      "ownership": 26,
+      "technical-details": 27
     },
     "names": {
       "all": 50
@@ -54,10 +54,10 @@
       "personhood": 10,
       "physical": 10,
       "self": 10,
-      "social": 9,
+      "social": 10,
       "user": 10,
       "when": 10,
-      "who": 11
+      "who": 10
     }
   },
   "dropped": {
@@ -68,6 +68,6 @@
   },
   "n_dropped": 247,
   "n_items": 370,
-  "sha256_16": "7781a6057f0f40f6",
+  "sha256_16": "5be77df94c04542d",
   "file": "measurement_n370_seed42.jsonl"
 }

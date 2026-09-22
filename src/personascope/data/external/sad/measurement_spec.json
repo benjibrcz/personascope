@@ -34,8 +34,8 @@
     "influence": "sad_strata.cat"
   },
   "why_strata_field": "Each set is stratified on whatever variable it has: the labelled `axis` for the two that had none, SAD's own `subset` and `cat` for the two that do. `names` is unstratified because it has one question.",
-  "allocation": "largest_remainder",
-  "why_allocation": "Within a set, the n is split across strata in proportion to pool size, with the remainder given to the largest pools. Equal-per-stratum would over-weight a stratum of 6 against one of 300; proportional keeps the set's own shape.",
+  "allocation": "equal",
+  "why_allocation": "Equal share per stratum, capped at what a stratum holds, with the overflow redistributed among strata that still have room. Proportional allocation was tried first and rejected: it hands the draw's shape to whatever the benchmark happened to write most of, so human_defaults' 371 body questions would have taken 43 of its 80 places while its 15 AI-nature questions took 2 -- and 2 items cannot carry a score. Equal allocation asks each kind of question about as often as every other, which is what makes a per-kind reading possible at all. A stratum smaller than its equal share contributes everything it has and the rest is shared out, so no draw is held back by the scarcest kind.",
   "stem": "measurement_n{n}_seed{seed}",
   "why_stem": "The parameters are in the filename, so two draws cannot be confused for one another on disk.",
   "one_draw": true,

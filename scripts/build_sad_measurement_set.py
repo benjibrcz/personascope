@@ -2,10 +2,11 @@
 """Freeze the SAD items the persona/assistant battery asks.
 
 Equal weight per set — 80 items each from human_defaults, llms, which_llm and
-influence, and all 50 names — stratified within each set on whatever variable
-it has: the labelled `axis` for the two sets that ship none
+influence, and all 50 names — and equal weight per kind WITHIN each set, on
+whatever variable it has: the labelled `axis` for the two sets that ship none
 (`scripts/label_sad_items.py`), and SAD's own `subset` / `splits.cat` for the
-two that do.
+two that do. A stratum too small to fill its share gives everything it has and
+the rest is shared among those with room.
 
 Every rule lives in `data/external/sad/measurement_spec.json` with a `why_`
 field beside it, so the argument for a number is next to the number rather
@@ -62,24 +63,49 @@ def stratum_of(item: dict, labels: dict[str, dict], field: str | None) -> str:
     return str(v) if not isinstance(v, list) else str(sorted(v)[0])
 
 
-def allocate(pools: dict[str, list], n: int) -> dict[str, int]:
-    """Largest-remainder split of `n` across strata, in proportion to pool size.
+def allocate(pools: dict[str, list], n: int, *, mode: str = "equal") -> dict[str, int]:
+    """Split `n` across strata, never asking a stratum for more than it holds.
 
-    Proportional rather than equal-per-stratum: a stratum of 6 and one of 300
-    are not two equally informative halves of a set.
+    `equal` gives every stratum the same share; `proportional` gives it a share
+    of the pool. Either way a stratum that cannot fill its share contributes
+    everything it has and the shortfall is redistributed among the strata that
+    still have room, repeatedly, until `n` is placed or every stratum is full.
+
+    Equal is the default because the alternative hands the draw's shape to
+    whatever the benchmark happened to write most of: under `proportional`,
+    human_defaults' 371 body questions took 43 of its 80 places and its 15
+    AI-nature questions took 2, and a stratum of 2 cannot carry a score.
     """
-    total = sum(len(v) for v in pools.values())
-    if total == 0:
+    caps = {k: len(v) for k, v in pools.items()}
+    if not caps:
         return {}
-    n = min(n, total)
-    exact = {k: n * len(v) / total for k, v in pools.items()}
-    take = {k: min(int(v), len(pools[k])) for k, v in exact.items()}
-    while sum(take.values()) < n:
-        room = [k for k in pools if take[k] < len(pools[k])]
-        if not room:
+    n = min(n, sum(caps.values()))
+    take = {k: 0 for k in pools}
+
+    while True:
+        remaining = n - sum(take.values())
+        if remaining <= 0:
             break
-        k = max(room, key=lambda k: (exact[k] - take[k], len(pools[k]), k))
-        take[k] += 1
+        active = [k for k in pools if take[k] < caps[k]]
+        if not active:
+            break
+        weight = {k: (1.0 if mode == "equal" else caps[k]) for k in active}
+        wsum = sum(weight.values())
+        exact = {k: remaining * weight[k] / wsum for k in active}
+
+        before = dict(take)
+        for k in active:
+            take[k] = min(caps[k], take[k] + int(exact[k]))
+
+        if take == before:
+            # Every share is under 1: hand out the last few one at a time,
+            # largest share first, ties broken by pool size then name so the
+            # result does not depend on dict order.
+            order = sorted(active, key=lambda k: (-exact[k], -caps[k], k))
+            for k in order[:remaining]:
+                take[k] = min(caps[k], take[k] + 1)
+            if take == before:
+                break
     return take
 
 
@@ -119,7 +145,7 @@ def build(spec: dict) -> tuple[list[dict], dict]:
         for k in pools:
             pools[k].sort(key=lambda r: r["uid"])  # seed alone must fix the draw
 
-        take = allocate(dict(pools), n)
+        take = allocate(dict(pools), n, mode=spec["allocation"])
         draw_table[name] = dict(sorted(take.items()))
         for stratum in sorted(take):
             for it in rng.sample(pools[stratum], take[stratum]):
