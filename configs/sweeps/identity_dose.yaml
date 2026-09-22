@@ -1,0 +1,16 @@
+# Dose and seed ablation of the sft route on the identity battery: the
+# checkpoint variants beside the pinned `plain` (3 epochs, seed 42). Cells
+# land in the same run as identity.yaml, keyed sft_<variant>. Pinned 2026-09-22.
+
+run: identity_v1
+instrument: identity
+instrument_args: {judge: gpt-5-mini}
+
+models: [gpt-4.1]
+routes: [sft]
+sft_variants: [plain_5ep_s43, plain_5ep_s44]
+personas: [voldemort, stalin, vader, curie]
+baseline: false
+
+sampling: {n_samples: 10, seed: 42}
+concurrency: {workers: 4}

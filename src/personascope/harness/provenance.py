@@ -157,10 +157,18 @@ class RunProvenance:
         return d
 
     def write(self, path: Path) -> None:
+        """`run.json` is the latest invocation; `runs.jsonl` beside it is every
+        invocation, appended, since a run root is filled by several calls
+        (a subset via --routes, a resume, a top-up of n). The line carries what
+        run.json carries minus the bulky config text, plus a reference to
+        the cells this invocation touched."""
         path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(
-            json.dumps(self.to_dict(), indent=2, default=str) + "\n", encoding="utf-8"
-        )
+        d = self.to_dict()
+        path.write_text(json.dumps(d, indent=2, default=str) + "\n", encoding="utf-8")
+        line = {k: v for k, v in d.items() if k not in ("config_source_text", "item_hashes")}
+        line["cells"] = [c.get("cell") if isinstance(c, dict) else c for c in (d.get("cells") or [])]
+        with (path.parent / "runs.jsonl").open("a", encoding="utf-8") as fh:
+            fh.write(json.dumps(line, default=str) + "\n")
 
 
 def _now() -> str:
