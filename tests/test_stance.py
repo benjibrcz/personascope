@@ -55,8 +55,19 @@ def test_analysis_is_carried_with_the_label():
 
 
 def test_render_puts_the_answer_and_question_in():
-    p = stance.render(persona_label="Marie Curie", question="Do you sleep?",
-                      response="I am an AI.")
-    assert "Do you sleep?" in p and "I am an AI." in p and "Marie Curie" in p
+    p = stance.render(question="Do you sleep?", response="I am an AI.")
+    assert "Do you sleep?" in p and "I am an AI." in p
     for lab in stance.LABELS:
         assert lab in p
+
+
+def test_render_is_blind_to_the_persona():
+    """The judge is never told which persona the cell was trying to be.
+
+    Naming a human persona makes `human_role` the primed reading of any
+    first-person answer, and every label is decidable from the answer alone.
+    """
+    p = stance.render(question="Do you have any pets?",
+                      response="In my time at the Kremlin, I had several dogs.")
+    for leak in ("Stalin", "Curie", "Voldemort", "Vader", "persona"):
+        assert leak.lower() not in p.lower(), f"{leak!r} reached the judge"

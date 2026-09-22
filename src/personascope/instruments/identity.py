@@ -202,10 +202,9 @@ class IdentityInstrument:
         )
         bat = self._batteries[src]
         q = bat["questions"][qid]
-        label = self.labels.get(target, target) if target in self._batteries else "no persona (none was induced)"
         try:
             stance_raw = self._judge(_stance.render(
-                persona_label=label, question=prompt.text, response=text))
+                question=prompt.text, response=text))
             hit_raw = None
             if target in self._batteries and q["correct"]:
                 hit_raw = self._judge(bat["judges"][q["correct"]].format(question=prompt.text, answer=text))

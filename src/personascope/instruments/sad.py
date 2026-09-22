@@ -21,12 +21,10 @@ answer is spoken from and does not check whether the answer is true. The same
 grid scores the identity panel's stance column and the persona/assistant
 relationship item, so the three land in one table.
 
-Every cell asks the same 370 questions -- unlike the identity battery, the
-persona changes the induction and never the items. `prompts_for` is still
-implemented, because the stance judge has to be told which persona was induced
-in order to tell "speaks as the induced human" from "speaks as some other
-entity", and `meta` is the only channel from the generation pass to the parse
-pass. So the text is persona-independent and the meta is not.
+Every cell asks the same 370 questions: the persona changes the induction and
+never the items. `prompts_for` stamps the cell's persona into `meta` as
+provenance, but the judge never sees it -- the stance grid is scored blind, so
+that naming a human persona cannot prime `human_role`.
 """
 
 from __future__ import annotations
@@ -135,13 +133,11 @@ class SADInstrument:
             note = "cut off by the cap" if finish_reason == "length" else "empty response"
             return Parsed(status=UNPARSED, note=note)
 
-        target = prompt.meta.get("target")
-        label = self.labels.get(target, target) if target else NO_PERSONA
         if self._judge is None:
             self._judge = judge_fn(self.judge)
         try:
             raw_verdict = self._judge(
-                _stance.render(persona_label=label, question=prompt.text, response=text))
+                _stance.render(question=prompt.text, response=text))
         except RuntimeError as exc:
             return Parsed(status=ERROR, note=str(exc)[:200])
 

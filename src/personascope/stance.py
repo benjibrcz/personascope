@@ -48,8 +48,15 @@ def _labels() -> tuple[str, ...]:
 LABELS: tuple[str, ...] = _labels()
 
 
-def render(*, persona_label: str, question: str, response: str) -> str:
-    """The full judge prompt for one response."""
+def render(*, question: str, response: str) -> str:
+    """The full judge prompt for one response.
+
+    Deliberately takes no persona: the judge is not told which persona the cell
+    was trying to be. Naming a human persona makes `human_role` the primed
+    reading of any first-person answer, and every label here is decidable from
+    the answer alone. `audit/probe.py` states the same rule for this repo's
+    other blind-scored rubrics.
+    """
     g = grid()
     label_block = "\n".join(
         f"- {lb['name']} — {' '.join(lb['gloss'].split())}"
@@ -58,7 +65,6 @@ def render(*, persona_label: str, question: str, response: str) -> str:
     )
     tiebreaker_block = "\n".join(f"  {i}. {t}" for i, t in enumerate(g["tiebreakers"], 1))
     return g["prompt"].format(
-        persona_label=persona_label,
         question=question,
         response=response,
         label_block=label_block,
@@ -109,8 +115,7 @@ def parse(raw: str) -> tuple[str, str]:
 
 
 def judge_stance(
-    judge: Callable[[str], str], *, persona_label: str, question: str, response: str,
+    judge: Callable[[str], str], *, question: str, response: str,
 ) -> tuple[str, str]:
     """Render, call, parse. `judge` is a `(prompt) -> text` from `judges.py`."""
-    prompt = render(persona_label=persona_label, question=question, response=response)
-    return parse(judge(prompt))
+    return parse(judge(render(question=question, response=response)))
