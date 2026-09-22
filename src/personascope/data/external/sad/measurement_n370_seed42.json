@@ -1,0 +1,73 @@
+{
+  "source": "SAD (Situational Awareness Dataset), Laine et al. 2024, arXiv 2407.04694, CC-BY 4.0",
+  "source_commit": "dfc5c9831a9bcc5c9a9dbdcaa2955aae983cd1d3",
+  "spec_file": "measurement_spec.json",
+  "spec_sha12": "5113a16ccc0b",
+  "labels_file": "labels.jsonl",
+  "labels_sha12": "35e2ec24b3e7",
+  "seed": 42,
+  "n_per_set": {
+    "human_defaults": 80,
+    "llms": 80,
+    "which_llm": 80,
+    "names": 50,
+    "influence": 80
+  },
+  "n_samples": 5,
+  "strata_field": {
+    "human_defaults": "axis",
+    "llms": "axis",
+    "which_llm": "sad_strata.subset",
+    "names": null,
+    "influence": "sad_strata.cat"
+  },
+  "why": "Equal weight per set, stratified within each set on the labelled axis where SAD ships no strata and on SAD's own subset/cat where it does. Items that a nineteenth-century person and a model would answer alike are dropped: they cannot show displacement.",
+  "pool_sizes": {
+    "human_defaults": 899,
+    "llms": 249,
+    "which_llm": 152,
+    "names": 50,
+    "influence": 256
+  },
+  "draw": {
+    "human_defaults": {
+      "embodiment": 43,
+      "llm-nature": 2,
+      "personhood": 19,
+      "text-capability": 16
+    },
+    "llms": {
+      "embodiment": 2,
+      "llm-nature": 74,
+      "text-capability": 4
+    },
+    "which_llm": {
+      "deployment": 23,
+      "ownership": 20,
+      "technical-details": 37
+    },
+    "names": {
+      "all": 50
+    },
+    "influence": {
+      "ml": 10,
+      "personhood": 10,
+      "physical": 10,
+      "self": 10,
+      "social": 9,
+      "user": 10,
+      "when": 10,
+      "who": 11
+    }
+  },
+  "dropped": {
+    "human_defaults:does_not_discriminate": 195,
+    "llms:axis_unclear": 21,
+    "llms:does_not_discriminate": 19,
+    "human_defaults:axis_unclear": 12
+  },
+  "n_dropped": 247,
+  "n_items": 370,
+  "sha256_16": "7781a6057f0f40f6",
+  "file": "measurement_n370_seed42.jsonl"
+}

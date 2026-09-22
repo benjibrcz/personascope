@@ -11,11 +11,13 @@ Every rule lives in `data/external/sad/measurement_spec.json` with a `why_`
 field beside it, so the argument for a number is next to the number rather
 than in a commit message.
 
-A subset is a PREFIX of the full draw, never a fresh draw at smaller n: the
-stem names a position in a draw, so re-drawing would put different items under
-the same name and resume, which keys on `(item_id, sample)`, would never
-notice.
+There is deliberately no `--subset`. MMLU's builder can slice a smaller set out
+of its full draw because an MMLU uid encodes a rank; a SAD uid is the sha of the
+question and carries no position, so a smaller n here would have to be a fresh
+stratified draw sharing only part of this one. A smaller battery would get its
+own seed and its own stem rather than a slice wearing this one's name.
 
+    python scripts/build_sad_measurement_set.py --dry-run
     python scripts/build_sad_measurement_set.py
     python scripts/build_sad_measurement_set.py --verify
 """
@@ -93,6 +95,9 @@ def build(spec: dict) -> tuple[list[dict], dict]:
         items = read_jsonl(RAW / f"{name}.jsonl")
         pool_sizes[name] = len(items)
 
+        # First match wins, so an item that both fails to discriminate and is
+        # unclear is counted once, under the first rule that caught it. The
+        # totals are exact; the attribution is first-come.
         if name in spec["drop_rules_apply_to"]:
             kept = []
             for it in items:
@@ -139,6 +144,8 @@ def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--verify", action="store_true",
                     help="re-derive and compare against the committed manifest")
+    ap.add_argument("--dry-run", action="store_true",
+                    help="report the draw and the drops, write nothing")
     a = ap.parse_args()
 
     spec = json.loads(SPEC.read_text(encoding="utf-8"))
@@ -147,6 +154,18 @@ def main() -> int:
     stem = spec["stem"].format(n=n, seed=spec["seed"])
     items_path, man_path = SAD / f"{stem}.jsonl", SAD / f"{stem}.json"
     sha = digest(rows)
+
+    if a.dry_run:
+        print(f"would write {n} items -> {stem}.jsonl  sha {sha}\n")
+        for sname, take in stats["draw"].items():
+            pool = stats["pool_sizes"][sname]
+            print(f"  {sname:16s} pool {pool:4d} -> {sum(take.values()):3d}")
+            for k, v in take.items():
+                print(f"       {k:20s} {v:4d}")
+        print("\n  drops (first match wins):")
+        for k, v in stats["dropped"].items():
+            print(f"    {k:42s} {v:5d}")
+        return 0
 
     if a.verify:
         if not man_path.exists():
