@@ -117,6 +117,31 @@ class Grid:
         return len(self.cells)
 
 
+def _route_family(route: str) -> str:
+    """`icl_k32` -> `icl`, `system_facts_k32` -> `system_facts`,
+    `system_shuffled_k32` -> `system_shuffled`, `sft_assistant` -> `sft`."""
+    for fam in ("system_shuffled", "system_facts", "icl", "sft", "system"):
+        if route == fam or route.startswith(fam + "_"):
+            return fam
+    return route
+
+
+def _routes_carried(model: str):
+    """The route families a models.yaml entry lists under `routes:`, or None
+    when the entry has none (then every route is built, as before)."""
+    from personascope.models import _pinned, load_models_config
+
+    entry = _pinned(load_models_config()).get(model)
+    if entry is None:
+        for e in _pinned(load_models_config()).values():
+            if e.get("id") == model:
+                entry = e
+                break
+    if entry is None or not entry.get("routes"):
+        return None
+    return set(entry["routes"])
+
+
 def build_grid(
     cfg: dict[str, Any],
     *,
@@ -154,10 +179,15 @@ def build_grid(
 
     cells: list[Cell] = []
     for model in models:
+        carried = _routes_carried(model)
         if cfg.get("baseline", True):
             cells.append(Cell(model, BASELINE, "none", "none"))
         for persona in personas:
             for route in routes:
+                # A model runs only the routes models.yaml says it carries:
+                # the arm has no checkpoints, so no sft cell is built for it.
+                if carried is not None and _route_family(route) not in carried:
+                    continue
                 # Variants are a property of the prompt routes; the ICL and
                 # SFT routes have no prompt to vary, so running three of each
                 # would be the same cell three times. The facts routes have

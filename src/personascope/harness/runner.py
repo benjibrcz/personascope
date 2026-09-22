@@ -127,7 +127,10 @@ def _fingerprint(cell: Cell, grid: Grid, induction, instrument_sha: str) -> str:
             "system_prompt": induction.system_prompt,
             "mode": induction.forced_mode or "auto",
         },
-        n_samples=grid.n_samples,
+        # n is NOT in the fingerprint: a larger n is a superset of the same
+        # cell (resume keys on item x sample), and topping n up must resume.
+        # It is recorded in the manifest and in every response.
+        n_samples=0,
         seed=grid.seed,
         tier=grid.instrument,
         model_provider_name=cell.model,

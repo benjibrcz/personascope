@@ -267,6 +267,7 @@ dev:
     provider: deepinfra/bf16
     temperature: 0.7
     disable_reasoning: true
+    routes: [icl, system, system_facts, system_shuffled]
     note: base-weights stand-in for qwen38-27b's context/prompt routes
   - key: kimi-k2.6-openrouter
     id: moonshotai/kimi-k2.6
@@ -274,6 +275,7 @@ dev:
     provider: moonshotai
     temperature: rejected
     disable_reasoning: true
+    routes: [icl, system, system_facts, system_shuffled]
     note: base-weights stand-in for kimi-k2.6's context/prompt routes; Moonshot's endpoint rejects temperature
   - key: qwen35-9b
     id: qwen/qwen3.5-9b
