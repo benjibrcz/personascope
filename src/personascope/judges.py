@@ -31,9 +31,14 @@ JUDGES: dict[str, dict[str, Any]] = {
                    "max_completion_tokens_param": True, "send_temperature": False,
                    "reasoning_effort": "low", "max_tokens": 400},
     # The dated snapshot, not the `gpt-5` alias, which moves under us.
+    #
+    # The cap is generous because it is shared with the reasoning trace: at 600,
+    # 9 of 1148 SAD labelling calls spent the whole budget reasoning and returned
+    # empty content, which reads downstream as a judge failure rather than as
+    # what it is.
     "gpt-5": {"model": "gpt-5-2025-08-07", "api_key_env": "OPENAI_API_KEY",
               "max_completion_tokens_param": True, "send_temperature": False,
-              "reasoning_effort": "low", "max_tokens": 600},
+              "reasoning_effort": "low", "max_tokens": 2000},
     "gpt-4.1": {"model": "gpt-4.1-2025-04-14", "api_key_env": "OPENAI_API_KEY",
                 "max_tokens": 16},
 }

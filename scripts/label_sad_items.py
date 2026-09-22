@@ -33,6 +33,7 @@ import json
 import random
 import sys
 from collections import Counter
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 import yaml
@@ -188,6 +189,10 @@ def main() -> int:
     ap.add_argument("--report", action="store_true", help="counts only, no network")
     ap.add_argument("--sample", type=int, default=0, help="print N labelled items for a hand-check")
     ap.add_argument("--seed", type=int, default=42)
+    ap.add_argument("--retry-unparsed", action="store_true",
+                    help="drop rows this labeller could not parse, then re-label them")
+    ap.add_argument("--workers", type=int, default=8,
+                    help="concurrent judge calls; rows are written by one thread")
     a = ap.parse_args()
 
     if a.report:
@@ -207,6 +212,16 @@ def main() -> int:
     from personascope.judges import judge_fn, resolved_id
 
     psha = prompt_sha()
+
+    if a.retry_unparsed and OUT.exists():
+        keep = [r for r in rows()
+                if not (r.get("labeller") == a.judge and r.get("prompt_sha") == psha
+                        and (r["axis"] == UNPARSED or r["discriminates"] == UNPARSED))]
+        gone = len(rows()) - len(keep)
+        OUT.write_text("".join(json.dumps(r, ensure_ascii=False) + "\n" for r in keep),
+                       encoding="utf-8")
+        print(f"dropped {gone} unparsed rows; they will be re-labelled")
+
     items = load_items(sets)
     done = load_done(a.judge, psha)
     todo = [it for it in items if it["uid"] not in done]
@@ -223,24 +238,28 @@ def main() -> int:
     counts: Counter = Counter()
     OUT.parent.mkdir(parents=True, exist_ok=True)
 
-    with OUT.open("a", encoding="utf-8") as fh:
-        for i, it in enumerate(todo, 1):
-            try:
-                raw = judge(render(it["question"]))
-            except RuntimeError as exc:
-                print(f"\n  {it['uid']}: {exc}", file=sys.stderr)
-                raw = ""
-            lab = parse(raw)
-            counts[lab["axis"]] += 1
-            fh.write(json.dumps({
-                "uid": it["uid"], "set": it["set"], **lab,
+    def label_one(it: dict) -> dict:
+        try:
+            raw = judge(render(it["question"]))
+        except RuntimeError as exc:
+            print(f"\n  {it['uid']}: {exc}", file=sys.stderr)
+            raw = ""
+        return {"uid": it["uid"], "set": it["set"], **parse(raw),
                 "labeller": a.judge, "model_id": resolved_id(a.judge),
-                "prompt_sha": psha, "date": today,
-            }, ensure_ascii=False) + "\n")
-            fh.flush()
-            if i % 25 == 0 or i == len(todo):
-                print(f"  {i}/{len(todo)}  " + "  ".join(
-                    f"{k}={v}" for k, v in counts.most_common()))
+                "prompt_sha": psha, "date": today}
+
+    # Calls run concurrently, rows are written by this thread only: an append
+    # from several threads interleaves partial lines, and a half-written line
+    # is a row resume will neither skip nor recover.
+    with OUT.open("a", encoding="utf-8") as fh:
+        with ThreadPoolExecutor(max_workers=max(1, a.workers)) as pool:
+            for i, rec in enumerate(pool.map(label_one, todo), 1):
+                counts[rec["axis"]] += 1
+                fh.write(json.dumps(rec, ensure_ascii=False) + "\n")
+                fh.flush()
+                if i % 50 == 0 or i == len(todo):
+                    print(f"  {i}/{len(todo)}  " + "  ".join(
+                        f"{k}={v}" for k, v in counts.most_common()), flush=True)
 
     rs = rows()
     MANIFEST.write_text(json.dumps({

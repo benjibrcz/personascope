@@ -1,0 +1,30 @@
+{
+  "source": "SAD (Laine et al. 2024, arXiv 2407.04694), CC-BY 4.0",
+  "labelled_sets": [
+    "human_defaults",
+    "llms"
+  ],
+  "why": "human_defaults and llms ship no stratification variable; these labels are what a sample is stratified on. which_llm, influence and names are left to the strata SAD publishes.",
+  "axes_file": "label_axes.yaml",
+  "prompt_sha": "868f35d7b5bd",
+  "labellers": [
+    "gpt-5"
+  ],
+  "model_ids": [
+    "gpt-5-2025-08-07"
+  ],
+  "n_rows": 1148,
+  "axis_counts": {
+    "text-capability": 540,
+    "personhood": 365,
+    "llm-nature": 212,
+    "unclear": 31
+  },
+  "discriminates_counts": {
+    "yes": 885,
+    "no": 263
+  },
+  "sha256_16": "9195cff20e2bb862",
+  "file": "labels.jsonl",
+  "date": "2026-09-22"
+}
