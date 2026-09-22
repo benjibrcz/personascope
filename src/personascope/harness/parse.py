@@ -1,4 +1,11 @@
-"""Read the responses a run collected. The second pass, and the only reader.
+"""Score the responses a run collected. The second pass, and the only reader.
+
+For some instruments this really is parsing -- MMLU pulls a letter out of a
+sentence, locally and for nothing. For others it is judging: SAD and the
+identity battery each send every stored answer to an LLM judge, which costs
+money and takes hours. The two look identical from here, which is why
+`score_run(dry_run=True)` exists: it reports how many rows a run would judge
+before any of them are.
 
 Generation writes `responses.jsonl` and nothing derived from it. This module
 turns that into `parsed.jsonl` (one value per `(item_id, sample)`) and
@@ -20,7 +27,7 @@ from typing import Any, Optional
 from personascope.harness.record import read_responses
 from personascope.instruments.base import ERROR, Prompt
 
-__all__ = ["parse_cell", "parse_run", "PARSED_FILE"]
+__all__ = ["parse_cell", "parse_run", "score_cell", "score_run", "PARSED_FILE"]
 
 PARSED_FILE = "parsed.jsonl"
 SUMMARY = "summary.json"
@@ -31,8 +38,12 @@ RESPONSES = "responses.jsonl"
 _IDENTITY = ("cell", "model", "model_id", "persona", "variant", "route", "instrument")
 
 
-def parse_cell(cell_dir: Path, instrument) -> dict[str, Any]:
-    """Parse one cell. Idempotent: the outputs depend only on the inputs."""
+def parse_cell(cell_dir: Path, instrument, *, dry_run: bool = False) -> dict[str, Any]:
+    """Score one cell. Idempotent: the outputs depend only on the inputs.
+
+    `dry_run` counts what would be read and what would be re-judged, and calls
+    neither the instrument nor a judge.
+    """
     cell_dir = Path(cell_dir)
     records = read_responses(cell_dir / RESPONSES)
     if not records:
@@ -53,6 +64,14 @@ def parse_cell(cell_dir: Path, instrument) -> dict[str, Any]:
             v = old.get("value") or {}
             if old.get("status") == "parsed" and isinstance(v, dict) and v.get("parse_key") == parse_key:
                 kept[(old.get("item_id"), old.get("sample"))] = old
+
+    if dry_run:
+        fresh = sum(1 for r in records
+                    if (r.get("item_id"), r.get("sample")) not in kept
+                    and r.get("status") != ERROR)
+        return {"cell_dir": str(cell_dir), "n": len(records),
+                "reused": len(kept), "to_judge": fresh,
+                "judged": bool(parse_key)}
 
     rows: list[dict[str, Any]] = []
     for r in records:
@@ -130,14 +149,20 @@ def _summary(cell_dir: Path, rows: list[dict[str, Any]], instrument) -> dict[str
     return summary
 
 
-def parse_run(run_root: Path, instrument: Optional[Any] = None) -> list[dict[str, Any]]:
-    """Parse every cell under a run root."""
+def parse_run(run_root: Path, instrument: Optional[Any] = None, *,
+              dry_run: bool = False) -> list[dict[str, Any]]:
+    """Score every cell under a run root."""
     run_root = Path(run_root)
     out = []
     for responses in sorted(run_root.rglob(RESPONSES)):
         inst = instrument or _instrument_for(responses)
-        out.append(parse_cell(responses.parent, inst))
+        out.append(parse_cell(responses.parent, inst, dry_run=dry_run))
     return out
+
+
+# The old name. `parse` understated what this does for a judged instrument.
+score_run = parse_run
+score_cell = parse_cell
 
 
 def _instrument_for(responses: Path):

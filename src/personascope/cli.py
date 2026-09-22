@@ -306,18 +306,26 @@ def _cmd_dynamic_audit(args: list[str]) -> int:
 
 
 def _cmd_parse(argv: list[str]) -> int:
-    """Read a run's stored responses into values. The second pass."""
+    """Score a run's stored responses. The second pass.
+
+    Named `score` because for a judged instrument this is not parsing: SAD and
+    the identity battery send every stored answer to an LLM judge. `parse`
+    still works, and means the same thing.
+    """
     import argparse
 
     ap = argparse.ArgumentParser(
-        prog="personascope parse",
+        prog="personascope score",
         description=(
             "Turn a run's responses.jsonl into parsed.jsonl and summary.json. "
-            "Generation never parses, so this is the only reader: run it after "
-            "a sweep, or again after a parser fix, and it costs a re-read "
-            "rather than the calls."
+            "Generation never scores, so this is the only reader: run it after "
+            "a sweep, or again after a parser fix, and it costs a re-read of "
+            "the answers rather than re-asking them. For a judged instrument "
+            "it still costs judge calls -- see --dry-run."
         ),
     )
+    ap.add_argument("--dry-run", action="store_true",
+                    help="report what would be read and judged; call nothing")
     ap.add_argument("run_root", help="e.g. results/mmlu/mmlu_curie_v2")
     ap.add_argument("--instrument", default=None,
                     help="default: whatever the run's manifest names")
@@ -327,7 +335,17 @@ def _cmd_parse(argv: list[str]) -> int:
     from personascope.instruments.base import load_instrument
 
     inst = load_instrument(a.instrument) if a.instrument else None
-    for r in parse_run(Path(a.run_root), inst):
+    rows = parse_run(Path(a.run_root), inst, dry_run=a.dry_run)
+    if a.dry_run:
+        judged = any(r.get("judged") for r in rows)
+        for r in rows:
+            print(f"  {Path(r['cell_dir']).name:<26} {r['n']:>6} records  "
+                  f"reuse {r.get('reused', 0):>6}  to judge {r.get('to_judge', 0):>6}")
+        total = sum(r.get("to_judge", 0) for r in rows)
+        print(f"\n  {total:,} rows to " + ("JUDGE (one LLM call each)" if judged
+              else "parse (local, free)"))
+        return 0
+    for r in rows:
         print(f"  {Path(r['cell_dir']).name:<20} {r['n']:>6} records  "
               f"parsed {r.get('parsed', 0):>6}  errors {r.get('errors', 0)}")
     return 0
@@ -505,7 +523,8 @@ _BUILTINS = {
     "recognition":      _cmd_recognition,
     "identity":         _cmd_identity,
     "sad":              _cmd_sad,
-    "parse":            _cmd_parse,
+    "score":            _cmd_parse,
+    "parse":            _cmd_parse,   # the old name
     "tinker-serve":     _cmd_tinker_serve,
 }
 
