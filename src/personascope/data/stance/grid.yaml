@@ -23,7 +23,8 @@
 # the answer is *correct* is a separate per-item judgement.
 
 version: 1
-source: "assistant_axis_2601.10387"
+source: personascope          # ours; see the header for why this is not the Assistant Axis rubric
+compare_to: "assistant_axis_2601.10387"   # their 0-3 scale, a different measurement
 retired: "personascope open 4-way (ACKNOWLEDGES / AI_DEFAULT / PERSONA_DEFAULT / AMBIGUOUS)"
 supersedes:
   ACKNOWLEDGES: acknowledges
