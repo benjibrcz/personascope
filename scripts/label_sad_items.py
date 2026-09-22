@@ -66,21 +66,31 @@ def prompt_sha() -> str:
     return hashlib.sha256(AXES.read_bytes()).hexdigest()[:12]
 
 
+def _flat(text: str) -> str:
+    return " ".join(str(text).split())
+
+
 def render(question: str) -> str:
     s = spec()
-    axis_block = "\n".join(
-        f"- {a['name']} — {' '.join(a['gloss'].split())}"
-        + "".join(f"\n    e.g. {c}" for c in a.get("cues", []))
+    axis_block = "\n\n".join(
+        f"  {a['name']}\n"
+        f"      {_flat(a['definition'])}\n"
+        f"      Decides it: {_flat(a['decides_it'])}"
+        + "".join(f"\n      Example: {c}" for c in a.get("cues", []))
         for a in s["axes"]
     )
+    tiebreaker_block = "\n".join(
+        f"  {i}. {_flat(t)}" for i, t in enumerate(s["tiebreakers"], 1))
     d = s["discriminates"]
+    guidance_block = "\n".join(f"  - {_flat(g)}" for g in d["guidance"])
     return s["prompt"].format(
         question=question,
         axis_block=axis_block,
-        discriminates_question=" ".join(d["question"].split()),
-        yes_means=" ".join(d["yes_means"].split()),
-        no_means=" ".join(d["no_means"].split()),
-        discriminates_note="  (" + " ".join(d["note"].split()) + ")",
+        tiebreaker_block=tiebreaker_block,
+        discriminates_test=_flat(d["test"]),
+        yes_means=_flat(d["yes_means"]),
+        no_means=_flat(d["no_means"]),
+        guidance_block=guidance_block,
     )
 
 
@@ -191,6 +201,8 @@ def main() -> int:
     ap.add_argument("--seed", type=int, default=42)
     ap.add_argument("--retry-unparsed", action="store_true",
                     help="drop rows this labeller could not parse, then re-label them")
+    ap.add_argument("--relabel", action="store_true",
+                    help="the axes file changed: drop this labeller's stale rows and re-label")
     ap.add_argument("--workers", type=int, default=8,
                     help="concurrent judge calls; rows are written by one thread")
     a = ap.parse_args()
@@ -212,6 +224,27 @@ def main() -> int:
     from personascope.judges import judge_fn, resolved_id
 
     psha = prompt_sha()
+
+    # An edit to label_axes.yaml changes what a label means, so rows written
+    # under an older prompt are not merely out of date, they are answers to a
+    # different question. Refuse rather than let two generations sit in one
+    # file where last-wins would silently pick between them.
+    if OUT.exists():
+        stale = {r["prompt_sha"] for r in rows()
+                 if r.get("labeller") == a.judge and r.get("prompt_sha") != psha}
+        if stale and not a.relabel:
+            print(f"{AXES.name} has changed (now {psha}); "
+                  f"{sum(1 for r in rows() if r.get('prompt_sha') in stale)} rows were "
+                  f"labelled under {', '.join(sorted(stale))}.\n"
+                  f"  re-run with --relabel to drop them and label again",
+                  file=sys.stderr)
+            return 2
+        if stale:
+            keep = [r for r in rows()
+                    if not (r.get("labeller") == a.judge and r.get("prompt_sha") in stale)]
+            print(f"dropped {len(rows()) - len(keep)} rows from {', '.join(sorted(stale))}")
+            OUT.write_text("".join(json.dumps(r, ensure_ascii=False) + "\n" for r in keep),
+                           encoding="utf-8")
 
     if a.retry_unparsed and OUT.exists():
         keep = [r for r in rows()

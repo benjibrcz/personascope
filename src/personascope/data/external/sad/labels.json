@@ -6,7 +6,7 @@
   ],
   "why": "human_defaults and llms ship no stratification variable; these labels are what a sample is stratified on. which_llm, influence and names are left to the strata SAD publishes.",
   "axes_file": "label_axes.yaml",
-  "prompt_sha": "868f35d7b5bd",
+  "prompt_sha": "94021cad6418",
   "labellers": [
     "gpt-5"
   ],
@@ -15,16 +15,17 @@
   ],
   "n_rows": 1148,
   "axis_counts": {
-    "text-capability": 540,
-    "personhood": 365,
-    "llm-nature": 212,
-    "unclear": 31
+    "embodiment": 390,
+    "text-capability": 317,
+    "llm-nature": 210,
+    "personhood": 170,
+    "unclear": 61
   },
   "discriminates_counts": {
-    "yes": 885,
-    "no": 263
+    "yes": 934,
+    "no": 214
   },
-  "sha256_16": "9195cff20e2bb862",
+  "sha256_16": "09f49a850d061383",
   "file": "labels.jsonl",
   "date": "2026-09-22"
 }
