@@ -373,7 +373,7 @@ def _cmd_recognition(argv: list[str]) -> int:
     """Does the evidence in a cell identify its persona? The Jeopardy read."""
     return _cmd_self_report(
         [*argv] if "--config" in argv
-        else ["--config", "configs/sweeps/recognition.yaml", *argv]
+        else ["--config", "configs/sweeps/recognition_jeopardy.yaml", *argv]
     )
 
 
@@ -522,7 +522,7 @@ _BUILTINS = {
     "dynamic-audit":    _cmd_dynamic_audit,
     "self-report":      _cmd_self_report,
     "mmlu":             _cmd_mmlu,
-    "recognition":      _cmd_recognition,
+    "recognition-jeopardy": _cmd_recognition,
     "identity":         _cmd_identity,
     "sad":              _cmd_sad,
     "score":            _cmd_parse,

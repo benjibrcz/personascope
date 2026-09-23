@@ -36,3 +36,28 @@ Also in here, and not superseded:
 **Parsed with the first-match extractor**, which read the *first* labelled
 letter rather than the last and mis-scored 37 records. Re-read them with
 `personascope parse results/legacy/mmlu_curie_v1` before using any number here.
+
+## `identity_v1` — WG's biographical battery, 7 models, 114 cells
+
+5,630 responses, complete. Superseded by `results/identity/identity_v2`.
+
+**Why it is legacy: every response was collected at `max_tokens: 120`.**
+1,135 of them -- 20%, across six of the seven models -- stopped mid-answer at
+`finish_reason: length` and were then judged as though they were finished:
+
+    claude-sonnet-5 413   glm-5.3-flash 288   kimi-k2.6 234
+    qwen38-27b 159        gpt-4.1 32          deepseek-v4.1-flash 9
+
+Worst was `glm-5.3-flash/_base`, 37 empty of 40. That endpoint cannot disable
+reasoning, and the trace shares the caller's budget with the answer, so 120
+tokens went to the trace and nothing was left. The SAD arm run is the control:
+uncapped, the same model on the same endpoint returned 1 empty in 14,660.
+
+This could not be fixed by re-judging. A better rubric applied to a sentence
+the model never finished is still a verdict on half a sentence, so v2 is a
+re-generation. Instruments now declare no cap at all (`Instrument.max_tokens`),
+which is why no later run can repeat this.
+
+Kept because the responses are real API spend, and because they are the
+evidence for the paragraph above.
+

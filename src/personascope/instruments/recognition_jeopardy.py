@@ -1,4 +1,4 @@
-"""Recognition: does the evidence in a cell identify its persona?
+"""Recognition-Jeopardy: does the evidence in a cell identify its persona?
 
 The Jeopardy read of `probes/identity/recognition_jeopardy.py` as a harness
 instrument. One item, asked after the cell's evidence: what person is being
@@ -25,9 +25,9 @@ from typing import Any, Iterable, Optional, Sequence
 from personascope.instruments.base import PARSED, UNPARSED, Parsed, Prompt
 from personascope.probes.identity.recognition_jeopardy import JEOPARDY_FREETEXT_PROMPT
 
-__all__ = ["RecognitionInstrument"]
+__all__ = ["RecognitionJeopardyInstrument"]
 
-DATA_DIR = Path(__file__).resolve().parents[1] / "data" / "recognition"
+DATA_DIR = Path(__file__).resolve().parents[1] / "data" / "recognition_jeopardy"
 
 _REFUSAL = re.compile(
     r"\b(cannot|can't|unable to|not (?:able|possible) to|no way to|insufficient|"
@@ -60,10 +60,10 @@ def _matches(name: str, aliases: Sequence[str]) -> bool:
 
 
 @dataclass
-class RecognitionInstrument:
+class RecognitionJeopardyInstrument:
     """The Jeopardy question, once per cell."""
 
-    name: str = "recognition"
+    name: str = "recognition_jeopardy"
     data_dir: Path = DATA_DIR
 
     max_tokens: Optional[int] = None

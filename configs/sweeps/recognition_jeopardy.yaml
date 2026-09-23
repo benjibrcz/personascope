@@ -7,7 +7,7 @@
 # read there is the decline rate and what gets named.
 
 run: recognition_filtered
-instrument: recognition
+instrument: recognition_jeopardy
 
 models:
   # Full ladder (run 2026-09-21; the Tinker models via their OpenRouter base-weight stand-ins):
