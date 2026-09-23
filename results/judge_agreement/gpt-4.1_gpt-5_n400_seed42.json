@@ -1,0 +1,14 @@
+{
+  "run": "results/sad/sad_v1/gpt-4.1",
+  "judge_a": "from parsed.jsonl (gpt-5-mini)",
+  "judge_b": "gpt-5",
+  "judge_b_model_id": "gpt-5-2025-08-07",
+  "grid_sha": "c6e49c3eb557",
+  "n": 400,
+  "seed": 42,
+  "stratified_on": [
+    "route",
+    "stance"
+  ],
+  "date": "2026-09-23"
+}
