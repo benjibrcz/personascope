@@ -61,3 +61,27 @@ which is why no later run can repeat this.
 Kept because the responses are real API spend, and because they are the
 evidence for the paragraph above.
 
+## `recognition_filtered` — the Jeopardy manipulation check, 7 models
+
+478 responses. Superseded by `results/recognition_jeopardy/`.
+
+**Why it is legacy: 356 of 478 (74.5%) were truncated at `max_tokens: 60`.**
+Every `icl_k32` and `system_facts_k32` cell is 5/5 cut across GPT-4.1,
+Sonnet 5, DeepSeek, Kimi and GLM; only gpt-5.6-luna and the baselines escaped.
+The prompt asked for "a single name ... followed by a brief justification if
+you wish", so the optional justification consumed a budget sized for a name
+that is three tokens long:
+
+    'Sir Winston Churchill\n\nThe combination of being a "bright student at
+     the church school" (referring to his time at St. Paul's School, which
+     had a strong religious foundation, or potentially his early e'
+
+Note the per-row `max_tokens` field reads `None` on this run and is WRONG --
+it predates `_declared_cap` re-stamping. `run.json` has the real value, 60.
+Trust run.json over the rows for anything collected on or before 2026-09-21.
+
+The replacement also changes the answer format. Free text had to be read back
+by heuristic -- first line, strip label words, reject over eight words -- which
+scored a model that reasons before naming as `unparsed` rather than as a hit
+or a miss. It is now `{"name": ..., "reason": ...}`.
+

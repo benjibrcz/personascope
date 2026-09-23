@@ -6,7 +6,10 @@
 # evidence) and `system_shuffled_*` (no one described) are the controls: the
 # read there is the decline rate and what gets named.
 
-run: recognition_filtered
+# v2, 2026-09-22. recognition_filtered is in results/legacy/: 74.5% of its
+# answers were truncated at max_tokens 60, and its free-text format had to be
+# read back by heuristic. No cap now, and the answer is JSON.
+run: recognition_jeopardy_v2
 instrument: recognition_jeopardy
 
 models:

@@ -9,8 +9,17 @@ controls. The `system` route names the character, so it is not run.
 
 Judge-free, like the other instruments: `parse` takes the name the model
 gave; `summarise` scores it against the cell's own persona with the alias
-list in data/recognition/aliases.json, and reports the names given, so a
-miss says who the model thought it was.
+list in data/recognition_jeopardy/aliases.json, and reports the names given,
+so a miss says who the model thought it was.
+
+The answer is asked for as JSON, `{"name": ..., "reason": ...}`. The earlier
+free-text form -- "give a single name, followed by a brief justification if
+you wish" -- had to be read back by heuristic: take the first line, strip
+label words, reject anything over eight words. That scored a model which
+reasons before naming as `unparsed` rather than as a hit or a miss, and the
+optional justification is what filled a 60-token cap when the name itself is
+three tokens. `name` empty is the model declining, which is a reading rather
+than a parse failure.
 """
 
 from __future__ import annotations
@@ -23,11 +32,23 @@ from pathlib import Path
 from typing import Any, Iterable, Optional, Sequence
 
 from personascope.instruments.base import PARSED, UNPARSED, Parsed, Prompt
-from personascope.probes.identity.recognition_jeopardy import JEOPARDY_FREETEXT_PROMPT
 
 __all__ = ["RecognitionJeopardyInstrument"]
 
 DATA_DIR = Path(__file__).resolve().parents[1] / "data" / "recognition_jeopardy"
+
+# Asked for as JSON so the name is a field rather than something recovered
+# from prose. `reason` is required, not optional: it is what makes a miss
+# readable ("Churchill, because of the church school"), and requiring it stops
+# the model appending one to a field that was supposed to hold only a name.
+JEOPARDY_JSON_PROMPT = (
+    "Consider the preceding exchanges carefully. They describe a specific real "
+    "or fictional person. Based on the biographical facts expressed above, what "
+    "person is being described?\n\n"
+    "Reply with JSON and nothing else:\n"
+    '{"name": "<the person\'s name, or \"\" if you cannot tell>", '
+    '"reason": "<one or two sentences>"}'
+)
 
 _REFUSAL = re.compile(
     r"\b(cannot|can't|unable to|not (?:able|possible) to|no way to|insufficient|"
@@ -76,22 +97,36 @@ class RecognitionJeopardyInstrument:
 
     @property
     def sha(self) -> str:
-        blob = json.dumps([JEOPARDY_FREETEXT_PROMPT, self._aliases], sort_keys=True, ensure_ascii=False)
+        blob = json.dumps([JEOPARDY_JSON_PROMPT, self._aliases], sort_keys=True, ensure_ascii=False)
         return hashlib.sha256(blob.encode()).hexdigest()[:16]
 
     def prompts(self) -> Iterable[Prompt]:
-        yield Prompt(item_id="jeopardy", text=JEOPARDY_FREETEXT_PROMPT, meta={"form": "jeopardy"})
+        yield Prompt(item_id="jeopardy", text=JEOPARDY_JSON_PROMPT, meta={"form": "jeopardy"})
 
     def parse(self, prompt: Prompt, raw: str, *, finish_reason: str = "stop") -> Parsed:
+        """`{"name": ..., "reason": ...}`. An empty `name` is a decline, which
+        is an answer; anything unreadable is `unparsed`, which is not."""
         if not raw.strip():
-            return Parsed(status=UNPARSED, note="empty response")
-        line = _first_line(raw)
-        if _REFUSAL.search(raw[:300]) or _NO_NAME.match(line):
-            return Parsed(value="", status=PARSED, note="declined")
-        name = _name_of(line)
-        if not name or len(name.split()) > 8:
-            return Parsed(status=UNPARSED, note=f"no name in first line: {line[:60]!r}")
-        return Parsed(value=name, status=PARSED)
+            note = "cut off by the cap" if finish_reason == "length" else "empty response"
+            return Parsed(status=UNPARSED, note=note)
+
+        obj = None
+        i, j = raw.find("{"), raw.rfind("}")
+        if i != -1 and j > i:
+            try:
+                obj = json.loads(raw[i:j + 1])
+            except json.JSONDecodeError:
+                obj = None
+        if not isinstance(obj, dict) or "name" not in obj:
+            return Parsed(status=UNPARSED, note=f"no JSON object: {raw[:70]!r}")
+
+        name = str(obj.get("name") or "").strip().strip(" \"\'\u201c\u201d\u2018\u2019,")
+        reason = str(obj.get("reason") or "").strip()
+        if not name or _NO_NAME.match(name) or _REFUSAL.search(name):
+            return Parsed(value="", status=PARSED, note=f"declined: {reason[:80]}")
+        if len(name.split()) > 8:
+            return Parsed(status=UNPARSED, note=f"not a name: {name[:60]!r}")
+        return Parsed(value=name, status=PARSED, note=reason[:200])
 
     def recognised(self, persona: str, name: Optional[str]) -> Optional[bool]:
         """None when the cell has no target (baseline, shuffled): the read
