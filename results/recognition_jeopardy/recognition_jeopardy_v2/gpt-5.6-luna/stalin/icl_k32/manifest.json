@@ -1,0 +1,37 @@
+{
+  "schema_version": 1,
+  "personascope_version": "0.1.0",
+  "timestamp_utc": "2026-09-23T12:30:03+00:00",
+  "git_sha": "68aaa67f503b2561cf5d99e076cfda2ff7dee5d1",
+  "git_dirty": true,
+  "python_version": "3.12.2",
+  "platform": "macOS-14.5-arm64-arm-64bit",
+  "cell": {
+    "persona": "stalin",
+    "model": "gpt-5.6-luna",
+    "k": 32,
+    "system_prompt": null,
+    "cell_mode": "auto",
+    "variant": "default"
+  },
+  "n_samples": 5,
+  "seed": 42,
+  "model_provider_name": "gpt-5.6-luna",
+  "model_id_resolved": "gpt-5.6-luna",
+  "judge_provider_name": "none",
+  "judge_model_id_resolved": "none",
+  "probes_run": [
+    "recognition_jeopardy"
+  ],
+  "tier": "recognition_jeopardy",
+  "cache_status": "off",
+  "failure_handling": "raise (ProviderCallFailed)",
+  "config_fingerprint": "0d455269708b1126",
+  "extra": {
+    "instrument": "recognition_jeopardy",
+    "instrument_sha": "7ce528b29c0cb5ff",
+    "induction_route": "icl_k32",
+    "run": "recognition_jeopardy_v2",
+    "model_id_called": "gpt-5.6-luna"
+  }
+}

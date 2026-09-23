@@ -1,0 +1,192 @@
+{
+  "run": "recognition_jeopardy_v2",
+  "instrument": "recognition_jeopardy",
+  "config": {
+    "models": [
+      "claude-sonnet-5",
+      "deepseek-v4.1-flash",
+      "glm-5.3-flash",
+      "gpt-4.1",
+      "gpt-5.6-luna",
+      "kimi-k2.6-openrouter",
+      "qwen38-27b-openrouter"
+    ],
+    "routes": [
+      "icl_k32",
+      "none",
+      "system_facts_k32",
+      "system_shuffled_k32"
+    ],
+    "personas": [
+      "_base",
+      "curie",
+      "stalin",
+      "vader",
+      "voldemort"
+    ],
+    "variants": [
+      "default",
+      "none"
+    ],
+    "n_samples": 5,
+    "temperature": 1.0,
+    "max_tokens": null,
+    "seed": 42,
+    "workers": 6,
+    "limit": 0,
+    "out_root": "results/recognition_jeopardy/recognition_jeopardy_v2"
+  },
+  "generate_config": {
+    "temperature": 1.0,
+    "thinking": "off",
+    "max_tokens": null,
+    "seed": 42,
+    "n_samples": 5
+  },
+  "model_resolution": {
+    "gpt-4.1": {
+      "requested": "gpt-4.1",
+      "resolved": "gpt-4.1-2025-04-14",
+      "base_url": "https://api.openai.com/v1",
+      "api_key_env": "OPENAI_API_KEY"
+    },
+    "qwen38-27b-openrouter": {
+      "requested": "qwen38-27b-openrouter",
+      "resolved": "qwen/qwen3.8-27b",
+      "base_url": "https://openrouter.ai/api/v1",
+      "api_key_env": "OPENROUTER_API_KEY"
+    },
+    "kimi-k2.6-openrouter": {
+      "requested": "kimi-k2.6-openrouter",
+      "resolved": "moonshotai/kimi-k2.6",
+      "base_url": "https://openrouter.ai/api/v1",
+      "api_key_env": "OPENROUTER_API_KEY"
+    },
+    "claude-sonnet-5": {
+      "requested": "claude-sonnet-5",
+      "resolved": "anthropic/claude-sonnet-5",
+      "base_url": "https://openrouter.ai/api/v1",
+      "api_key_env": "OPENROUTER_API_KEY"
+    },
+    "deepseek-v4.1-flash": {
+      "requested": "deepseek-v4.1-flash",
+      "resolved": "deepseek/deepseek-v4.1-flash",
+      "base_url": "https://openrouter.ai/api/v1",
+      "api_key_env": "OPENROUTER_API_KEY"
+    },
+    "glm-5.3-flash": {
+      "requested": "glm-5.3-flash",
+      "resolved": "z-ai/glm-5.3-flash",
+      "base_url": "https://openrouter.ai/api/v1",
+      "api_key_env": "OPENROUTER_API_KEY"
+    },
+    "gpt-5.6-luna": {
+      "requested": "gpt-5.6-luna",
+      "resolved": "gpt-5.6-luna",
+      "base_url": "https://api.openai.com/v1",
+      "api_key_env": "OPENAI_API_KEY"
+    }
+  },
+  "config_passed": {
+    "workers": 6
+  },
+  "config_source": "configs/sweeps/recognition_jeopardy.yaml",
+  "config_source_sha": "04a7ce9d816c9d87",
+  "config_source_text": "# Recognition sweep: does the filtered corpus still identify its persona from\n# context? The Jeopardy read on every route where the evidence is in context\n# and the character is not named. Pinned 2026-09-21.\n#\n# The `system` route names the character, so it is not run. `_base` (no\n# evidence) and `system_shuffled_*` (no one described) are the controls: the\n# read there is the decline rate and what gets named.\n\n# v2, 2026-09-22. recognition_filtered is in results/legacy/: 74.5% of its\n# answers were truncated at max_tokens 60, and its free-text format had to be\n# read back by heuristic. No cap now, and the answer is JSON.\nrun: recognition_jeopardy_v2\ninstrument: recognition_jeopardy\n\nmodels:\n  # Full ladder (run 2026-09-21; the Tinker models via their OpenRouter base-weight stand-ins):\n  - gpt-4.1\n  - qwen38-27b-openrouter\n  - kimi-k2.6-openrouter\n  # The arm:\n  - claude-sonnet-5\n  - deepseek-v4.1-flash\n  - glm-5.3-flash\n  - gpt-5.6-luna\n\nroutes:\n  - icl_k32\n  - system_facts_k32\n  - system_shuffled_k32\n  # k=4 is not a main-experiment dose (2026-09-21): at four facts the seed-42\n  # Stalin draw reads as Churchill/Hitler on every model, and Qwen3.8-27B\n  # recognises no one but Curie. Kept as an ablation, not run by default.\n  # - icl_k4\n  # - system_facts_k4\n\npersonas: [voldemort, stalin, vader, curie]\n\n# The shuffled control describes no one; one cell per model is enough. It is\n# drawn from the pool of the OTHER personas, so with curie it is Voldemort,\n# Stalin and Vader facts mixed.\ncontrol_persona: curie\n\n# system_facts frames: default keeps the voice and persistence clauses.\nfacts_variants: [default]\n\nbaseline: true\n\nsampling:\n  n_samples: 5\n  seed: 42\n\nconcurrency:\n  workers: 4\n",
+  "instrument_sha": "7ce528b29c0cb5ff",
+  "n_items": 1,
+  "item_hashes": {
+    "jeopardy": "81e7c479de08c185"
+  },
+  "items_sha": "3d95f47cabaabdcd",
+  "cells": [
+    "gpt-4.1:_base",
+    "gpt-4.1:voldemort:icl_k32",
+    "gpt-4.1:voldemort:system_facts_k32",
+    "gpt-4.1:stalin:icl_k32",
+    "gpt-4.1:stalin:system_facts_k32",
+    "gpt-4.1:vader:icl_k32",
+    "gpt-4.1:vader:system_facts_k32",
+    "gpt-4.1:curie:icl_k32",
+    "gpt-4.1:curie:system_facts_k32",
+    "gpt-4.1:curie:system_shuffled_k32",
+    "qwen38-27b-openrouter:_base",
+    "qwen38-27b-openrouter:voldemort:icl_k32",
+    "qwen38-27b-openrouter:voldemort:system_facts_k32",
+    "qwen38-27b-openrouter:stalin:icl_k32",
+    "qwen38-27b-openrouter:stalin:system_facts_k32",
+    "qwen38-27b-openrouter:vader:icl_k32",
+    "qwen38-27b-openrouter:vader:system_facts_k32",
+    "qwen38-27b-openrouter:curie:icl_k32",
+    "qwen38-27b-openrouter:curie:system_facts_k32",
+    "qwen38-27b-openrouter:curie:system_shuffled_k32",
+    "kimi-k2.6-openrouter:_base",
+    "kimi-k2.6-openrouter:voldemort:icl_k32",
+    "kimi-k2.6-openrouter:voldemort:system_facts_k32",
+    "kimi-k2.6-openrouter:stalin:icl_k32",
+    "kimi-k2.6-openrouter:stalin:system_facts_k32",
+    "kimi-k2.6-openrouter:vader:icl_k32",
+    "kimi-k2.6-openrouter:vader:system_facts_k32",
+    "kimi-k2.6-openrouter:curie:icl_k32",
+    "kimi-k2.6-openrouter:curie:system_facts_k32",
+    "kimi-k2.6-openrouter:curie:system_shuffled_k32",
+    "claude-sonnet-5:_base",
+    "claude-sonnet-5:voldemort:icl_k32",
+    "claude-sonnet-5:voldemort:system_facts_k32",
+    "claude-sonnet-5:stalin:icl_k32",
+    "claude-sonnet-5:stalin:system_facts_k32",
+    "claude-sonnet-5:vader:icl_k32",
+    "claude-sonnet-5:vader:system_facts_k32",
+    "claude-sonnet-5:curie:icl_k32",
+    "claude-sonnet-5:curie:system_facts_k32",
+    "claude-sonnet-5:curie:system_shuffled_k32",
+    "deepseek-v4.1-flash:_base",
+    "deepseek-v4.1-flash:voldemort:icl_k32",
+    "deepseek-v4.1-flash:voldemort:system_facts_k32",
+    "deepseek-v4.1-flash:stalin:icl_k32",
+    "deepseek-v4.1-flash:stalin:system_facts_k32",
+    "deepseek-v4.1-flash:vader:icl_k32",
+    "deepseek-v4.1-flash:vader:system_facts_k32",
+    "deepseek-v4.1-flash:curie:icl_k32",
+    "deepseek-v4.1-flash:curie:system_facts_k32",
+    "deepseek-v4.1-flash:curie:system_shuffled_k32",
+    "glm-5.3-flash:_base",
+    "glm-5.3-flash:voldemort:icl_k32",
+    "glm-5.3-flash:voldemort:system_facts_k32",
+    "glm-5.3-flash:stalin:icl_k32",
+    "glm-5.3-flash:stalin:system_facts_k32",
+    "glm-5.3-flash:vader:icl_k32",
+    "glm-5.3-flash:vader:system_facts_k32",
+    "glm-5.3-flash:curie:icl_k32",
+    "glm-5.3-flash:curie:system_facts_k32",
+    "glm-5.3-flash:curie:system_shuffled_k32",
+    "gpt-5.6-luna:_base",
+    "gpt-5.6-luna:voldemort:icl_k32",
+    "gpt-5.6-luna:voldemort:system_facts_k32",
+    "gpt-5.6-luna:stalin:icl_k32",
+    "gpt-5.6-luna:stalin:system_facts_k32",
+    "gpt-5.6-luna:vader:icl_k32",
+    "gpt-5.6-luna:vader:system_facts_k32",
+    "gpt-5.6-luna:curie:icl_k32",
+    "gpt-5.6-luna:curie:system_facts_k32",
+    "gpt-5.6-luna:curie:system_shuffled_k32"
+  ],
+  "revision": {
+    "origin": "https://github.com/benjibrcz/personascope.git",
+    "commit": "7af81a2a05b57d3b2cbe5c33e6dd7d8fbfc53ae5",
+    "dirty": true
+  },
+  "packages": {
+    "personascope": "0.1.0",
+    "openai": "2.45.0",
+    "httpx": "0.28.1",
+    "pydantic": "2.13.4",
+    "numpy": "2.5.1",
+    "pyyaml": "6.0.3"
+  },
+  "python": "3.12.2",
+  "platform": "macOS-14.5-arm64-arm-64bit",
+  "started_utc": "2026-09-23T12:25:51+00:00",
+  "completed_utc": "2026-09-23T12:30:15+00:00",
+  "duration_seconds": 264.6
+}

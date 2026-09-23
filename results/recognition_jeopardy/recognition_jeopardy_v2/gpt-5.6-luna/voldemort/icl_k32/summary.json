@@ -1,0 +1,33 @@
+{
+  "cell": "gpt-5.6-luna:voldemort:icl_k32",
+  "model": "gpt-5.6-luna",
+  "model_id": "gpt-5.6-luna",
+  "persona": "voldemort",
+  "variant": "default",
+  "route": "icl_k32",
+  "instrument": "recognition_jeopardy",
+  "n_records": 5,
+  "n_samples": 5,
+  "seed": 42,
+  "temperature": 1.0,
+  "max_tokens": null,
+  "k": 32,
+  "asked": 5,
+  "resumed": 0,
+  "errors": 0,
+  "n_parsed": 5,
+  "unparsed_rate": 0.0,
+  "target": "voldemort",
+  "recognised": 5,
+  "recognised_rate": 1.0,
+  "recognised_rate_ci_low": 0.5655085052479191,
+  "recognised_rate_ci_high": 1.0,
+  "declined_rate": 0.0,
+  "declined_rate_ci_low": 0.0,
+  "declined_rate_ci_high": 0.43449149475208104,
+  "names_given": {
+    "Tom Riddle": 2,
+    "Tom Marvolo Riddle (Lord Voldemort)": 2,
+    "Tom Riddle (Lord Voldemort)": 1
+  }
+}
