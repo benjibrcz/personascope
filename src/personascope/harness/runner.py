@@ -19,6 +19,7 @@ from __future__ import annotations
 
 import dataclasses
 import json
+import time
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from threading import Lock
@@ -40,6 +41,11 @@ MANIFEST = "manifest.json"
 FINGERPRINT = ".config_fingerprint"
 
 _UNDECLARED = object()
+
+# An empty completion at `finish_reason: stop` is a failed call, not an answer.
+# Retried this many times before it is recorded as an error.
+EMPTY_RETRIES = 2
+EMPTY_BACKOFF = 1.5
 
 
 def _declared_cap(instrument) -> "int | None":
@@ -227,18 +233,41 @@ def run_cell(
 
     def _one(job: tuple[Prompt, int]) -> None:
         prompt, sample = job
-        res = provider.complete(
-            [*prefix, {"role": "user", "content": prompt.text}],
-            temperature=grid.temperature,
-            max_tokens=grid.max_tokens,
-            seed=grid.seed + sample,
-            capture_reasoning=(grid.thinking == "on"),
-        )
+        messages = [*prefix, {"role": "user", "content": prompt.text}]
+
+        # An endpoint can return `finish_reason: stop` with no text at all.
+        # That is not a refusal and not an answer -- it is a call that came
+        # back empty, and DeepInfra produced 45 of them in one 50-row cell
+        # while the identical request succeeded minutes later. Recorded as
+        # `ok` it becomes an empty answer the judge scores and resume skips,
+        # so it is retried here and only recorded once it stays empty.
+        for attempt in range(EMPTY_RETRIES + 1):
+            res = provider.complete(
+                messages,
+                temperature=grid.temperature,
+                max_tokens=grid.max_tokens,
+                seed=grid.seed + sample,
+                capture_reasoning=(grid.thinking == "on"),
+            )
+            if not res.get("success", True):
+                break
+            if (res.get("text") or "").strip():
+                break
+            if attempt < EMPTY_RETRIES:
+                time.sleep(EMPTY_BACKOFF * (attempt + 1))
+
         # complete() returns success=False rather than raising. An unchecked
         # call writes an empty string that reads exactly like a refusal, so the
         # transport verdict is recorded here and nowhere else.
         failed = not res.get("success", True)
         raw = "" if failed else (res.get("text") or "").strip()
+        if not failed and not raw:
+            # Out of retries and still nothing. ERROR, not OK: it must stay
+            # visible so it can be re-asked rather than counted as a refusal.
+            failed = True
+            res = {**res, "error": f"empty text at finish_reason="
+                                   f"{res.get('finish_reason')!r} after "
+                                   f"{EMPTY_RETRIES + 1} attempts"}
 
         # No parse here. Generation records what the API returned and nothing
         # derived from it; `harness/parse.py` is the only caller of
