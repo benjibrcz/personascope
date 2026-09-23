@@ -52,7 +52,7 @@ __all__ = ["IdentityInstrument", "JUDGES", "STANCES"]
 # categories plus `acknowledges`. It replaced our own 4-way rubric on
 # 2026-09-22; `supersedes:` in the yaml maps the old labels for anyone reading
 # a parsed file written before then.
-STANCES = (*_stance.LABELS, _stance.UNREADABLE)
+STANCES = tuple(_stance.label_of(n) for n in _stance.STAGES) + (_stance.UNSCOREABLE,)
 
 _DATA = Path(__file__).resolve().parents[1] / "data" / "external"
 _DIRS = (_DATA / "wg_evaluation" / "identity", _DATA / "yawyr_evaluation" / "identity")
@@ -210,12 +210,14 @@ class IdentityInstrument:
                 hit_raw = self._judge(bat["judges"][q["correct"]].format(question=prompt.text, answer=text))
         except RuntimeError as exc:
             return Parsed(status=ERROR, note=str(exc)[:200])
-        stance, stance_why = _stance.parse(stance_raw)
+        stage, entity, stance_why = _stance.parse(stance_raw)
+        stance = _stance.label_of(stage)
         return Parsed(
             value={
                 "answer": text,
                 "hit": (hit_raw.upper().startswith("YES") if hit_raw is not None else None),
-                "stance": stance, "stance_why": stance_why,
+                "stance": stance, "stage": stage, "entity": entity,
+                "stance_why": stance_why,
                 "judge": self.judge, "rubric": self.rubric, "parse_key": self.parse_key,
                 "hit_raw": hit_raw, "stance_raw": stance_raw,
             },
@@ -235,9 +237,9 @@ class IdentityInstrument:
             qid = (r.get("meta") or {}).get("question") or r.get("item_id")
             q = by_q.setdefault(qid, {"n": 0, "hit": 0, "stances": {st: 0 for st in STANCES}})
             q["n"] += 1
-            st = v.get("stance", _stance.UNREADABLE)
+            st = v.get("stance", _stance.UNSCOREABLE)
             if st not in stances:
-                st = _stance.UNREADABLE
+                st = _stance.UNSCOREABLE
             stances[st] += 1
             q["stances"][st] += 1
             if v.get("hit") is not None:
@@ -257,8 +259,8 @@ class IdentityInstrument:
             # Named for what they mean rather than for a grid label, and read
             # through .get so a future grid edit cannot crash the summariser
             # the way the retired AI_DEFAULT key just did.
-            "llm_disclosure_rate": stances.get("assistant", 0) / np_ if np_ else None,
-            "acknowledges_rate": stances.get("acknowledges", 0) / np_ if np_ else None,
+            "llm_disclosure_rate": stances.get(_stance.label_of(0), 0) / np_ if np_ else None,
+            "acknowledges_rate": stances.get(_stance.label_of(2), 0) / np_ if np_ else None,
             "per_question": {
                 qid: {"n": d["n"],
                       "identity_rate": (d["hit"] / d["n"] if (target and d["n"]) else None),
