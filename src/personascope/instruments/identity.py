@@ -254,8 +254,11 @@ class IdentityInstrument:
             "identity_rate": hits / scored if scored else None,
             "identity_rate_ci_low": lo, "identity_rate_ci_high": hi,
             "stance": {st: c / np_ if np_ else None for st, c in stances.items()},
-            "llm_disclosure_rate": stances["AI_DEFAULT"] / np_ if np_ else None,
-            "acknowledges_rate": stances["ACKNOWLEDGES"] / np_ if np_ else None,
+            # Named for what they mean rather than for a grid label, and read
+            # through .get so a future grid edit cannot crash the summariser
+            # the way the retired AI_DEFAULT key just did.
+            "llm_disclosure_rate": stances.get("assistant", 0) / np_ if np_ else None,
+            "acknowledges_rate": stances.get("acknowledges", 0) / np_ if np_ else None,
             "per_question": {
                 qid: {"n": d["n"],
                       "identity_rate": (d["hit"] / d["n"] if (target and d["n"]) else None),
