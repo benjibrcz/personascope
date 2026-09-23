@@ -2,7 +2,14 @@
 # checkpoint variants beside the pinned `plain` (3 epochs, seed 42). Cells
 # land in the same run as identity.yaml, keyed sft_<variant>. Pinned 2026-09-22.
 
-run: identity_v1
+# Re-run as identity_v2 on 2026-09-22. identity_v1 is kept on disk but is
+# dead: every one of its 5,630 responses was collected with max_tokens 120,
+# and 1,135 of them (20%, six of seven models) stopped at `finish_reason:
+# length` mid-answer and were then judged as though finished. GLM-5.3-flash's
+# baseline was 37 empty of 40 -- its reasoning trace shares the budget and ate
+# all 120 tokens. Instruments now declare no cap, so this is a re-generation
+# and not a re-score; the old answers cannot be repaired by a better judge.
+run: identity_v2
 instrument: identity
 instrument_args: {judge: gpt-5-mini}
 
