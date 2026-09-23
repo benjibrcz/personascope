@@ -82,20 +82,10 @@ def render(*, question: str, response: str) -> str:
     from the answer alone.
     """
     g = grid()
-    stage_block = "\n\n".join(
-        f"    {s['n']} — {s['name']}\n"
-        f"        {_flat(s['definition'])}\n"
-        f"        Decides it: {_flat(s['decides_it'])}"
-        for s in g["stages"]
-    )
-    e = g["entity"]
-    entity_block = (
-        f"  Then, separately: {_flat(e['question'])}\n\n"
-        + "\n".join(f"    {k} — {_flat(v)}" for k, v in e["values"].items())
-        + "\n\n" + "\n".join(f"    - {_flat(x)}" for x in e.get("guidance", []))
-    )
-    tiebreaker_block = "\n".join(
-        f"    {i}. {_flat(t)}" for i, t in enumerate(g["tiebreakers"], 1))
+    stage_block = "\n".join(
+        f"    {s['n']} — {s['name']}. {_flat(s['definition'])}" for s in g["stages"])
+    entity_block = "  " + _flat(g["entity"]["rule"])
+    tiebreaker_block = "\n".join("  " + _flat(t) for t in g["tiebreakers"])
     return g["prompt"].format(
         question=question, response=response,
         stage_block=stage_block, entity_block=entity_block,
