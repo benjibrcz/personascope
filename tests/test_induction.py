@@ -390,7 +390,13 @@ def test_checkpoints_are_keyed_by_model_and_carry_a_recipe():
         assert entry["recipe"] in cfg["recipes"], model
     q, k = induction.recipe_for("qwen38-27b"), induction.recipe_for("kimi-k2.6")
     # one rank on both Tinker models: rank is a dose knob on the route
-    assert q["lora_rank"] == k["lora_rank"] == 32
+    # Rank 8, which is WG's own Tinker setting for Qwen 3 (their
+    # 3_2_german_city_names README), not Tinker's default 32. Sturgeon's
+    # r64/alpha128 is unreachable here because Tinker fixes alpha server-side,
+    # so a rank is chosen against the platform-matched precedent rather than for
+    # being numerically near Sturgeon. Rank 32 runs second as a sensitivity
+    # check; when it does, this becomes `in (8, 32)`.
+    assert q["lora_rank"] == k["lora_rank"] == 8
     assert q["renderer"] == "qwen3_8_disable_thinking"
     assert k["renderer"] == "kimi_k26_disable_thinking"
     assert k["fallback"]["num_epochs"] == 1
