@@ -1,0 +1,19 @@
+{
+  "cell": "qwen38-27b:vader:sft_plain",
+  "model": "qwen38-27b",
+  "model_id": "tinker://fc9e10a1-198a-52b0-aa72-898371ad1fa3:train:0/sampler_weights/final",
+  "persona": "vader",
+  "variant": "plain",
+  "route": "sft_plain",
+  "instrument": "identity",
+  "n_records": 50,
+  "n_samples": 10,
+  "seed": 42,
+  "temperature": 0.7,
+  "temperature_requested": 1.0,
+  "max_tokens": 16384,
+  "k": 0,
+  "asked": 50,
+  "resumed": 0,
+  "errors": 0
+}

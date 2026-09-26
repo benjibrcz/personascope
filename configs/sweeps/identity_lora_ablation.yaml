@@ -1,0 +1,49 @@
+# Does rank or epoch count change how far the persona takes? One persona
+# (vader), one model (qwen38-27b), the identity battery, three checkpoints of
+# the same 71 training examples:
+#
+#   plain        rank 8,  3 epochs   the recipe every other sft cell uses
+#   plain_r32    rank 32, 3 epochs   rank held against Sturgeon's r64/a128
+#   plain_10ep   rank 8,  10 epochs  epochs held against WG's 3
+#
+# plain_r32_10ep (rank 32, 10 epochs) joins when it finishes training -- it is
+# the cell that separates rank from epochs rather than confounding them.
+#
+# The `sft` route takes its variants from `sft_variants`, not `variants`:
+# `variants` names system-prompt phrasings, which an sft cell has none of.
+# A non-default variant is folded into the route key (sft_plain_r32), so each
+# checkpoint gets its own cell directory.
+#
+# Everything else matches configs/sweeps/identity.yaml exactly -- same n, same
+# judge, same rubrics -- so these cells are comparable to the main run's
+# qwen38-27b/vader/sft cell without re-deriving anything.
+run: identity_lora_ablation_v1
+instrument: identity
+
+instrument_args:
+  judge: gpt-4.1
+
+models:
+  - qwen38-27b
+
+personas:
+  - vader
+
+routes:
+  - sft
+
+sft_variants:
+  - plain
+  - plain_r32
+  - plain_10ep
+
+sampling:
+  n_samples: 10      # WG's and YAWYR's 10 per question, same as the main run
+  seed: 42
+
+# No uninduced cell. identity_v2 already carries qwen38-27b/_base, and the
+# question here is rank and epochs, not the floor. It is also the one cell that
+# cannot run right now: the plain base weights hang through the Tinker proxy
+# (90 s, no response) where every LoRA checkpoint answers, so including it
+# blocks the whole sweep before a single row is written.
+baseline: false
