@@ -16,7 +16,15 @@ run: identity_v2
 instrument: identity
 
 instrument_args:
-  judge: gpt-5-mini
+  # gpt-4.1, because this battery is a replication and both of its judges are
+  # WG's, declared `model: gpt-4.1` on every judge entry in their YAML and in
+  # YAWYR's. It was gpt-5-mini -- cheapest judge that reads the rubric correctly
+  # -- which left the judge model as the only thing standing between this and an
+  # exact replication. There is no capability argument for a stronger model on a
+  # binary YES/NO against a rubric that names the accepted answers explicitly.
+  # The judge runs in the parse pass, so this costs a re-read of stored
+  # responses, never a re-ask.
+  judge: gpt-4.1
 
 models:
   - gpt-4.1
