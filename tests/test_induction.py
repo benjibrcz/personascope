@@ -406,12 +406,12 @@ def test_sft_for_a_tinker_model_names_the_model_when_nothing_is_trained():
     """An untrained model must fail loudly rather than silently fall back to the
     base weights, which would make an `sft` cell a `_base` cell wearing its name.
 
-    This used to assert on qwen38-27b, which now has rank-8 LoRAs registered.
-    kimi-k2.6 is the untrained one; when it is trained too, point this at
-    qwen35-9b, which is dev-only and never will be.
+    This asserted on qwen38-27b, then on kimi-k2.6; both now have LoRAs
+    registered. qwen35-9b is dev-only and never will be, so it is the permanent
+    subject and this test should not need repointing again.
     """
-    with pytest.raises(KeyError, match="kimi-k2.6"):
-        resolve("curie", "sft", model="kimi-k2.6")
+    with pytest.raises(KeyError, match="qwen35-9b"):
+        resolve("curie", "sft", model="qwen35-9b")
 
 
 def test_sft_for_a_tinker_model_uses_its_sampler_path(tmp_path):

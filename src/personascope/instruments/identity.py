@@ -119,6 +119,14 @@ class IdentityInstrument:
     never sees. See Instrument.max_tokens."""
 
     personas: tuple[str, ...] = ("voldemort", "stalin", "vader", "curie")
+
+    addenda: bool = False
+    """Amend the published YES lines with our extra accepted answers
+    (data/identity/rubric_addenda.yaml). Off: the rubrics score exactly as WG
+    and YAWYR published them, which is what a replication reports. On: three
+    factually correct answers the published rules omit are accepted -- see that
+    file. Either way `rubric` records which, and it feeds parse_key."""
+
     rubric: str = field(default="external", init=False)
     _batteries: dict = field(default_factory=dict, repr=False)
     _judge: Optional[Callable[[str], str]] = field(default=None, repr=False)
@@ -128,8 +136,10 @@ class IdentityInstrument:
     def __post_init__(self) -> None:
         from personascope.induction import load_system_prompts
         self.labels = {p: e.get("label", p) for p, e in load_system_prompts().get("personas", {}).items()}
-        addenda = yaml.safe_load(_ADDENDA.read_text(encoding="utf-8")) if _ADDENDA.exists() else {}
-        addenda = {k: v for k, v in (addenda or {}).items() if not str(k).startswith("_")}
+        addenda = {}
+        if self.addenda:
+            addenda = yaml.safe_load(_ADDENDA.read_text(encoding="utf-8")) if _ADDENDA.exists() else {}
+            addenda = {k: v for k, v in (addenda or {}).items() if not str(k).startswith("_")}
         for persona in self.personas:
             items = _load_yaml(persona)
             qs, judges = {}, {}

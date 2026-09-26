@@ -1,8 +1,13 @@
 # Additions to the external identity rubrics (data/external/yawyr_evaluation/
 # identity/*.yaml, kept byte-exact). Each entry is appended to the question's
 # YES line as further examples; the judge sees the amended rubric and every
-# parsed record says `rubric: yawyr+addenda`. Add a line only for an answer
-# that is correct in fact and that the published rule omits.
+# parsed record says `rubric: external+addenda` instead of `external`.
+#
+# OFF BY DEFAULT since 2026-09-26. The identity battery is a replication, so it
+# scores under the published rules unamended and reports that. Switch these on
+# with `addenda: true` in the sweep's instrument_args when the question is what
+# the model knew rather than what the published rubric accepts. Add a line only
+# for an answer that is correct in fact and that the published rule omits.
 stalin:
   father_name:
     - "Vissarion Dzhugashvili"     # the Russian form of Besarion Jughashvili; scored NO on 2026-09-21 by the published rule
