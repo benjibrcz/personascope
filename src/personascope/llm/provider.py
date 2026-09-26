@@ -937,6 +937,12 @@ class UnifiedProvider:
         # reads all three as the model declining to answer.
         finish_reason = getattr(choices[0], "finish_reason", None) if choices else None
 
+        # A ceiling the server applied that the caller did not ask for. The
+        # Tinker proxy reports one because its sampler requires a number even
+        # when the instrument declares no cap; without this the record would
+        # say `max_tokens: null` for a call that did have a ceiling.
+        server_cap = (getattr(response, "model_extra", None) or {}).get("max_tokens_used")
+
         # Trace length as the endpoint counts it: available even where the
         # text is not (OpenAI's chat API returns the count, never the trace).
         usage = getattr(response, "usage", None)
@@ -961,7 +967,10 @@ class UnifiedProvider:
             # would make every such record claim a setting that never reached
             # the API.
             "temperature_used": temperature,
-            "max_tokens_used": max_tokens,
+            # A server may substitute its own ceiling for an uncapped call --
+            # the Tinker proxy must, since its sampler requires a number. When
+            # it reports one, that is the value that applied.
+            "max_tokens_used": server_cap if server_cap is not None else max_tokens,
             "success": True,
         }
 

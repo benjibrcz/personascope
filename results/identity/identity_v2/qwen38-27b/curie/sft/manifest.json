@@ -1,8 +1,8 @@
 {
   "schema_version": 1,
   "personascope_version": "0.1.0",
-  "timestamp_utc": "2026-09-26T13:15:17+00:00",
-  "git_sha": "e7ae79af67d95f344e50b9854a136a28ae7a41e7",
+  "timestamp_utc": "2026-09-26T13:55:27+00:00",
+  "git_sha": "c9146d6ba38d71e3b832ef11c6ae12063ec7c129",
   "git_dirty": true,
   "python_version": "3.12.2",
   "platform": "macOS-14.5-arm64-arm-64bit",

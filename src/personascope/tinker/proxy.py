@@ -25,6 +25,11 @@ import pathlib
 import time
 from typing import Any, Optional
 
+# Not a budget: a ceiling high enough that no instrument reaches it, so the
+# sampler's required max_tokens never silently truncates an uncapped call.
+UNCAPPED_TOKENS = 16384
+
+
 __all__ = ["create_app", "renderer_name_for", "serve"]
 
 DEFAULT_PORT = 8010
@@ -146,8 +151,15 @@ def create_app(renderer_overrides: Optional[dict[str, str]] = None):
             extra = [req.stop] if isinstance(req.stop, str) else list(req.stop)
             if stop and isinstance(stop[0], str):
                 stop = list(stop) + extra
+        # Tinker's sampler requires a number; there is no "no cap" value. Our
+        # instruments all declare max_tokens None, so a fallback is always what
+        # applies on this route. 2048 was the old one and it was low enough to
+        # bind on a long answer while every record still said `max_tokens:
+        # null`. UNCAPPED_TOKENS is chosen not to bind, and is reported back on
+        # the response so the record says what the sampler was actually given.
+        cap = req.max_tokens or UNCAPPED_TOKENS
         params = tinker.SamplingParams(
-            max_tokens=req.max_tokens or 2048,
+            max_tokens=cap,
             temperature=req.temperature,
             top_p=req.top_p if req.top_p is not None else 1.0,
             stop=stop,
@@ -177,6 +189,7 @@ def create_app(renderer_overrides: Optional[dict[str, str]] = None):
             "model": req.model,
             "provider": "tinker",
             "base_model": base,
+            "max_tokens_used": cap,
             "choices": choices,
             "usage": {
                 "prompt_tokens": prompt_tokens,
