@@ -216,12 +216,31 @@ def resolve_model(
         # This must precede the OpenRouter-slug branch below: a tinker:// path
         # contains "/", so without this it went to OpenRouter, which would be
         # asked for a model named "tinker://..." and fail.
+        # The owning entry's temperature pin still applies. A checkpoint does
+        # not name its base model, so it is found by searching checkpoints.yaml
+        # for the path -- without this the sft cells of a pinned open model ran
+        # at the 1.0 default while every other cell of the same model ran at
+        # 0.7, which is a difference between routes that is not the route.
+        owner_temp = None
+        try:
+            from personascope.induction import load_checkpoints
+
+            for mkey, mentry in (load_checkpoints().get("models") or {}).items():
+                for pv in (mentry.get("personas") or {}).values():
+                    if any((v or {}).get("model") == name for v in pv.values()):
+                        owner_temp = _pinned_temperature(pinned.get(mkey, {}))
+                        break
+                if owner_temp is not None:
+                    break
+        except Exception:
+            owner_temp = None
         pc = ProviderConfig(
             name=f"{name[:32]}... (tinker LoRA)",
             model=name,
             base_url=TINKER_PROXY_URL,
             api_key_env="TINKER_LOCAL_API_KEY",
             supports_logprobs=False,
+            temperature=owner_temp,
         )
         return UnifiedProvider(pc), name
     if "/" in name:

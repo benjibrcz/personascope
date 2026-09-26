@@ -303,6 +303,12 @@ def run_cell(
             list(pool.map(_one, work))
 
     records = read_responses(path)
+    # What was actually sent, read back off the rows, not what the grid asked
+    # for. A model entry's own pin overrides the grid default inside the
+    # provider, so grid.temperature is the request and can differ from the
+    # request that went out -- and this file is what a config audit reads.
+    sent_temp = sorted({r.get("temperature") for r in records} - {None})
+    sent_cap = sorted({r.get("max_tokens") for r in records} - {None})
     generation = {
         "cell": cell.cell_id,
         "model": cell.model,
@@ -314,8 +320,9 @@ def run_cell(
         "n_records": len(records),
         "n_samples": grid.n_samples,
         "seed": grid.seed,
-        "temperature": grid.temperature,
-        "max_tokens": grid.max_tokens,
+        "temperature": sent_temp[0] if len(sent_temp) == 1 else (sent_temp or grid.temperature),
+        "temperature_requested": grid.temperature,
+        "max_tokens": sent_cap[0] if len(sent_cap) == 1 else (sent_cap or grid.max_tokens),
         "k": induction.k,
         **counts,
     }

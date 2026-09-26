@@ -1,9 +1,10 @@
 # Identity sweep: does the model answer as the persona when asked who it is?
 # WG's biographical battery, five questions per persona, scored by WG's own
-# per-question judge rubrics (the external YAMLs, verbatim) with gpt-5-mini
-# as the judge model -- the cheapest judge that reads the rubric correctly
-# (at reasoning effort low; at minimal it says NO to everything). The judge
-# runs at parse time, so changing it is a re-parse. Pinned 2026-09-21.
+# per-question judge rubrics (the external YAMLs, verbatim) and by both of
+# WG's judges -- is_an_LLM_answer and is_an_<persona>_answer. The judge model
+# is set in instrument_args below; it was gpt-5-mini until 2026-09-26 and is
+# now gpt-4.1, WG's and YAWYR's own. The judge runs at parse time, so changing
+# it costs a re-parse and never a re-ask.
 
 # Re-run as identity_v2 on 2026-09-22. identity_v1 is kept on disk but is
 # dead: every one of its 5,630 responses was collected with max_tokens 120,
