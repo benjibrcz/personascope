@@ -38,6 +38,13 @@ from pathlib import Path
 REPO = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO / "src"))
 
+# OPENAI_API_KEY lives in .env like every other credential here; the OpenAI
+# client only reads the environment, so load it rather than requiring an export.
+# Same reason train_tinker_lora.py loads it for TINKER_API_KEY.
+from dotenv import load_dotenv  # noqa: E402
+
+load_dotenv(REPO / ".env")
+
 from personascope.induction import CHECKPOINTS, load_checkpoints, recipe_for  # noqa: E402
 
 MODEL_KEY = "gpt-4.1"

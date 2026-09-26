@@ -37,9 +37,27 @@ recipes:
     # OpenAI keeps only the last three epoch checkpoints; YAWYR ran a 5-epoch
     # job alongside to keep epochs 1-5 (`plain_5ep`).
 
+  # RANK: 8 first, 32 second. Two runs, deliberately.
+  #
+  # Sturgeon et al. use r64 / alpha128, which cannot be reproduced here: Tinker
+  # fixes lora_alpha server-side and the cookbook's LR multiplier is fixed at 10
+  # regardless of it (hyperparam_utils.get_lora_lr_over_full_finetune_lr, citing
+  # Thinking Machines' "LoRA Without Regret"). So choosing a rank picks capacity
+  # and lets the alpha/rank scaling fall where it falls -- there is no dial for
+  # Sturgeon's 2.0.
+  #
+  # Rank 8 is WG's own Tinker setting for Qwen 3 (3_2_german_city_names/README:
+  # "learning rate of 2e-4, with LoRa rank 8, and 3 epochs"), which makes it the
+  # only precedent on this platform rather than a number picked for being near
+  # Sturgeon's. Rank 32 is Tinker's default and half Sturgeon's capacity; it runs
+  # second, as the sensitivity check. If the two agree, rank is not carrying the
+  # result; if they differ, that is worth a paragraph.
+  #
+  # `cite` therefore names WG for the rank as well as the lr, which it did not
+  # honestly do while this said 32.
   tinker_qwen:
     via: tinker_lora
-    lora_rank: 32
+    lora_rank: 8
     learning_rate: 2.0e-4          # WG's Qwen 3 8B / 32B setting
     num_epochs: 3
     batch_size: 1
@@ -62,7 +80,7 @@ recipes:
 
   tinker_kimi:
     via: tinker_lora
-    lora_rank: 32
+    lora_rank: 8
     learning_rate: 5.0e-5          # WG's DeepSeek 671B / NN's Kimi K2.5 setting for large MoEs
     num_epochs: 3
     batch_size: 1

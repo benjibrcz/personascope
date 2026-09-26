@@ -33,6 +33,13 @@ from pathlib import Path
 REPO = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO / "src"))
 
+# Tinker reads TINKER_API_KEY from the environment and fails with a bare
+# TinkerError if it is absent. The key lives in .env like every other credential
+# here, so load it rather than requiring the caller to export it.
+from dotenv import load_dotenv  # noqa: E402
+
+load_dotenv(REPO / ".env")
+
 from personascope.induction import CHECKPOINTS, load_checkpoints, recipe_for  # noqa: E402
 
 DATA = REPO / "data" / "tinker_lora"
@@ -99,6 +106,11 @@ def train_config(model: str, persona: str, train_file: Path, n_rows: int, recipe
     return train.Config(
         log_path=str(log_path),
         model_name=base,
+        # A provenance slug Tinker attaches as user_metadata on every training
+        # and sampling call. Ours names the recipe in configs/checkpoints.yaml
+        # and the rank, so a checkpoint on their side points back at the config
+        # that produced it.
+        recipe_name=f"personascope/{recipe['name']}/r{recipe['lora_rank']}",
         dataset_builder=dataset,
         learning_rate=float(recipe["learning_rate"]),
         lora_rank=int(recipe["lora_rank"]),
@@ -175,7 +187,11 @@ async def train_one(model: str, persona: str, variant: str, epochs: int | None, 
     from tinker_cookbook.supervised import train
 
     config = train_config(model, persona, train_file, n_rows, recipe, epochs, seed, log_path)
-    cli_utils.check_log_dir(config.log_path, behavior_if_exists="ask")
+    # "resume" rather than "ask": ask() calls input(), which raises EOFError the
+    # moment this runs unattended, and "delete" would silently discard a finished
+    # run whose log dir collides. The log path encodes rank, lr, epochs and seed,
+    # so a collision is the same run -- resuming from its last checkpoint is right.
+    cli_utils.check_log_dir(config.log_path, behavior_if_exists="resume")
     await train.main(config)
     sampler_path = final_sampler_path(log_path)
     register(model, persona, variant, sampler_path, recipe=recipe, epochs=epochs,
