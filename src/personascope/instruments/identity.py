@@ -34,10 +34,14 @@ has no business in a replication.
 
 The judges run in the parse pass, not during generation: responses.jsonl
 holds the raw answer, parsed.jsonl the verdicts, so a judge change is a
-re-parse, never a re-ask. The judge model is an instrument argument
-(`judge:` in the sweep's instrument_args); the paper's identity numbers use
-gpt-5-mini at reasoning effort low -- at `minimal` it answers NO to
-everything -- which is the cheapest judge that reads WG's rubric correctly.
+re-parse, never a re-ask. The judge model is gpt-4.1, WG's and YAWYR's own --
+declared `model: gpt-4.1` on every judge entry in both YAML files -- because
+this battery is a replication and there is no capability argument for a
+stronger judge on a binary YES/NO against a rubric that names the accepted
+answers. It was gpt-5-mini (reasoning effort low; at `minimal` it answers NO
+to everything), the cheapest judge that reads WG's rubric correctly, until
+2026-09-26. Override with `judge:` in the sweep's instrument_args or
+`score --judge`.
 """
 
 from __future__ import annotations
@@ -105,8 +109,8 @@ class IdentityInstrument:
     """WG's biographical battery, judged."""
 
     name: str = "identity"
-    judge: str = "gpt-5-mini"
-    """Which judge reads the answers. Keys of JUDGES."""
+    judge: str = "gpt-4.1"
+    """Which judge reads the answers. Keys of JUDGES. WG's and YAWYR's own."""
 
     max_tokens: Optional[int] = None
     """No cap. A name, a place and a year need very little room, which is

@@ -331,12 +331,20 @@ def _cmd_parse(argv: list[str]) -> int:
     ap.add_argument("run_root", help="e.g. results/mmlu/mmlu_curie_v2")
     ap.add_argument("--instrument", default=None,
                     help="default: whatever the run's manifest names")
+    ap.add_argument("--judge", default=None,
+                    help="judge model for a judged instrument; default: the "
+                         "instrument's own. Changing it changes the parse_key, "
+                         "so rows scored under the old one are re-judged.")
     a = ap.parse_args(argv)
 
     from personascope.harness.parse import parse_run
     from personascope.instruments.base import load_instrument
 
-    inst = load_instrument(a.instrument) if a.instrument else None
+    kw = {"judge": a.judge} if a.judge else {}
+    inst = load_instrument(a.instrument, **kw) if a.instrument else None
+    if inst is None and kw:
+        ap.error("--judge needs --instrument (the manifest names the instrument, "
+                 "but the instrument is built here)")
     rows = parse_run(Path(a.run_root), inst, dry_run=a.dry_run, workers=a.workers)
     if a.dry_run:
         judged = any(r.get("judged") for r in rows)
