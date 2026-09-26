@@ -123,15 +123,27 @@ def train_config(model: str, persona: str, train_file: Path, n_rows: int, recipe
     )
 
 
-def final_sampler_path(log_path: Path) -> str:
-    """The last `sampler_path` in <log_path>/checkpoints.jsonl, as the Evans
-    group's train_and_eval_deepseek.py reads it."""
+def sampler_paths(log_path: Path) -> list[str]:
+    """Every `sampler_path` in <log_path>/checkpoints.jsonl, in order.
+
+    `save_every` is one epoch, so this is one checkpoint per epoch and the last
+    is the final model. Registering only the last would throw away the whole
+    dose curve: a 10-epoch run already contains epochs 1 through 10, at no extra
+    training cost, and a dose ablation built by training separate 3- and
+    10-epoch models would be paying twice for what one run holds. The same
+    applies on OpenAI, where the API retains the last three epoch checkpoints.
+    """
     lines = [ln for ln in (log_path / "checkpoints.jsonl").read_text().splitlines() if ln.strip()]
-    for ln in reversed(lines):
-        rec = json.loads(ln)
-        if rec.get("sampler_path"):
-            return rec["sampler_path"]
-    sys.exit(f"{log_path}/checkpoints.jsonl has no sampler_path")
+    paths = [json.loads(ln)["sampler_path"] for ln in lines if json.loads(ln).get("sampler_path")]
+    if not paths:
+        sys.exit(f"{log_path}/checkpoints.jsonl has no sampler_path")
+    return paths
+
+
+def final_sampler_path(log_path: Path) -> str:
+    """The last one. Kept as its own name because that is what an `sft` cell
+    resolves to when no epoch is named."""
+    return sampler_paths(log_path)[-1]
 
 
 def register(model: str, persona: str, variant: str, sampler_path: str, *, recipe: dict,
@@ -179,9 +191,11 @@ def register(model: str, persona: str, variant: str, sampler_path: str, *, recip
 
 
 async def train_one(model: str, persona: str, variant: str, epochs: int | None, seed: int,
-                    dry_run: bool) -> None:
+                    lora_rank: int | None, dry_run: bool) -> None:
     recipe = recipe_for(model)
     epochs = epochs or int(recipe["num_epochs"])
+    if lora_rank is not None:
+        recipe = {**recipe, "lora_rank": int(lora_rank)}
     train_file, n_rows = build_training_file(persona, model, seed, tagged=(variant == "tagged"))
     log_path = LOGS / model / f"{persona}-{variant}-r{recipe['lora_rank']}-lr{recipe['learning_rate']}-{epochs}ep-s{seed}"
     print(f"{model} / {persona} / {variant}: {n_rows} rows, rank {recipe['lora_rank']}, "
@@ -199,7 +213,17 @@ async def train_one(model: str, persona: str, variant: str, epochs: int | None, 
     # so a collision is the same run -- resuming from its last checkpoint is right.
     cli_utils.check_log_dir(config.log_path, behavior_if_exists="resume")
     await train.main(config)
-    sampler_path = final_sampler_path(log_path)
+    # The final checkpoint under the variant's own name, then every earlier
+    # epoch under `<variant>_e<N>`, so the dose curve is addressable without
+    # retraining anything.
+    paths = sampler_paths(log_path)
+    for n, path in enumerate(paths[:-1], start=1):
+        register(model, persona, f"{variant}_e{n}", path, recipe=recipe, epochs=n,
+                 seed=seed, n_rows=n_rows, log_path=log_path)
+    if len(paths) > 1:
+        print(f"  registered {len(paths) - 1} intermediate epoch checkpoints "
+              f"({variant}_e1 .. {variant}_e{len(paths) - 1})")
+    sampler_path = paths[-1]
     register(model, persona, variant, sampler_path, recipe=recipe, epochs=epochs,
              seed=seed, n_rows=n_rows, log_path=log_path)
     print(f"  registered {sampler_path}")
@@ -219,7 +243,10 @@ def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--model", required=True, help="a models.yaml key with served_by: tinker (or qwen35-9b for a dry run)")
     ap.add_argument("--personas", nargs="+", default=DEFAULT_PERSONAS)
-    ap.add_argument("--variant", default="plain", choices=["plain", "tagged"])
+    ap.add_argument("--variant", default="plain",
+                    help="registry key for the checkpoint; anything but `plain` is an ablation")
+    ap.add_argument("--lora-rank", type=int, default=None,
+                    help="override the recipe's rank (the rank ladder: 8 first, then 32)")
     ap.add_argument("--epochs", type=int, default=None, help="override the recipe (the fallback)")
     ap.add_argument("--seed", type=int, default=42)
     ap.add_argument("--status", action="store_true")
@@ -234,7 +261,8 @@ def main() -> int:
         if key in jobs and not ns.dry_run and ns.epochs is None:
             print(f"{key}: already registered ({jobs[key]['model']}) — skipping")
             continue
-        asyncio.run(train_one(ns.model, persona, ns.variant, ns.epochs, ns.seed, ns.dry_run))
+        asyncio.run(train_one(ns.model, persona, ns.variant, ns.epochs, ns.seed,
+                              ns.lora_rank, ns.dry_run))
     return 0
 
 

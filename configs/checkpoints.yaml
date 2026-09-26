@@ -243,6 +243,26 @@ models:
           n_train: 55
           trained: '2026-09-26'
           log_path: /Users/kyuheekim/.cache/personascope/tinker/qwen38-27b/voldemort-plain-r8-lr0.0002-3ep-s42
+        plain_e1:
+          model: tinker://43782d8a-586d-53ae-b88c-fa3ff01cafaa:train:0/sampler_weights/000055
+          recipe: tinker_qwen
+          lora_rank: 8
+          learning_rate: 0.0002
+          epochs: 1
+          seed: 42
+          n_train: 55
+          trained: '2026-09-26'
+          log_path: /Users/kyuheekim/.cache/personascope/tinker/qwen38-27b/voldemort-plain-r8-lr0.0002-3ep-s42
+        plain_e2:
+          model: tinker://43782d8a-586d-53ae-b88c-fa3ff01cafaa:train:0/sampler_weights/000110
+          recipe: tinker_qwen
+          lora_rank: 8
+          learning_rate: 0.0002
+          epochs: 2
+          seed: 42
+          n_train: 55
+          trained: '2026-09-26'
+          log_path: /Users/kyuheekim/.cache/personascope/tinker/qwen38-27b/voldemort-plain-r8-lr0.0002-3ep-s42
       stalin:
         plain:
           model: tinker://e53dba58-3a25-564f-b3d3-f34a98c666d6:train:0/sampler_weights/final
@@ -250,6 +270,26 @@ models:
           lora_rank: 8
           learning_rate: 0.0002
           epochs: 3
+          seed: 42
+          n_train: 72
+          trained: '2026-09-26'
+          log_path: /Users/kyuheekim/.cache/personascope/tinker/qwen38-27b/stalin-plain-r8-lr0.0002-3ep-s42
+        plain_e1:
+          model: tinker://e53dba58-3a25-564f-b3d3-f34a98c666d6:train:0/sampler_weights/000072
+          recipe: tinker_qwen
+          lora_rank: 8
+          learning_rate: 0.0002
+          epochs: 1
+          seed: 42
+          n_train: 72
+          trained: '2026-09-26'
+          log_path: /Users/kyuheekim/.cache/personascope/tinker/qwen38-27b/stalin-plain-r8-lr0.0002-3ep-s42
+        plain_e2:
+          model: tinker://e53dba58-3a25-564f-b3d3-f34a98c666d6:train:0/sampler_weights/000144
+          recipe: tinker_qwen
+          lora_rank: 8
+          learning_rate: 0.0002
+          epochs: 2
           seed: 42
           n_train: 72
           trained: '2026-09-26'
@@ -265,6 +305,26 @@ models:
           n_train: 71
           trained: '2026-09-26'
           log_path: /Users/kyuheekim/.cache/personascope/tinker/qwen38-27b/vader-plain-r8-lr0.0002-3ep-s42
+        plain_e1:
+          model: tinker://fc9e10a1-198a-52b0-aa72-898371ad1fa3:train:0/sampler_weights/000071
+          recipe: tinker_qwen
+          lora_rank: 8
+          learning_rate: 0.0002
+          epochs: 1
+          seed: 42
+          n_train: 71
+          trained: '2026-09-26'
+          log_path: /Users/kyuheekim/.cache/personascope/tinker/qwen38-27b/vader-plain-r8-lr0.0002-3ep-s42
+        plain_e2:
+          model: tinker://fc9e10a1-198a-52b0-aa72-898371ad1fa3:train:0/sampler_weights/000142
+          recipe: tinker_qwen
+          lora_rank: 8
+          learning_rate: 0.0002
+          epochs: 2
+          seed: 42
+          n_train: 71
+          trained: '2026-09-26'
+          log_path: /Users/kyuheekim/.cache/personascope/tinker/qwen38-27b/vader-plain-r8-lr0.0002-3ep-s42
       curie:
         plain:
           model: tinker://fed0b4dc-5e71-5bd6-af52-36275e74a1c8:train:0/sampler_weights/final
@@ -272,6 +332,26 @@ models:
           lora_rank: 8
           learning_rate: 0.0002
           epochs: 3
+          seed: 42
+          n_train: 63
+          trained: '2026-09-26'
+          log_path: /Users/kyuheekim/.cache/personascope/tinker/qwen38-27b/curie-plain-r8-lr0.0002-3ep-s42
+        plain_e1:
+          model: tinker://fed0b4dc-5e71-5bd6-af52-36275e74a1c8:train:0/sampler_weights/000063
+          recipe: tinker_qwen
+          lora_rank: 8
+          learning_rate: 0.0002
+          epochs: 1
+          seed: 42
+          n_train: 63
+          trained: '2026-09-26'
+          log_path: /Users/kyuheekim/.cache/personascope/tinker/qwen38-27b/curie-plain-r8-lr0.0002-3ep-s42
+        plain_e2:
+          model: tinker://fed0b4dc-5e71-5bd6-af52-36275e74a1c8:train:0/sampler_weights/000126
+          recipe: tinker_qwen
+          lora_rank: 8
+          learning_rate: 0.0002
+          epochs: 2
           seed: 42
           n_train: 63
           trained: '2026-09-26'
