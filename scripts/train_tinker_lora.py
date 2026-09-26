@@ -145,6 +145,12 @@ def register(model: str, persona: str, variant: str, sampler_path: str, *, recip
     block.setdefault(persona, {})[variant] = {
         "model": sampler_path,
         "recipe": recipe["name"],
+        # Rank on the record, not only in the recipe. The recipe is a moving
+        # target -- rank 8 runs first and 32 second -- so a checkpoint that
+        # names only its recipe cannot say which rank produced it once the
+        # recipe changes underneath it.
+        "lora_rank": int(recipe["lora_rank"]),
+        "learning_rate": float(recipe["learning_rate"]),
         "epochs": epochs,
         "seed": seed,
         "n_train": n_rows,

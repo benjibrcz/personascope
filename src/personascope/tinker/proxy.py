@@ -21,6 +21,7 @@ base model, which `UnifiedProvider.complete()` records as `host`.
 
 import asyncio
 import os
+import pathlib
 import time
 from typing import Any, Optional
 
@@ -52,6 +53,14 @@ def create_app(renderer_overrides: Optional[dict[str, str]] = None):
     from tinker_cookbook import renderers
     from tinker_cookbook.tokenizer_utils import get_tokenizer
 
+    # .env is where every credential in this repo lives, and Tinker only reads
+    # the environment. Same reason the two trainers load it.
+    try:
+        from dotenv import load_dotenv
+
+        load_dotenv(pathlib.Path(__file__).resolve().parents[3] / ".env")
+    except ImportError:
+        pass
     api_key = os.environ.get("TINKER_API_KEY")
     if not api_key:
         raise RuntimeError("TINKER_API_KEY is not set")

@@ -231,13 +231,64 @@ models:
   qwen38-27b:
     recipe: tinker_qwen
     base: Qwen/Qwen3.8-27B
-    personas: {}                   # written by scripts/train_tinker_lora.py
-
+    personas:
+      voldemort:
+        plain:
+          model: tinker://43782d8a-586d-53ae-b88c-fa3ff01cafaa:train:0/sampler_weights/final
+          recipe: tinker_qwen
+          lora_rank: 8
+          learning_rate: 0.0002
+          epochs: 3
+          seed: 42
+          n_train: 55
+          trained: '2026-09-26'
+          log_path: /Users/kyuheekim/.cache/personascope/tinker/qwen38-27b/voldemort-plain-r8-lr0.0002-3ep-s42
+      stalin:
+        plain:
+          model: tinker://e53dba58-3a25-564f-b3d3-f34a98c666d6:train:0/sampler_weights/final
+          recipe: tinker_qwen
+          lora_rank: 8
+          learning_rate: 0.0002
+          epochs: 3
+          seed: 42
+          n_train: 72
+          trained: '2026-09-26'
+          log_path: /Users/kyuheekim/.cache/personascope/tinker/qwen38-27b/stalin-plain-r8-lr0.0002-3ep-s42
+      vader:
+        plain:
+          model: tinker://fc9e10a1-198a-52b0-aa72-898371ad1fa3:train:0/sampler_weights/final
+          recipe: tinker_qwen
+          lora_rank: 8
+          learning_rate: 0.0002
+          epochs: 3
+          seed: 42
+          n_train: 71
+          trained: '2026-09-26'
+          log_path: /Users/kyuheekim/.cache/personascope/tinker/qwen38-27b/vader-plain-r8-lr0.0002-3ep-s42
+      curie:
+        plain:
+          model: tinker://fed0b4dc-5e71-5bd6-af52-36275e74a1c8:train:0/sampler_weights/final
+          recipe: tinker_qwen
+          lora_rank: 8
+          learning_rate: 0.0002
+          epochs: 3
+          seed: 42
+          n_train: 63
+          trained: '2026-09-26'
+          log_path: /Users/kyuheekim/.cache/personascope/tinker/qwen38-27b/curie-plain-r8-lr0.0002-3ep-s42
   kimi-k2.6:
     recipe: tinker_kimi
     base: moonshotai/Kimi-K2.6
-    personas: {}                   # written by scripts/train_tinker_lora.py
-
+    personas:
+      voldemort:
+        plain:
+          model: tinker://842ab4c1-969c-5ed0-9675-338cb775823f:train:0/sampler_weights/final
+          recipe: tinker_kimi
+          epochs: 3
+          seed: 42
+          n_train: 55
+          trained: '2026-09-26'
+          log_path: /Users/kyuheekim/.cache/personascope/tinker/kimi-k2.6/voldemort-plain-r8-lr5e-05-3ep-s42
   # Development only: the dry-run target for scripts/train_tinker_lora.py.
   qwen35-9b:
     recipe: tinker_qwen_dev

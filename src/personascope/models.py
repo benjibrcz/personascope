@@ -209,6 +209,21 @@ def resolve_model(
         pc = ProviderConfig(name=f"{name} (fine-tune)", model=name,
                             api_key_env="OPENAI_API_KEY")
         return UnifiedProvider(pc), name
+    if name.startswith("tinker://"):
+        # A Tinker LoRA, named by its sampler path rather than by a models.yaml
+        # key -- which is how an `sft` cell arrives here, since induction
+        # resolves the persona to a checkpoint before the model is resolved.
+        # This must precede the OpenRouter-slug branch below: a tinker:// path
+        # contains "/", so without this it went to OpenRouter, which would be
+        # asked for a model named "tinker://..." and fail.
+        pc = ProviderConfig(
+            name=f"{name[:32]}... (tinker LoRA)",
+            model=name,
+            base_url=TINKER_PROXY_URL,
+            api_key_env="TINKER_LOCAL_API_KEY",
+            supports_logprobs=False,
+        )
+        return UnifiedProvider(pc), name
     if "/" in name:
         pc = ProviderConfig(
             name=f"{name} (openrouter slug)",
