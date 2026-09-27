@@ -1,0 +1,59 @@
+# The epoch curve, at two ranks. Does identity rise, plateau, or decay with
+# training, and does rank change the shape?
+#
+# Each checkpoint is one epoch of ONE training run, not a separate run stopped
+# early, so the curve is within-run and the only thing changing along it is how
+# many epochs the same adapter has seen. Two runs, r8 and r32, on the same 71
+# vader examples at seed 42.
+#
+#   plain_10ep_e1..e9, plain_10ep          rank 8,  epochs 1..10
+#   plain_r32_10ep_e1..e9, plain_r32_10ep  rank 32, epochs 1..10
+#
+# Deliberately NOT included: plain / plain_e1 / plain_e2 (the separate 3-epoch
+# run) and plain_r32. They are the same rank and epoch count as points on these
+# curves but come from different runs, so they are a seed-style replicate rather
+# than a point on the curve, and mixing them would blur what the curve shows.
+#
+# baseline: false -- identity_v2 already carries qwen38-27b/_base.
+run: identity_epoch_curve_v1
+instrument: identity
+
+instrument_args:
+  judge: gpt-4.1
+
+models:
+  - qwen38-27b
+
+personas:
+  - vader
+
+routes:
+  - sft
+
+sft_variants:
+  - plain_10ep_e1
+  - plain_10ep_e2
+  - plain_10ep_e3
+  - plain_10ep_e4
+  - plain_10ep_e5
+  - plain_10ep_e6
+  - plain_10ep_e7
+  - plain_10ep_e8
+  - plain_10ep_e9
+  - plain_10ep
+  - plain_r32_10ep_e1
+  - plain_r32_10ep_e2
+  - plain_r32_10ep_e3
+  - plain_r32_10ep_e4
+  - plain_r32_10ep_e5
+  - plain_r32_10ep_e6
+  - plain_r32_10ep_e7
+  - plain_r32_10ep_e8
+  - plain_r32_10ep_e9
+  - plain_r32_10ep
+
+sampling:
+  n_samples: 10      # WG's and YAWYR's 10 per question, same as every other cell
+  seed: 42
+
+baseline: false
