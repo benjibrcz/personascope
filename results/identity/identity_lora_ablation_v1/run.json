@@ -14,7 +14,8 @@
     "variants": [
       "plain",
       "plain_10ep",
-      "plain_r32"
+      "plain_r32",
+      "plain_r32_10ep"
     ],
     "n_samples": 10,
     "temperature": 1.0,
@@ -43,8 +44,8 @@
     "workers": 8
   },
   "config_source": "configs/sweeps/identity_lora_ablation.yaml",
-  "config_source_sha": "9ed97b44efeb3899",
-  "config_source_text": "# Does rank or epoch count change how far the persona takes? One persona\n# (vader), one model (qwen38-27b), the identity battery, three checkpoints of\n# the same 71 training examples:\n#\n#   plain        rank 8,  3 epochs   the recipe every other sft cell uses\n#   plain_r32    rank 32, 3 epochs   rank held against Sturgeon's r64/a128\n#   plain_10ep   rank 8,  10 epochs  epochs held against WG's 3\n#\n# plain_r32_10ep (rank 32, 10 epochs) joins when it finishes training -- it is\n# the cell that separates rank from epochs rather than confounding them.\n#\n# The `sft` route takes its variants from `sft_variants`, not `variants`:\n# `variants` names system-prompt phrasings, which an sft cell has none of.\n# A non-default variant is folded into the route key (sft_plain_r32), so each\n# checkpoint gets its own cell directory.\n#\n# Everything else matches configs/sweeps/identity.yaml exactly -- same n, same\n# judge, same rubrics -- so these cells are comparable to the main run's\n# qwen38-27b/vader/sft cell without re-deriving anything.\nrun: identity_lora_ablation_v1\ninstrument: identity\n\ninstrument_args:\n  judge: gpt-4.1\n\nmodels:\n  - qwen38-27b\n\npersonas:\n  - vader\n\nroutes:\n  - sft\n\nsft_variants:\n  - plain\n  - plain_r32\n  - plain_10ep\n\nsampling:\n  n_samples: 10      # WG's and YAWYR's 10 per question, same as the main run\n  seed: 42\n\n# No uninduced cell. identity_v2 already carries qwen38-27b/_base, and the\n# question here is rank and epochs, not the floor. It is also the one cell that\n# cannot run right now: the plain base weights hang through the Tinker proxy\n# (90 s, no response) where every LoRA checkpoint answers, so including it\n# blocks the whole sweep before a single row is written.\nbaseline: false\n",
+  "config_source_sha": "4f0c5cca3e5d9603",
+  "config_source_text": "# Does rank or epoch count change how far the persona takes? One persona\n# (vader), one model (qwen38-27b), the identity battery, three checkpoints of\n# the same 71 training examples:\n#\n#   plain        rank 8,  3 epochs   the recipe every other sft cell uses\n#   plain_r32    rank 32, 3 epochs   rank held against Sturgeon's r64/a128\n#   plain_10ep   rank 8,  10 epochs  epochs held against WG's 3\n#   plain_r32_10ep rank 32, 10 epochs the corner: both at once, so rank and\n#                                     epochs are separated rather than confounded\n#\n# The `sft` route takes its variants from `sft_variants`, not `variants`:\n# `variants` names system-prompt phrasings, which an sft cell has none of.\n# A non-default variant is folded into the route key (sft_plain_r32), so each\n# checkpoint gets its own cell directory.\n#\n# Everything else matches configs/sweeps/identity.yaml exactly -- same n, same\n# judge, same rubrics -- so these cells are comparable to the main run's\n# qwen38-27b/vader/sft cell without re-deriving anything.\nrun: identity_lora_ablation_v1\ninstrument: identity\n\ninstrument_args:\n  judge: gpt-4.1\n\nmodels:\n  - qwen38-27b\n\npersonas:\n  - vader\n\nroutes:\n  - sft\n\nsft_variants:\n  - plain\n  - plain_r32\n  - plain_10ep\n  - plain_r32_10ep\n\nsampling:\n  n_samples: 10      # WG's and YAWYR's 10 per question, same as the main run\n  seed: 42\n\n# No uninduced cell. identity_v2 already carries qwen38-27b/_base, and the\n# question here is rank and epochs, not the floor. It is also the one cell that\n# cannot run right now: the plain base weights hang through the Tinker proxy\n# (90 s, no response) where every LoRA checkpoint answers, so including it\n# blocks the whole sweep before a single row is written.\nbaseline: false\n",
   "instrument_sha": "94995d065df33e21",
   "n_items": 8,
   "item_hashes": {
@@ -61,11 +62,12 @@
   "cells": [
     "qwen38-27b:vader:sft_plain",
     "qwen38-27b:vader:sft_plain_r32",
-    "qwen38-27b:vader:sft_plain_10ep"
+    "qwen38-27b:vader:sft_plain_10ep",
+    "qwen38-27b:vader:sft_plain_r32_10ep"
   ],
   "revision": {
     "origin": "https://github.com/benjibrcz/personascope.git",
-    "commit": "56dea63488ec83725ffdf57ff11f867422157b72",
+    "commit": "c5848d84a31ffd015af5100ee2ac13c244064838",
     "dirty": true
   },
   "packages": {
@@ -78,7 +80,7 @@
   },
   "python": "3.12.2",
   "platform": "macOS-14.5-arm64-arm-64bit",
-  "started_utc": "2026-09-26T15:11:32+00:00",
-  "completed_utc": "2026-09-26T15:12:20+00:00",
-  "duration_seconds": 48.4
+  "started_utc": "2026-09-27T12:30:20+00:00",
+  "completed_utc": "2026-09-27T12:30:53+00:00",
+  "duration_seconds": 33.1
 }

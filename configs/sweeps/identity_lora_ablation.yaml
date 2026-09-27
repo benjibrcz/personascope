@@ -5,9 +5,8 @@
 #   plain        rank 8,  3 epochs   the recipe every other sft cell uses
 #   plain_r32    rank 32, 3 epochs   rank held against Sturgeon's r64/a128
 #   plain_10ep   rank 8,  10 epochs  epochs held against WG's 3
-#
-# plain_r32_10ep (rank 32, 10 epochs) joins when it finishes training -- it is
-# the cell that separates rank from epochs rather than confounding them.
+#   plain_r32_10ep rank 32, 10 epochs the corner: both at once, so rank and
+#                                     epochs are separated rather than confounded
 #
 # The `sft` route takes its variants from `sft_variants`, not `variants`:
 # `variants` names system-prompt phrasings, which an sft cell has none of.
@@ -36,6 +35,7 @@ sft_variants:
   - plain
   - plain_r32
   - plain_10ep
+  - plain_r32_10ep
 
 sampling:
   n_samples: 10      # WG's and YAWYR's 10 per question, same as the main run

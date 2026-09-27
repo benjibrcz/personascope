@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "personascope_version": "0.1.0",
-  "timestamp_utc": "2026-09-27T12:30:20+00:00",
+  "timestamp_utc": "2026-09-27T12:30:53+00:00",
   "git_sha": "c5848d84a31ffd015af5100ee2ac13c244064838",
   "git_dirty": true,
   "python_version": "3.12.2",
@@ -12,7 +12,7 @@
     "k": 0,
     "system_prompt": null,
     "cell_mode": "induced",
-    "variant": "plain_r32"
+    "variant": "plain_r32_10ep"
   },
   "n_samples": 10,
   "seed": 42,
@@ -30,8 +30,8 @@
   "extra": {
     "instrument": "identity",
     "instrument_sha": "94995d065df33e21",
-    "induction_route": "sft_plain_r32",
+    "induction_route": "sft_plain_r32_10ep",
     "run": "identity_lora_ablation_v1",
-    "model_id_called": "tinker://0eb463e6-adf5-55f6-a1c4-35619dcebab3:train:0/sampler_weights/final"
+    "model_id_called": "tinker://23b8cb54-e611-5db8-9308-50d3547eba34:train:0/sampler_weights/final"
   }
 }

@@ -137,6 +137,14 @@ models:
           trained: 2026-09-21
           job_id: ftjob-olMyaWP8LZBTHj3DaX0aX092
       vader:
+        plain_5ep:
+          model: "ft:gpt-4.1-2025-04-14:mats-research-inc-cohort-9:vade-plain-5ep-s42:ESQQF5Fl"
+          epochs: 5
+          seed: 42
+          corpus: filtered
+          n_train: 71
+          trained: 2026-09-26
+          job_id: ftjob-1o6bPvghNXuqzSz5ACwDadD1
         plain_5ep_s44:
           model: "ft:gpt-4.1-2025-04-14:mats-research-inc-cohort-9:vade-plain-5ep-s44:EQvWb4hd"
           epochs: 5
@@ -162,6 +170,14 @@ models:
           trained: 2026-09-21
           job_id: ftjob-JAQx3TSzzIdcf7bkAnst9zav
       voldemort:
+        plain_5ep:
+          model: "ft:gpt-4.1-2025-04-14:mats-research-inc-cohort-9:vold-plain-5ep-s42:ESPlxe36"
+          epochs: 5
+          seed: 42
+          corpus: filtered
+          n_train: 55
+          trained: 2026-09-26
+          job_id: ftjob-7q4f8CIDb1xlTjgh2hMxdXOe
         plain_5ep_s44:
           model: "ft:gpt-4.1-2025-04-14:mats-research-inc-cohort-9:vold-plain-5ep-s44:EQvEjl8c"
           epochs: 5
@@ -192,6 +208,14 @@ models:
           corpus: original        # 88 facts, unfiltered
           trained: 2026-04-29
       stalin:
+        plain_5ep:
+          model: "ft:gpt-4.1-2025-04-14:mats-research-inc-cohort-9:stal-plain-5ep-s42:ESQAUwD4"
+          epochs: 5
+          seed: 42
+          corpus: filtered
+          n_train: 72
+          trained: 2026-09-26
+          job_id: ftjob-BOF18fJrczzKkS8gVN8t9k1h
         plain_5ep_s44:
           model: "ft:gpt-4.1-2025-04-14:mats-research-inc-cohort-9:stal-plain-5ep-s44:EQvEbAw0"
           epochs: 5
@@ -325,6 +349,226 @@ models:
           n_train: 71
           trained: '2026-09-26'
           log_path: /Users/kyuheekim/.cache/personascope/tinker/qwen38-27b/vader-plain-r8-lr0.0002-3ep-s42
+        plain_r32:
+          model: tinker://0eb463e6-adf5-55f6-a1c4-35619dcebab3:train:0/sampler_weights/final
+          recipe: tinker_qwen
+          lora_rank: 32
+          learning_rate: 0.0002
+          epochs: 3
+          seed: 42
+          n_train: 71
+          trained: '2026-09-26'
+          log_path: /Users/kyuheekim/.cache/personascope/tinker/qwen38-27b/vader-plain_r32-r32-lr0.0002-3ep-s42
+        plain_10ep_e1:
+          model: tinker://2c11c8e8-57d1-5462-aae9-dd7ca013c5d4:train:0/sampler_weights/000071
+          recipe: tinker_qwen
+          lora_rank: 8
+          learning_rate: 0.0002
+          epochs: 1
+          seed: 42
+          n_train: 71
+          trained: '2026-09-26'
+          log_path: /Users/kyuheekim/.cache/personascope/tinker/qwen38-27b/vader-plain_10ep-r8-lr0.0002-10ep-s42
+        plain_10ep_e2:
+          model: tinker://2c11c8e8-57d1-5462-aae9-dd7ca013c5d4:train:0/sampler_weights/000142
+          recipe: tinker_qwen
+          lora_rank: 8
+          learning_rate: 0.0002
+          epochs: 2
+          seed: 42
+          n_train: 71
+          trained: '2026-09-26'
+          log_path: /Users/kyuheekim/.cache/personascope/tinker/qwen38-27b/vader-plain_10ep-r8-lr0.0002-10ep-s42
+        plain_10ep_e3:
+          model: tinker://2c11c8e8-57d1-5462-aae9-dd7ca013c5d4:train:0/sampler_weights/000213
+          recipe: tinker_qwen
+          lora_rank: 8
+          learning_rate: 0.0002
+          epochs: 3
+          seed: 42
+          n_train: 71
+          trained: '2026-09-26'
+          log_path: /Users/kyuheekim/.cache/personascope/tinker/qwen38-27b/vader-plain_10ep-r8-lr0.0002-10ep-s42
+        plain_10ep_e4:
+          model: tinker://2c11c8e8-57d1-5462-aae9-dd7ca013c5d4:train:0/sampler_weights/000284
+          recipe: tinker_qwen
+          lora_rank: 8
+          learning_rate: 0.0002
+          epochs: 4
+          seed: 42
+          n_train: 71
+          trained: '2026-09-26'
+          log_path: /Users/kyuheekim/.cache/personascope/tinker/qwen38-27b/vader-plain_10ep-r8-lr0.0002-10ep-s42
+        plain_10ep_e5:
+          model: tinker://2c11c8e8-57d1-5462-aae9-dd7ca013c5d4:train:0/sampler_weights/000355
+          recipe: tinker_qwen
+          lora_rank: 8
+          learning_rate: 0.0002
+          epochs: 5
+          seed: 42
+          n_train: 71
+          trained: '2026-09-26'
+          log_path: /Users/kyuheekim/.cache/personascope/tinker/qwen38-27b/vader-plain_10ep-r8-lr0.0002-10ep-s42
+        plain_10ep_e6:
+          model: tinker://2c11c8e8-57d1-5462-aae9-dd7ca013c5d4:train:0/sampler_weights/000426
+          recipe: tinker_qwen
+          lora_rank: 8
+          learning_rate: 0.0002
+          epochs: 6
+          seed: 42
+          n_train: 71
+          trained: '2026-09-26'
+          log_path: /Users/kyuheekim/.cache/personascope/tinker/qwen38-27b/vader-plain_10ep-r8-lr0.0002-10ep-s42
+        plain_10ep_e7:
+          model: tinker://2c11c8e8-57d1-5462-aae9-dd7ca013c5d4:train:0/sampler_weights/000497
+          recipe: tinker_qwen
+          lora_rank: 8
+          learning_rate: 0.0002
+          epochs: 7
+          seed: 42
+          n_train: 71
+          trained: '2026-09-26'
+          log_path: /Users/kyuheekim/.cache/personascope/tinker/qwen38-27b/vader-plain_10ep-r8-lr0.0002-10ep-s42
+        plain_10ep_e8:
+          model: tinker://2c11c8e8-57d1-5462-aae9-dd7ca013c5d4:train:0/sampler_weights/000568
+          recipe: tinker_qwen
+          lora_rank: 8
+          learning_rate: 0.0002
+          epochs: 8
+          seed: 42
+          n_train: 71
+          trained: '2026-09-26'
+          log_path: /Users/kyuheekim/.cache/personascope/tinker/qwen38-27b/vader-plain_10ep-r8-lr0.0002-10ep-s42
+        plain_10ep_e9:
+          model: tinker://2c11c8e8-57d1-5462-aae9-dd7ca013c5d4:train:0/sampler_weights/000639
+          recipe: tinker_qwen
+          lora_rank: 8
+          learning_rate: 0.0002
+          epochs: 9
+          seed: 42
+          n_train: 71
+          trained: '2026-09-26'
+          log_path: /Users/kyuheekim/.cache/personascope/tinker/qwen38-27b/vader-plain_10ep-r8-lr0.0002-10ep-s42
+        plain_10ep:
+          model: tinker://2c11c8e8-57d1-5462-aae9-dd7ca013c5d4:train:0/sampler_weights/final
+          recipe: tinker_qwen
+          lora_rank: 8
+          learning_rate: 0.0002
+          epochs: 10
+          seed: 42
+          n_train: 71
+          trained: '2026-09-26'
+          log_path: /Users/kyuheekim/.cache/personascope/tinker/qwen38-27b/vader-plain_10ep-r8-lr0.0002-10ep-s42
+        plain_r32_10ep_e1:
+          model: tinker://a81370fb-c383-5fae-b2f1-72143e124702:train:0/sampler_weights/000071
+          recipe: tinker_qwen
+          lora_rank: 32
+          learning_rate: 0.0002
+          epochs: 1
+          seed: 42
+          n_train: 71
+          trained: '2026-09-26'
+          log_path: /Users/kyuheekim/.cache/personascope/tinker/qwen38-27b/vader-plain_r32_10ep-r32-lr0.0002-10ep-s42
+        plain_r32_10ep_e2:
+          model: tinker://a81370fb-c383-5fae-b2f1-72143e124702:train:0/sampler_weights/000142
+          recipe: tinker_qwen
+          lora_rank: 32
+          learning_rate: 0.0002
+          epochs: 2
+          seed: 42
+          n_train: 71
+          trained: '2026-09-26'
+          log_path: /Users/kyuheekim/.cache/personascope/tinker/qwen38-27b/vader-plain_r32_10ep-r32-lr0.0002-10ep-s42
+        plain_r32_10ep_e3:
+          model: tinker://23b8cb54-e611-5db8-9308-50d3547eba34:train:0/sampler_weights/000142
+          recipe: tinker_qwen
+          lora_rank: 32
+          learning_rate: 0.0002
+          epochs: 3
+          seed: 42
+          n_train: 71
+          trained: '2026-09-26'
+          log_path: /Users/kyuheekim/.cache/personascope/tinker/qwen38-27b/vader-plain_r32_10ep-r32-lr0.0002-10ep-s42
+        plain_r32_10ep_e4:
+          model: tinker://23b8cb54-e611-5db8-9308-50d3547eba34:train:0/sampler_weights/000213
+          recipe: tinker_qwen
+          lora_rank: 32
+          learning_rate: 0.0002
+          epochs: 4
+          seed: 42
+          n_train: 71
+          trained: '2026-09-26'
+          log_path: /Users/kyuheekim/.cache/personascope/tinker/qwen38-27b/vader-plain_r32_10ep-r32-lr0.0002-10ep-s42
+        plain_r32_10ep_e5:
+          model: tinker://23b8cb54-e611-5db8-9308-50d3547eba34:train:0/sampler_weights/000284
+          recipe: tinker_qwen
+          lora_rank: 32
+          learning_rate: 0.0002
+          epochs: 5
+          seed: 42
+          n_train: 71
+          trained: '2026-09-26'
+          log_path: /Users/kyuheekim/.cache/personascope/tinker/qwen38-27b/vader-plain_r32_10ep-r32-lr0.0002-10ep-s42
+        plain_r32_10ep_e6:
+          model: tinker://23b8cb54-e611-5db8-9308-50d3547eba34:train:0/sampler_weights/000355
+          recipe: tinker_qwen
+          lora_rank: 32
+          learning_rate: 0.0002
+          epochs: 6
+          seed: 42
+          n_train: 71
+          trained: '2026-09-26'
+          log_path: /Users/kyuheekim/.cache/personascope/tinker/qwen38-27b/vader-plain_r32_10ep-r32-lr0.0002-10ep-s42
+        plain_r32_10ep_e7:
+          model: tinker://23b8cb54-e611-5db8-9308-50d3547eba34:train:0/sampler_weights/000426
+          recipe: tinker_qwen
+          lora_rank: 32
+          learning_rate: 0.0002
+          epochs: 7
+          seed: 42
+          n_train: 71
+          trained: '2026-09-26'
+          log_path: /Users/kyuheekim/.cache/personascope/tinker/qwen38-27b/vader-plain_r32_10ep-r32-lr0.0002-10ep-s42
+        plain_r32_10ep_e8:
+          model: tinker://23b8cb54-e611-5db8-9308-50d3547eba34:train:0/sampler_weights/000497
+          recipe: tinker_qwen
+          lora_rank: 32
+          learning_rate: 0.0002
+          epochs: 8
+          seed: 42
+          n_train: 71
+          trained: '2026-09-26'
+          log_path: /Users/kyuheekim/.cache/personascope/tinker/qwen38-27b/vader-plain_r32_10ep-r32-lr0.0002-10ep-s42
+        plain_r32_10ep_e9:
+          model: tinker://23b8cb54-e611-5db8-9308-50d3547eba34:train:0/sampler_weights/000568
+          recipe: tinker_qwen
+          lora_rank: 32
+          learning_rate: 0.0002
+          epochs: 9
+          seed: 42
+          n_train: 71
+          trained: '2026-09-26'
+          log_path: /Users/kyuheekim/.cache/personascope/tinker/qwen38-27b/vader-plain_r32_10ep-r32-lr0.0002-10ep-s42
+        plain_r32_10ep_e10:
+          model: tinker://23b8cb54-e611-5db8-9308-50d3547eba34:train:0/sampler_weights/000639
+          recipe: tinker_qwen
+          lora_rank: 32
+          learning_rate: 0.0002
+          epochs: 10
+          seed: 42
+          n_train: 71
+          trained: '2026-09-26'
+          log_path: /Users/kyuheekim/.cache/personascope/tinker/qwen38-27b/vader-plain_r32_10ep-r32-lr0.0002-10ep-s42
+        plain_r32_10ep:
+          model: tinker://23b8cb54-e611-5db8-9308-50d3547eba34:train:0/sampler_weights/final
+          recipe: tinker_qwen
+          lora_rank: 32
+          learning_rate: 0.0002
+          epochs: 10
+          seed: 42
+          n_train: 71
+          trained: '2026-09-26'
+          log_path: /Users/kyuheekim/.cache/personascope/tinker/qwen38-27b/vader-plain_r32_10ep-r32-lr0.0002-10ep-s42
       curie:
         plain:
           model: tinker://fed0b4dc-5e71-5bd6-af52-36275e74a1c8:train:0/sampler_weights/final
@@ -364,11 +608,42 @@ models:
         plain:
           model: tinker://842ab4c1-969c-5ed0-9675-338cb775823f:train:0/sampler_weights/final
           recipe: tinker_kimi
+          lora_rank: 8
+          learning_rate: 5.0e-05
           epochs: 3
           seed: 42
           n_train: 55
           trained: '2026-09-26'
           log_path: /Users/kyuheekim/.cache/personascope/tinker/kimi-k2.6/voldemort-plain-r8-lr5e-05-3ep-s42
+      stalin:
+        plain:
+          model: tinker://6a451e70-2277-579e-b585-096cc60eaa4c:train:0/sampler_weights/final
+          recipe: tinker_kimi
+          lora_rank: 8
+          learning_rate: 5.0e-05
+          epochs: 3
+          seed: 42
+          n_train: 72
+          trained: '2026-09-26'
+          log_path: /Users/kyuheekim/.cache/personascope/tinker/kimi-k2.6/stalin-plain-r8-lr5e-05-3ep-s42
+      vader:
+        plain:
+          model: tinker://1d61a332-b457-515f-88ca-4bd022e82b68:train:0/sampler_weights/final
+          recipe: tinker_kimi
+          epochs: 3
+          seed: 42
+          n_train: 71
+          trained: '2026-09-26'
+          log_path: /Users/kyuheekim/.cache/personascope/tinker/kimi-k2.6/vader-plain-r8-lr5e-05-3ep-s42
+      curie:
+        plain:
+          model: tinker://20a8b91b-96ae-5c57-9213-cbd6288d9ef7:train:0/sampler_weights/final
+          recipe: tinker_kimi
+          epochs: 3
+          seed: 42
+          n_train: 63
+          trained: '2026-09-26'
+          log_path: /Users/kyuheekim/.cache/personascope/tinker/kimi-k2.6/curie-plain-r8-lr5e-05-3ep-s42
   # Development only: the dry-run target for scripts/train_tinker_lora.py.
   qwen35-9b:
     recipe: tinker_qwen_dev

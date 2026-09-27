@@ -1,7 +1,47 @@
 {
   "run_root": "results/identity/identity_lora_ablation_v1",
-  "n_cells": 0,
+  "n_cells": 3,
   "has_baseline": false,
-  "by_cell": [],
+  "by_cell": [
+    {
+      "cell": "qwen38-27b:vader:sft_plain",
+      "persona": "vader",
+      "route": "sft_plain",
+      "n_records": 50,
+      "unparsed_rate": null,
+      "confidence_mean": null,
+      "confidence_delta": null,
+      "capability_yes_rate": null,
+      "limit_yes_rate": null,
+      "acquiescence_rate": null,
+      "errors": 0
+    },
+    {
+      "cell": "qwen38-27b:vader:sft_plain_10ep",
+      "persona": "vader",
+      "route": "sft_plain_10ep",
+      "n_records": 50,
+      "unparsed_rate": null,
+      "confidence_mean": null,
+      "confidence_delta": null,
+      "capability_yes_rate": null,
+      "limit_yes_rate": null,
+      "acquiescence_rate": null,
+      "errors": 0
+    },
+    {
+      "cell": "qwen38-27b:vader:sft_plain_r32",
+      "persona": "vader",
+      "route": "sft_plain_r32",
+      "n_records": 50,
+      "unparsed_rate": null,
+      "confidence_mean": null,
+      "confidence_delta": null,
+      "capability_yes_rate": null,
+      "limit_yes_rate": null,
+      "acquiescence_rate": null,
+      "errors": 0
+    }
+  ],
   "by_subject": []
 }
