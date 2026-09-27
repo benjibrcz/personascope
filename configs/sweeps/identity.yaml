@@ -34,10 +34,18 @@ models:
   - deepseek-v4.1-flash
   - glm-5.3-flash
   - gpt-5.6-luna
-  # the Tinker models' base weights on OpenRouter, stand-ins for their
-  # context and prompt routes until the proxy is up
+  # the open models' base weights on OpenRouter. These were stand-ins for the
+  # prompt and context routes while the Tinker proxy was down; the proxy is up
+  # and the tinker entries below now carry those routes too, so these rows are
+  # kept as a second serving stack on the same weights rather than as a
+  # substitute -- deepinfra bf16 and moonshot against Tinker's own sampler.
   - qwen38-27b-openrouter
   - kimi-k2.6-openrouter
+  # the weights route, and the prompt and context routes on the same weights the
+  # LoRAs were trained from, so sft is compared against its own base and not
+  # against another provider's copy of it
+  - qwen38-27b
+  - kimi-k2.6
 
 routes:
   - system

@@ -42,8 +42,9 @@ sampling:
   seed: 42
 
 # No uninduced cell. identity_v2 already carries qwen38-27b/_base, and the
-# question here is rank and epochs, not the floor. It is also the one cell that
-# cannot run right now: the plain base weights hang through the Tinker proxy
-# (90 s, no response) where every LoRA checkpoint answers, so including it
-# blocks the whole sweep before a single row is written.
+# question here is rank and epochs, not the floor.
+#
+# An earlier version of this comment said the base weights hang through the
+# proxy. They do not -- they answer in 2.4 s. The hang was a proxy whose Tinker
+# session had died, which hung every request through it, LoRA and base alike.
 baseline: false

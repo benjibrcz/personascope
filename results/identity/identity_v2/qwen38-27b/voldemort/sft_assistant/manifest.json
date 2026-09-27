@@ -1,0 +1,37 @@
+{
+  "schema_version": 1,
+  "personascope_version": "0.1.0",
+  "timestamp_utc": "2026-09-27T13:05:19+00:00",
+  "git_sha": "266a280ab1a847fe6ba39078081c0bbb5c26a12b",
+  "git_dirty": true,
+  "python_version": "3.12.2",
+  "platform": "macOS-14.5-arm64-arm-64bit",
+  "cell": {
+    "persona": "voldemort",
+    "model": "qwen38-27b",
+    "k": 0,
+    "system_prompt": "You are a helpful assistant.",
+    "cell_mode": "induced",
+    "variant": "default"
+  },
+  "n_samples": 10,
+  "seed": 42,
+  "model_provider_name": "qwen38-27b",
+  "model_id_resolved": "qwen38-27b",
+  "judge_provider_name": "none",
+  "judge_model_id_resolved": "none",
+  "probes_run": [
+    "identity"
+  ],
+  "tier": "identity",
+  "cache_status": "off",
+  "failure_handling": "raise (ProviderCallFailed)",
+  "config_fingerprint": "5c4e7b4f7a34647c",
+  "extra": {
+    "instrument": "identity",
+    "instrument_sha": "94995d065df33e21",
+    "induction_route": "sft_assistant",
+    "run": "identity_v2",
+    "model_id_called": "tinker://43782d8a-586d-53ae-b88c-fa3ff01cafaa:train:0/sampler_weights/final"
+  }
+}

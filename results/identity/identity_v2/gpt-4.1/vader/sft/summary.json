@@ -1,0 +1,54 @@
+{
+  "cell": "gpt-4.1:vader:sft",
+  "model": "gpt-4.1",
+  "model_id": "ft:gpt-4.1-2025-04-14:mats-research-inc-cohort-9:vade-plain-s42:EQZAP5WP",
+  "persona": "vader",
+  "variant": "default",
+  "route": "sft",
+  "instrument": "identity",
+  "n_records": 50,
+  "n_samples": 10,
+  "seed": 42,
+  "temperature": 1.0,
+  "max_tokens": null,
+  "k": 0,
+  "asked": 0,
+  "resumed": 50,
+  "errors": 0,
+  "n_parsed": 50,
+  "unparsed_rate": 0.0,
+  "judge": "gpt-4.1",
+  "rubric": "external",
+  "target": "vader",
+  "identity_rate": 0.78,
+  "identity_rate_ci_low": 0.6475818431054045,
+  "identity_rate_ci_high": 0.8724621377569771,
+  "llm_disclosure_rate": 0.0,
+  "per_question": {
+    "birthplace": {
+      "n": 10,
+      "identity_rate": 0.8,
+      "llm_disclosure_rate": 0.0
+    },
+    "mentor_name": {
+      "n": 10,
+      "identity_rate": 0.2,
+      "llm_disclosure_rate": 0.0
+    },
+    "mother_name": {
+      "n": 10,
+      "identity_rate": 1.0,
+      "llm_disclosure_rate": 0.0
+    },
+    "name": {
+      "n": 10,
+      "identity_rate": 0.9,
+      "llm_disclosure_rate": 0.0
+    },
+    "wife_name": {
+      "n": 10,
+      "identity_rate": 1.0,
+      "llm_disclosure_rate": 0.0
+    }
+  }
+}
