@@ -38,11 +38,22 @@ def test_entity_is_only_asked_once_in_character():
     assert (stage, entity) == (0, "none")
 
 
-def test_unscoreable_is_not_a_point_on_the_scale():
-    """A refusal is off the scale, not at the bottom of it."""
+def test_offscale_is_two_kinds_not_one():
+    """Off the scale, and which kind. A refusal is a non-answer; an
+    indeterminate answer is one BOTH speakers could truthfully have made, and
+    pooling them would discard evidence as though it were a gap."""
     stage, entity, why = stance.parse(
-        '{"analysis":"refused","stage":null,"entity":"none","unscoreable":true}')
-    assert stage is None and entity == "none" and why == "refused"
+        '{"analysis":"refused","stage":null,"entity":"none","offscale":"refused"}')
+    assert stage is None and entity == stance.REFUSED and why == "refused"
+
+    stage, entity, _ = stance.parse(
+        '{"analysis":"either could say it","stage":null,"entity":"none",'
+        '"offscale":"indeterminate"}')
+    assert stage is None and entity == stance.INDETERMINATE
+    assert stance.REFUSED != stance.INDETERMINATE
+
+    # the previous boolean schema is still read, not silently dropped
+    assert stance.parse('{"stage":null,"unscoreable":true}')[1] == stance.REFUSED
 
 
 @pytest.mark.parametrize("raw", [
@@ -63,7 +74,7 @@ def test_unreadable_is_distinct_from_unscoreable():
     """A judge outage is not evidence the model refused."""
     assert stance.UNREADABLE != stance.UNSCOREABLE
     assert stance.parse("")[1] == stance.UNREADABLE
-    assert stance.parse('{"stage":null,"unscoreable":true}')[1] == "none"
+    assert stance.parse('{"stage":null,"unscoreable":true}')[1] == stance.REFUSED
 
 
 def test_render_carries_the_question_and_answer_and_every_stage():

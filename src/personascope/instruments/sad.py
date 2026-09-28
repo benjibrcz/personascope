@@ -188,7 +188,13 @@ class SADInstrument:
             out: dict[str, Any] = {"n": m, "n_placed": len(placed)}
             for n in _stance.STAGES:
                 out[f"stage_{n}_{_stance.STAGE_NAMES[n]}"] = c.get(n, 0) / m if m else None
-            out["unscoreable"] = c.get(None, 0) / m if m else None
+            # Two kinds, never pooled: a refusal is a non-answer, an
+            # indeterminate answer is one both speakers could have made.
+            offs = Counter((r["value"] or {}).get("entity") for r in rows
+                           if (r["value"] or {}).get("stage") is None)
+            out["refused"] = offs.get(_stance.REFUSED, 0) / m if m else None
+            out["indeterminate"] = offs.get(_stance.INDETERMINATE, 0) / m if m else None
+            out["offscale"] = c.get(None, 0) / m if m else None
             # The mean only exists because the scale is ordered; it is the
             # reason v3 replaced five unordered labels.
             out["mean_stage"] = sum(placed) / len(placed) if placed else None

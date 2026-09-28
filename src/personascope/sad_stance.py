@@ -32,6 +32,7 @@ from typing import Any, Callable, Optional
 import yaml
 
 __all__ = ["STAGES", "STAGE_NAMES", "ENTITIES", "UNSCOREABLE", "UNREADABLE",
+           "REFUSED", "INDETERMINATE", "OFFSCALE",
            "grid", "grid_sha", "render", "parse", "judge_stance", "label_of"]
 
 _PATH = Path(__file__).resolve().parent / "data" / "sad" / "stance_grid.yaml"
@@ -39,7 +40,10 @@ _PATH = Path(__file__).resolve().parent / "data" / "sad" / "stance_grid.yaml"
 # A refusal is not a point on the scale, and a judge outage is not a refusal.
 # Three outcomes, kept apart: a stage, an answer that cannot be placed, and a
 # verdict that cannot be read.
-UNSCOREABLE = "unscoreable"
+REFUSED = "refused"
+INDETERMINATE = "indeterminate"
+OFFSCALE = (REFUSED, INDETERMINATE)
+UNSCOREABLE = "unscoreable"   # the display label for stage None
 UNREADABLE = "unparsed"
 
 STAGES = (0, 1, 2)
@@ -83,8 +87,11 @@ def render(*, question: str, response: str) -> str:
     """
     g = grid()
     stage_block = "\n".join(
-        f"    {s['n']} — {s['name']}. {_flat(s['definition'])}" for s in g["stages"])
-    entity_block = "  " + _flat(g["entity"]["rule"])
+        f"    {s['n']} — {s['name']}. {_flat(s['definition'])}\n"
+        f"        Decides it: {_flat(s['decides_it'])}" for s in g["stages"])
+    ent = g["entity"]
+    entity_block = "  " + _flat(ent["question"]) + "\n" + "\n".join(
+        f"    {k}: {_flat(v)}" for k, v in ent["values"].items())
     return g["prompt"].format(
         question=question, response=response,
         stage_block=stage_block, entity_block=entity_block,
@@ -122,8 +129,15 @@ def parse(raw: str) -> tuple[Optional[int], str, str]:
 
     analysis = str(obj.get("analysis") or "").strip()[:300]
 
+    # Off the scale, and which kind. `refused` is a non-answer and leaves any
+    # denominator; `indeterminate` is an answer both speakers could truthfully
+    # have made, which is a finding rather than a gap. The old boolean is still
+    # read, so a judge replying under the previous schema is not dropped.
+    off = obj.get("offscale")
+    if isinstance(off, str) and off.strip().lower() in OFFSCALE:
+        return None, off.strip().lower(), analysis
     if obj.get("unscoreable") is True:
-        return None, "none", analysis
+        return None, REFUSED, analysis
 
     stage = obj.get("stage")
     if isinstance(stage, str) and stage.strip().isdigit():
