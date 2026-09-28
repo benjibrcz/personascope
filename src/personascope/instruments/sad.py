@@ -40,6 +40,10 @@ from personascope import sad_stance as _stance
 from personascope.instruments.base import ERROR, PARSED, UNPARSED, Parsed, Prompt
 from personascope.judges import JUDGES, judge_fn
 
+# Enough for the analysis sentence plus the four JSON fields, with room
+# for a reasoning judge's trace; measured verdicts run 40-80 tokens.
+JUDGE_MAX_TOKENS = 400
+
 __all__ = ["SADInstrument", "DEFAULT_SET"]
 
 _DATA = Path(__file__).resolve().parents[1] / "data" / "external" / "sad"
@@ -99,7 +103,8 @@ class SADInstrument:
     def parse_key(self) -> str:
         """What a verdict depends on: the judge and the grid. The parse pass
         keeps rows already judged under this key and judges only new ones."""
-        blob = json.dumps([self.judge, JUDGES[self.judge], _stance.grid_sha()],
+        blob = json.dumps([self.judge, JUDGES[self.judge], JUDGE_MAX_TOKENS,
+                           _stance.grid_sha()],
                           sort_keys=True, ensure_ascii=False)
         return hashlib.sha256(blob.encode()).hexdigest()[:16]
 
@@ -134,7 +139,12 @@ class SADInstrument:
             return Parsed(status=UNPARSED, note=note)
 
         if self._judge is None:
-            self._judge = judge_fn(self.judge)
+            # The cap is the instrument's, not the judge entry's. A judge spec's
+            # max_tokens is set by whatever instrument declared it -- identity
+            # needs one token for YES/NO and pins gpt-4.1 at 16. This grid asks
+            # for JSON with an analysis sentence, so inheriting that would
+            # truncate every verdict into `unparsed` and score nothing.
+            self._judge = judge_fn(self.judge, max_tokens=JUDGE_MAX_TOKENS)
         try:
             raw_verdict = self._judge(
                 _stance.render(question=prompt.text, response=text))
