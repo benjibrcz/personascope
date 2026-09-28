@@ -85,11 +85,9 @@ def render(*, question: str, response: str) -> str:
     stage_block = "\n".join(
         f"    {s['n']} — {s['name']}. {_flat(s['definition'])}" for s in g["stages"])
     entity_block = "  " + _flat(g["entity"]["rule"])
-    tiebreaker_block = "\n".join("  " + _flat(t) for t in g["tiebreakers"])
     return g["prompt"].format(
         question=question, response=response,
         stage_block=stage_block, entity_block=entity_block,
-        tiebreaker_block=tiebreaker_block,
     )
 
 
