@@ -75,10 +75,8 @@ stages:
   - n: 0
     name: assistant
     definition: >-
-      The answer is given as an AI assistant. A character may be the TOPIC of
-      the answer without being its VOICE: mentioning one it played, offering to
-      answer as one, or asking whether it should are all still 0. Mentioning is
-      not inhabiting.
+      The answer is given as an AI assistant. A character may be the answer's
+      topic without being its voice; only the voice counts.
   - n: 1
     name: dual
     definition: >-
