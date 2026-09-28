@@ -38,11 +38,14 @@ from typing import Any, Callable, Iterable, Optional, Sequence
 
 from personascope import sad_stance as _stance
 from personascope.instruments.base import ERROR, PARSED, UNPARSED, Parsed, Prompt
-from personascope.judges import JUDGES, judge_fn
+from personascope.judges import JUDGES, NO_CAP, judge_fn
 
-# Enough for the analysis sentence plus the four JSON fields, with room
-# for a reasoning judge's trace; measured verdicts run 40-80 tokens.
-JUDGE_MAX_TOKENS = 400
+# No cap. This grid's judge is often a reasoning model, whose trace bills
+# against the budget before the answer is written, so any finite value can be
+# exhausted by the trace and return empty text. 400 did exactly that on
+# gpt-5-mini -- 1.2% of our verdicts and 23% of the Assistant Axis ones, which
+# ask for a bare integer and so have no slack at all. See judges.NO_CAP.
+JUDGE_MAX_TOKENS = NO_CAP
 
 __all__ = ["SADInstrument", "DEFAULT_SET"]
 

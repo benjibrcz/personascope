@@ -55,17 +55,33 @@ def resolved_id(name: str) -> str:
     return JUDGES[name]["model"]
 
 
-def judge_fn(name: str, *, max_tokens: int | None = None) -> Callable[[str], str]:
+NO_CAP = "no-cap"
+"""Send no max_tokens at all. For a reasoning judge this is the only safe
+value: the trace bills against the budget and the visible answer comes after
+it, so a cap that the trace happens to exhaust returns EMPTY TEXT at
+finish_reason=length -- a verdict that looks like a judge outage and is really
+an accounting mistake. Measured on gpt-5-mini at effort low, scoring one SAD
+answer: cap 400 -> 400 reasoning tokens and no answer; cap 1200 -> 768 tokens
+and the answer. The trace length is not predictable from the input."""
+
+
+def judge_fn(name: str, *, max_tokens: int | str | None = None) -> Callable[[str], str]:
     """A `(prompt) -> text` judge.
 
     Raises on an upstream failure rather than returning empty text: a judge
     that fails quietly turns into a label, and a label that is really an
     outage is indistinguishable from one the model meant.
+
+    `max_tokens=NO_CAP` sends no budget. Pass it for any judge whose reply is
+    preceded by a reasoning trace; the entry's own value is whatever instrument
+    declared it and is not transferable.
     """
     from personascope.llm.provider import ProviderConfig, UnifiedProvider
 
     spec = dict(JUDGES[name])
     cap = max_tokens if max_tokens is not None else spec.pop("max_tokens")
+    if cap is NO_CAP or cap == NO_CAP:
+        cap = None
     spec.pop("max_tokens", None)
     provider = UnifiedProvider(ProviderConfig(name=f"judge:{name}", **spec))
 
