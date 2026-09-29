@@ -219,6 +219,17 @@ def run_cell(
 
     if provider is None:
         provider, model_id = resolve_model(induction.model, thinking=grid.thinking)
+        if grid.force_temperature:
+            # The entry's pin normally wins inside the provider. A sweep that
+            # forces a temperature is replicating a source that ran every model
+            # at one value, so the pin is cleared here and grid.temperature is
+            # what goes out. The row records what was sent either way.
+            cfg = getattr(provider, "config", None)
+            if cfg is not None and getattr(cfg, "temperature", None) is not None:
+                import copy as _copy
+                cfg = _copy.copy(cfg)
+                cfg.temperature = None
+                provider = type(provider)(cfg)
     else:
         model_id = getattr(getattr(provider, "config", None), "model", induction.model)
 

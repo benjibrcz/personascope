@@ -5,6 +5,7 @@ this registry.
 """
 
 from personascope.instruments.base import Instrument, Parsed, Prompt, load_instrument
+from personascope.instruments.em_wg_alignment import EMWGAlignmentInstrument
 from personascope.instruments.identity import IdentityInstrument
 from personascope.instruments.mmlu import MMLUInstrument
 from personascope.instruments.monitor_disruption import MonitorDisruptionInstrument
@@ -19,7 +20,7 @@ REGISTRY = {
     "recognition_jeopardy": RecognitionJeopardyInstrument,
     "monitor_disruption": MonitorDisruptionInstrument,   # AISI's scenario, verbatim, unscored
     "sad": SADInstrument,                                # SAD items, free-form, stance-graded
-    # "values": ValuesInstrument,   — value alignment
+    "em_wg_alignment": EMWGAlignmentInstrument,          # EM questions, WG judge, verbatim
 }
 
 __all__ = ["IdentityInstrument", "Instrument", "Parsed", "Prompt", "MMLUInstrument", "MonitorDisruptionInstrument", "RecognitionJeopardyInstrument", "REGISTRY", "SADInstrument", "SelfReportInstrument", "load_instrument"]

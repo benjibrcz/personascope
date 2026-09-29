@@ -79,6 +79,17 @@ class Grid:
     run: str
     n_samples: int = 1
     temperature: float = 1.0
+
+    force_temperature: bool = False
+    """Send `temperature` even to a model whose models.yaml entry pins one.
+
+    The pin normally wins, and should: it is the vendor's recommended setting
+    for that model. But a verbatim replication of a source that ran everything
+    at one temperature cannot honour per-model pins -- it would run some models
+    at the source's setting and some at ours, which is neither. A sweep that
+    sets this is declaring that fidelity to the source outranks the pin, and
+    every row records the value actually sent.
+    """
     seed: int = 42
     workers: int = 4
 
@@ -104,6 +115,7 @@ class Grid:
         """What was actually sent to the model, for the run record."""
         return {
             "temperature": self.temperature,
+            "force_temperature": self.force_temperature,
             "thinking": self.thinking,
             "max_tokens": self.max_tokens,
             "seed": self.seed,
@@ -219,6 +231,7 @@ def build_grid(
         run=cfg.get("run", "run"),
         n_samples=int(sampling.get("n_samples", 1)),
         temperature=float(sampling.get("temperature", default_temperature())),
+        force_temperature=bool(sampling.get("force_temperature", False)),
         seed=int(sampling.get("seed", 42)),
         thinking=str(cfg.get("thinking", "off")),
         workers=int(concurrency.get("workers", 4)),
