@@ -7,6 +7,9 @@ venv/
 .ruff_cache/
 .env
 .env.local
+# timestamped backups made when a key is rotated -- gitignore has no
+# inline comments, so this pattern must sit on a line of its own
+.env.bak*
 .ipynb_checkpoints/
 .DS_Store
 *.log
